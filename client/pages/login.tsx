@@ -21,7 +21,7 @@ export default function Login() {
                     <button className={formStyles.btn_submit} type="submit">Log in</button>
                     <div id={styles.helper_links}>
                         <Link href="/"><a>Forgot password?</a></Link>
-                        <Link href="/register"><a>Don't have an account?</a></Link>
+                        <Link href="/register"><a>Don&apos;t have an account?</a></Link>
                     </div>
                 </form>
             </div>

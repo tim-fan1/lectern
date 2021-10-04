@@ -22,7 +22,7 @@ function Home() {
                     <input type="text" id={styles.input_code} minLength={6} maxLength={6} size={8} placeholder="e.g. 123ABC"
                         value={input} onInput={e => setInput((e.target as HTMLInputElement).value)} required/>
                 </div>
-                <Link href={`/join/${input.toUpperCase()}`}><button id={styles.btn_join} type="submit">Join</button></Link>
+                <Link href={`/join/${input.toUpperCase()}`} passHref><button id={styles.btn_join} type="submit">Join</button></Link>
             </form>
         </div>
     )
