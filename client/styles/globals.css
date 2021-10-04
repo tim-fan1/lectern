@@ -1,0 +1,38 @@
+:root {
+    --c-primary: #7E7CD3;
+    --c-secondary: #6664B4;
+    --c-background: #222330;
+    --c-background-secondary: #333549;
+    --c-grey: #555555;
+    --c-text: #F8F8F8;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    padding: 0;
+    margin: 0;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+        Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+    background-color: var(--c-background);
+    color: var(--c-text);
+}
+
+h1 {
+    font-weight: 500;
+}
+
+a {
+    font-weight: 500;
+    color: var(--c-text);
+    text-decoration: none;
+    transition: all 0.1s;
+    padding-bottom: 0.25rem;
+}
+
+a:hover {
+    color: white;
+}

@@ -1,0 +1,49 @@
+.container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+}
+
+#input_code_container {
+    display: flex;
+}
+
+#input_code_container h1 {
+    margin-right: 1rem;
+}
+
+#input_code {
+    outline: none;
+    border: 3px solid var(--c-grey);
+    background-color: var(--c-background-secondary);
+    color: white;
+    text-align: center;
+    font-size: 2rem;
+    text-transform: uppercase;
+    padding: 1rem 1.5rem;
+    transition: all 0.1s;
+}
+
+#input_code::placeholder {
+    text-transform: none; /* We only want to make the user input uppercase, not the placeholder. */
+    color: var(--c-grey);
+    font-size: 1.5rem;
+}
+
+#input_code:active, #input_code:focus {
+    border: 3px solid var(--c-primary);
+}
+
+#btn_join {
+    cursor: pointer;
+    outline: none;
+    border: none;
+    padding: 0.5rem 2rem;
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-top: 1rem;
+    background-color: var(--c-primary);
+    color: white;
+}
