@@ -6,6 +6,7 @@
     --c-background: #222330;
     --c-background-secondary: #333549;
     --c-grey: #555555;
+    --c-light-grey: #9f9f9f;
     --c-text: #f8f8f8;
 }
 
@@ -28,6 +29,10 @@ h1 {
     font-weight: 500;
 }
 
+h2 {
+    font-weight: 400;
+}
+
 a {
     font-weight: 500;
     color: var(--c-text);
@@ -38,4 +43,11 @@ a {
 
 a:hover {
     color: white;
+}
+
+.centered_container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
 }

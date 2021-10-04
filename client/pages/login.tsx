@@ -7,7 +7,7 @@ export default function Login() {
     return (
         <div>
             <Navigation />
-            <div className={formStyles.form_container}>
+            <div className="centered_container">
                 <h1>Instructor log in</h1>
                 <form className={formStyles.form}>
                     <div className={formStyles.input_container}>

@@ -6,7 +6,7 @@ export default function Register() {
     return (
         <div>
             <Navigation />
-            <div className={formStyles.form_container}>
+            <div className="centered_container">
                 <h1>Register an instructor account</h1>
                 <form className={formStyles.form}>
                     <div className={formStyles.input_container}>

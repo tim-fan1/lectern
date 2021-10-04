@@ -15,7 +15,7 @@ function Home() {
             </Head>
 
             <Navigation />
-            <form className={formStyles.form_container}>
+            <form className="centered_container">
                 <h1>Enter session code</h1>
                 <div id={styles.input_code_container}>
                     <h1>#</h1>
