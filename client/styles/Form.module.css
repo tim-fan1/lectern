@@ -53,7 +53,8 @@
     margin: 1rem 0 2rem 0;
 }
 
-.btn_submit:hover, .btn_submit:focus {
+.btn_submit:hover,
+.btn_submit:focus {
     outline: none;
     color: var(--c-background);
     background-color: var(--c-primary);
