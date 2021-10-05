@@ -1,0 +1,13 @@
+# z5258285 COM3900 Project Diary
+
+## Week 1
+Group formed. Brainstormed ideas. 
+
+## Week 2
+Discussed and researched feasibility of project ideas with the group, and contributed to researching new and novel objectives.
+
+## Week 3
+Idea was finalised. Contributed to user stories, acceptance criteria, and background in the project proposal.
+
+## week 4
+Started sprint one. Wrote an example project with Apollo and Chakra.
