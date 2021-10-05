@@ -1,0 +1,52 @@
+.main_container {
+    display: flex;
+    flex-direction: column;
+    
+}
+
+.no_text_space {
+    margin: 0;
+}
+
+.not_gray {
+    color: #555555
+}
+
+.topfloat {
+    flex-grow: 0;
+    
+}
+
+.topfloat_containeR {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+    width: 100%;
+    /* add a bit of padding from the edge */
+    padding: 2vw;
+}
+
+.qrcode {
+    padding: 10px;
+    background-color: forestgreen;
+}
+
+.center_AlIGn {
+    
+}
+
+.verticle_container {
+    align-items: center;
+    flex-direction: row;
+    display: flex;
+
+}
+
+.verticle_item {
+
+}
+
+.not_grah_border {
+    border: thick double firebrick; 
+}
