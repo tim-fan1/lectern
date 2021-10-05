@@ -55,4 +55,47 @@ export default class UserResolver {
 
         return { user: user };
     }
+
+    @Mutation(() => Response)
+    async login(
+        @Arg("usernameOrEmail") usernameOrEmail: string,
+        @Arg("password") password: string,
+        @Ctx() { req }: Context
+    ): Promise<Response> {
+        const conn = getConnection();
+        const repo = conn.getRepository(User);
+        const user = await repo.findOne(
+            usernameOrEmail.includes("@")
+                ? { where: { email: usernameOrEmail } }
+                : { where: { username: usernameOrEmail } }
+        );
+
+        if (!user) {
+            return {
+                err: [
+                    {
+                        name: "usernameOrEmail",
+                        msg: "Username does not exist.",
+                    },
+                ],
+            };
+        }
+        const valid = await argon2.verify(user.password, password);
+        if (!valid) {
+            return {
+                err: [
+                    {
+                        name: "password",
+                        msg: "Incorrect password.",
+                    },
+                ],
+            };
+        }
+
+        // req.cookies.userId = user.id;
+
+        return {
+            user,
+        };
+    }
 }
