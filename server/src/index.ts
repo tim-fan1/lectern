@@ -1,16 +1,16 @@
-import { getManager } from "typeorm";
-import { createConnection } from "typeorm";
+import path from "path";
+import express, { Request, Response } from "express";
 import { graphqlHTTP } from "express-graphql";
-import express from "express";
-import "reflect-metadata";
 import { buildSchema } from "type-graphql";
-import * as path from "path";
-import HelloResolver from "./resolvers/hello";
-import { InstructorResolver } from "./resolvers/instructor";
-import Instructor from "./entities/Instructor";
-import { Request, Response } from "express";
-import UserResolver from "./resolvers/user";
-import User from "./entities/User";
+import { getManager, createConnection } from "typeorm";
+
+import {
+    HelloResolver,
+    InstructorResolver,
+    UserResolver,
+} from "./resolvers/resolvers";
+
+import { Instructor, User } from "./entities/entities";
 
 async function main() {
     const schema = await buildSchema({

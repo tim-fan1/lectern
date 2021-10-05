@@ -1,10 +1,10 @@
+import argon2 from "argon2";
 import { Arg, Ctx, Field, Mutation, ObjectType } from "type-graphql";
-import User from "../entities/User";
-import UsernamePassword from "../entities/UsernamePassword";
+import { getConnection } from "typeorm";
+
+import { User, UsernamePassword } from "../entities/entities";
 import { Context } from "../types";
 import { validateRegister } from "../utils/validate";
-import argon2 from "argon2";
-import { getConnection, getRepository } from "typeorm";
 
 @ObjectType()
 class InputError {

@@ -1,4 +1,4 @@
-import UsernamePassword from "../entities/UsernamePassword";
+import { UsernamePassword } from "../entities/entities";
 
 export const validateRegister = (options: UsernamePassword) => {
     //TODO

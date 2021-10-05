@@ -8,10 +8,13 @@ import {
     Root,
 } from "type-graphql";
 import { getConnection } from "typeorm";
+
 import Instructor from "../entities/Instructor";
 
 @Resolver((of) => Instructor)
-export class InstructorResolver implements ResolverInterface<Instructor> {
+export default class InstructorResolver
+    implements ResolverInterface<Instructor>
+{
     private hash(str: string): number {
         var hash = 0;
         if (str.length == 0) {
