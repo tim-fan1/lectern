@@ -3,7 +3,6 @@ import Head from "next/head";
 import { useState } from "react";
 import Navigation from "../components/Navigation";
 import styles from "../styles/Home.module.css";
-import formStyles from "../styles/Form.module.css";
 
 function Home() {
     const [input, setInput] = useState("");
@@ -15,7 +14,7 @@ function Home() {
             </Head>
 
             <Navigation />
-            <form className="centered_container">
+            <form className="container_center">
                 <h1>Enter session code</h1>
                 <div id={styles.input_code_container}>
                     <h1>#</h1>

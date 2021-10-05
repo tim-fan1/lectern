@@ -1,0 +1,52 @@
+#input_session_name {
+    border: 3px solid var(--c-background-tertiary);
+    font-size: 1.5rem;
+    color: white;
+    padding: 1.5rem;
+    background: transparent;
+    transition: all 0.2s;
+    text-align: center;
+    outline: none;
+    margin-top: 3rem;
+}
+
+#input_session_name:active,
+#input_session_name:focus {
+    outline: none;
+    border: 3px solid var(--c-primary);
+}
+
+#input_session_name::placeholder {
+    font-size: 1rem;
+}
+
+#container_add_activity {
+    margin-top: 5rem;
+}
+
+#container_create_cards {
+    display: flex;
+}
+
+.card_create_activity {
+    margin: 0 1rem;
+    background-color: var(--c-background-secondary);
+    padding: 2rem 3rem;
+    color: white;
+    border: 3px solid var(--c-background-tertiary);
+    transition: all 0.2s;
+    font-size: 1.25rem;
+}
+
+.card_create_activity:hover {
+    border: 3px solid var(--c-primary);
+}
+
+#container_btn {
+    margin-top: 3rem;
+}
+
+#container_btn button {
+    width: 10rem;
+    margin: 1rem 0.5rem;
+}

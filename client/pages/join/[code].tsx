@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/JoinCode.module.css";
-import formStyles from "../../styles/Form.module.css";
 
 export default function JoinWithCode() {
     /* TODO: Check that code is valid since it simply comes from the user defined route. */
@@ -9,7 +8,7 @@ export default function JoinWithCode() {
     const { code } = router.query;
 
     return (
-        <div className="centered_container">
+        <div className="container_center">
             <Navigation />
             <h2 id={styles.header_enter_session}>
                 About to enter session <span id={styles.code}>{code}</span>
@@ -22,15 +21,15 @@ export default function JoinWithCode() {
                 </div>
             </div>
 
-            <form className={formStyles.container} id={styles.form_join}>
-                <div className={formStyles.input_container}>
-                    <label className={formStyles.label}>
+            <form className="container_center" id={styles.form_join}>
+                <div className="container_input_label">
+                    <label className="label">
                         Enter your name to be displayed (optional)
                     </label>
-                    <input className={formStyles.input} type="text" />
+                    <input className="input" type="text" />
                 </div>
                 <button
-                    className={formStyles.btn_submit}
+                    className="btn btn_primary"
                     id={styles.btn_continue}
                     type="submit"
                 >
