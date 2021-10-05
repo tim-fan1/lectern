@@ -4,7 +4,7 @@ import UsernamePassword from "../entities/UsernamePassword";
 import { Context } from "../types";
 import { validateRegister } from "../utils/validate";
 import argon2 from "argon2";
-import { getRepository } from "typeorm";
+import { getConnection, getRepository } from "typeorm";
 
 @ObjectType()
 class InputError {
@@ -38,20 +38,21 @@ export default class UserResolver {
     let user!: User;
 
     try {
-      const repo = getRepository(User);
+      const conn = getConnection();
+      const repo = conn.getRepository(User);
       let meme = repo.create({
         username: options.username,
         password: hashedPassword,
         email: options.email,
       });
-      console.log(meme);
-      repo.save(meme);
+
+      user = await repo.save(meme);
     } catch (e: Error | any) {
       return { err: [{ name: e.name, msg: e.message }] };
     }
 
     // req.cookies.userId = user.id;
 
-    return { user };
+    return { user: user };
   }
 }
