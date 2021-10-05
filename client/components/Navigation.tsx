@@ -14,6 +14,9 @@ export default function Navigation() {
                 <Link href="/register">
                     <a>Register</a>
                 </Link>
+                <Link href="/instructor/dashboard">
+                    <a>[TEMP] Dashboard</a>
+                </Link>
             </div>
         </div>
     );
