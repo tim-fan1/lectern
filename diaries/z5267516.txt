@@ -1,0 +1,16 @@
+# z526516 COM3900 Project Diary
+
+## Week 1
+* Emailed Tom Kunc about ideas for custom 3900 projects that would help/be useful for CSE.
+* Made objectives for slido clone, jira for students and student tracker dashboard proposals.
+
+## Week 2
+* Helped finalise "slidr" request proposal.
+* Discussed objectives for proper proposal.
+
+## Week 3
+* Made story boards/interfaces for the proposal.
+
+## Week 4
+* Worked on frontend for the issues for sprint 1.
+

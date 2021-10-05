@@ -1,12 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 :root {
-    --c-primary: #7E7CD3;
-    --c-secondary: #6664B4;
+    --c-primary: #7e7cd3;
+    --c-secondary: #6664b4;
     --c-background: #222330;
     --c-background-secondary: #333549;
     --c-grey: #555555;
-    --c-text: #F8F8F8;
+    --c-light-grey: #9f9f9f;
+    --c-text: #f8f8f8;
 }
 
 * {
@@ -17,14 +18,19 @@ html,
 body {
     padding: 0;
     margin: 0;
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-        Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
+        Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue,
+        sans-serif;
     background-color: var(--c-background);
     color: var(--c-text);
 }
 
 h1 {
     font-weight: 500;
+}
+
+h2 {
+    font-weight: 400;
 }
 
 a {
@@ -37,4 +43,11 @@ a {
 
 a:hover {
     color: white;
+}
+
+.centered_container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
 }
