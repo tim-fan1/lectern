@@ -1,35 +1,35 @@
 import { Field, ObjectType } from "type-graphql";
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    Entity,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from "typeorm";
 
 @ObjectType()
 @Entity()
 export default class User {
-  @Field()
-  @PrimaryGeneratedColumn()
-  id!: number;
+    @Field()
+    @PrimaryGeneratedColumn()
+    id!: number;
 
-  @Field()
-  @CreateDateColumn()
-  created!: Date;
+    @Field()
+    @CreateDateColumn()
+    created!: Date;
 
-  @Field()
-  @UpdateDateColumn()
-  updated!: Date;
+    @Field()
+    @UpdateDateColumn()
+    updated!: Date;
 
-  @Field()
-  @Column({ unique: true })
-  username!: string;
+    @Field()
+    @Column({ unique: true })
+    username!: string;
 
-  @Field()
-  @Column({ unique: true })
-  email!: string;
+    @Field()
+    @Column({ unique: true })
+    email!: string;
 
-  @Column()
-  password!: string;
+    @Column()
+    password!: string;
 }

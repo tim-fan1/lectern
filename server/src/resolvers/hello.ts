@@ -13,8 +13,8 @@ Don't forget to add to the resolvers list if more are added
 
 @Resolver()
 export default class HelloResolver {
-  @Query(() => String)
-  async helloWorld() {
-    return "Hello World!";
-  }
+    @Query(() => String)
+    async helloWorld() {
+        return "Hello World!";
+    }
 }

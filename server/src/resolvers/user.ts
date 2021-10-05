@@ -8,51 +8,51 @@ import { getConnection, getRepository } from "typeorm";
 
 @ObjectType()
 class InputError {
-  @Field()
-  name!: string;
-  @Field()
-  msg!: string;
+    @Field()
+    name!: string;
+    @Field()
+    msg!: string;
 }
 
 @ObjectType()
 class Response {
-  @Field(() => [InputError], { nullable: true })
-  err?: InputError[];
+    @Field(() => [InputError], { nullable: true })
+    err?: InputError[];
 
-  @Field(() => User, { nullable: true })
-  user?: User;
+    @Field(() => User, { nullable: true })
+    user?: User;
 }
 
 export default class UserResolver {
-  @Mutation(() => Response)
-  async register(
-    @Arg("options") options: UsernamePassword,
-    @Ctx() { req }: Context
-  ): Promise<Response> {
-    const err = validateRegister(options);
-    if (err) {
-      return { err };
+    @Mutation(() => Response)
+    async register(
+        @Arg("options") options: UsernamePassword,
+        @Ctx() { req }: Context
+    ): Promise<Response> {
+        const err = validateRegister(options);
+        if (err) {
+            return { err };
+        }
+
+        const hashedPassword = await argon2.hash(options.password);
+        let user!: User;
+
+        try {
+            const conn = getConnection();
+            const repo = conn.getRepository(User);
+            let meme = repo.create({
+                username: options.username,
+                password: hashedPassword,
+                email: options.email,
+            });
+
+            user = await repo.save(meme);
+        } catch (e: Error | any) {
+            return { err: [{ name: e.name, msg: e.message }] };
+        }
+
+        // req.cookies.userId = user.id;
+
+        return { user: user };
     }
-
-    const hashedPassword = await argon2.hash(options.password);
-    let user!: User;
-
-    try {
-      const conn = getConnection();
-      const repo = conn.getRepository(User);
-      let meme = repo.create({
-        username: options.username,
-        password: hashedPassword,
-        email: options.email,
-      });
-
-      user = await repo.save(meme);
-    } catch (e: Error | any) {
-      return { err: [{ name: e.name, msg: e.message }] };
-    }
-
-    // req.cookies.userId = user.id;
-
-    return { user: user };
-  }
 }

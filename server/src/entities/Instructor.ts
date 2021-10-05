@@ -15,13 +15,13 @@ Don't forget to add to the entity list of the connection
 @Entity()
 @ObjectType({ description: "object that represents an account" })
 export default class Instructor {
-  @PrimaryGeneratedColumn()
-  id!: number;
+    @PrimaryGeneratedColumn()
+    id!: number;
 
-  @Field()
-  @Column()
-  name!: string;
+    @Field()
+    @Column()
+    name!: string;
 
-  @Field((type) => Boolean, { nullable: true })
-  hasPurposeInLife!: boolean;
+    @Field((type) => Boolean, { nullable: true })
+    hasPurposeInLife!: boolean;
 }
