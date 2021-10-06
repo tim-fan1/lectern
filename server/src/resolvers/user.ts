@@ -1,7 +1,9 @@
 import argon2 from "argon2";
 import { Arg, Ctx, Field, Mutation, ObjectType } from "type-graphql";
+import { Connection } from "typeorm";
+import { v4 as uuid } from "uuid";
 
-import { User } from "../entities/entities";
+import { User, Session } from "../entities/entities";
 import { Context } from "../types";
 import { validateRegister } from "../utils/validate";
 
@@ -131,7 +133,21 @@ export default class UserResolver {
         }
 
         /* User is also verified. Generate session token and store in res.cookies. */
-        res.cookie("token", generate_session_token(), {
+        const newToken = uuid();
+        try {
+            const repo = conn.getRepository(Session);
+            const exist = await repo.findOne(newToken);
+            if (exist)
+                throw Error("newToken already exists; go buy a lottery ticket");
+
+            repo.create({
+                token: newToken,
+                userId: user.id,
+            });
+        } catch (e: Error | any) {
+            return { success: false, msg: e.message };
+        }
+        res.cookie("token", newToken, {
             httpOnly: true,
             secure: true,
         });
@@ -144,9 +160,4 @@ export default class UserResolver {
             msg: "Successfully logged in!",
         };
     }
-}
-
-/* TODO: */
-function generate_session_token() {
-    return 5;
 }

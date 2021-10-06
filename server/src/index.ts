@@ -9,7 +9,7 @@ import {
     InstructorResolver,
     UserResolver,
 } from "./resolvers/resolvers";
-import { Instructor, User } from "./entities/entities";
+import { Instructor, User, Session } from "./entities/entities";
 
 (async function () {
     const schema = await buildSchema({
@@ -22,7 +22,7 @@ import { Instructor, User } from "./entities/entities";
         // also registers it in a global fashion so you can getConnection() from anywhere
         type: "sqlite",
         database: "owo.db",
-        entities: [Instructor, User],
+        entities: [Instructor, User, Session],
     });
 
     // real fudge - will create tables, kinda bad though in production
