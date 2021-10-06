@@ -1,37 +1,63 @@
 import { UsernamePassword } from "../entities/entities";
 
 export const validateRegister = (options: UsernamePassword) => {
-    // TODO: email must be a "valid" email; it must pass a simple email regex test.
+    /**
+     * Validating email.
+     */
+    const email_regexp = new RegExp(
+        /* https://stackoverflow.com/a/1373724. Hope this works... */
+        "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"
+    );
     if (!options.email.includes("@")) {
+        /* Email must contain the @ symbol. */
         return {
             success: false,
-            msg: "invalid email",
+            msg: "Invalid email",
+        };
+    }
+    if (!email_regexp.test(options.email)) {
+        /* It didn't pass the shifty regex. */
+        return {
+            success: false,
+            msg: "Invalid email",
         };
     }
 
-    // TODO: username can't contain @. this check is important.
-    if (options.username.length <= 3) {
+    /**
+     * Validating username.
+     */
+    if (options.username.includes("@")) {
+        /* Username must not contain the @ symbol. */
         return {
             success: false,
-            msg: "username length must be greater than x",
+            msg: "Invalid username",
+        };
+    }
+    const username_regex = new RegExp("^[A-Za-z][A-Za-z0-9_]{3,14}$");
+    if (!username_regex.test(options.username)) {
+        /* Username needs to be:
+         * - 4-15 characters
+         * - Must start with an alphabet
+         * - Must contain only the alphabet + the numbers + the underscore. */
+        return {
+            success: false,
+            msg: "Invalid username",
         };
     }
 
-    // TODO: username must be in range [4,X], and contain 2 special symbols.
-    if (options.username.length <= 3) {
-        return {
-            success: false,
-            msg: "username length must be greater than x",
-        };
-    }
-
-    // TODO: password must be good.
-    if (options.password.length <= 3) {
+    /**
+     * Validating password. TODO: maybe a stronger algorithm lmao.
+     */
+    if (!(8 <= options.password.length && options.password.length <= 30)) {
         return {
             success: false,
             msg: "Bad password",
         };
     }
 
-    return null;
+    /* Success! */
+    return {
+        success: true,
+        msg: "Username/Email/Password are valid",
+    };
 };
