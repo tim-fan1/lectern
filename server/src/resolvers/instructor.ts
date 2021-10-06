@@ -27,7 +27,18 @@ export default class InstructorResolver
         }
         return hash;
     }
-
+    /* 
+        Example of how this query would be used.
+        {
+            testInstructor(name:"Tim") {
+                # id
+                name
+                hasPurposeInLife
+            }
+        }
+        Note that including id in the query will throw an error, 
+        as id is not marked as a @Field in ../entities/Instructor.ts.
+    */
     @Query(() => Instructor, { nullable: true })
     async testInstructor(
         @Arg("name") name: string
@@ -38,12 +49,11 @@ export default class InstructorResolver
             hasPurposeInLife: this.hash(name) % 2 === 0,
         };
     }
-
+    /* The resolver used for the "name" field of ../entities/Instructor.ts. */
     @FieldResolver()
     async name(@Root() root: Instructor): Promise<string> {
         return root.name;
     }
-
     @Mutation(() => Instructor)
     async addInstructor(@Arg("name") name: string): Promise<Instructor> {
         const connection = getConnection();
