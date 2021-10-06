@@ -38,12 +38,12 @@ export default class UserResolver {
         @Arg("options") options: UsernamePassword,
         @Ctx() { req, res }: Context
     ): Promise<Response> {
-        /* TODO: Validate username, password, email. */
-        const err = validateRegister(options);
-        if (err) {
+        /* Validate username, password, email. */
+        const response = validateRegister(options);
+        if (!response.success) {
             return {
                 success: false,
-                msg: err.msg,
+                msg: response.msg,
             };
         }
 
