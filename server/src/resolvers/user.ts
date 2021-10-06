@@ -1,9 +1,7 @@
 import argon2 from "argon2";
-import { resolveConfig } from "prettier";
 import { Arg, Ctx, Field, Mutation, ObjectType } from "type-graphql";
-import { getConnection } from "typeorm";
 
-import { User, UsernamePassword } from "../entities/entities";
+import { User } from "../entities/entities";
 import { Context } from "../types";
 import { validateRegister } from "../utils/validate";
 
@@ -18,11 +16,13 @@ class Response {
 export default class UserResolver {
     @Mutation(() => Response)
     async register(
-        @Arg("options") options: UsernamePassword,
+        @Arg("email") email: string,
+        @Arg("username") username: string,
+        @Arg("password") password: string,
         @Ctx() { conn }: Context
     ): Promise<Response> {
         /* Validate username, password, email. */
-        const response = validateRegister(options);
+        const response = validateRegister(email, username, password);
         if (!response.success) {
             return {
                 success: false,
@@ -31,14 +31,14 @@ export default class UserResolver {
         }
 
         /* Insert entry for this user into the db (storing the hashed pw). */
-        const hashedPassword = await argon2.hash(options.password);
+        const hashedPassword = await argon2.hash(password);
         let user!: User;
         try {
             const repo = conn.getRepository(User);
             let meme = repo.create({
-                username: options.username,
+                username: username,
                 password: hashedPassword,
-                email: options.email,
+                email: email,
                 /* When verification emails are working,
                  * This should be set to false by default. */
                 verified: true,

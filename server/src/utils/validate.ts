@@ -1,6 +1,8 @@
-import { UsernamePassword } from "../entities/entities";
-
-export const validateRegister = (options: UsernamePassword) => {
+export const validateRegister = (
+    email: string,
+    username: string,
+    password: string
+) => {
     /**
      * Validating email.
      */
@@ -8,14 +10,14 @@ export const validateRegister = (options: UsernamePassword) => {
         /* https://stackoverflow.com/a/1373724. Hope this works... */
         "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"
     );
-    if (!options.email.includes("@")) {
+    if (!email.includes("@")) {
         /* Email must contain the @ symbol. */
         return {
             success: false,
             msg: "Invalid email",
         };
     }
-    if (!email_regexp.test(options.email)) {
+    if (!email_regexp.test(email)) {
         /* It didn't pass the shifty regex. */
         return {
             success: false,
@@ -26,7 +28,7 @@ export const validateRegister = (options: UsernamePassword) => {
     /**
      * Validating username.
      */
-    if (options.username.includes("@")) {
+    if (username.includes("@")) {
         /* Username must not contain the @ symbol. */
         return {
             success: false,
@@ -34,7 +36,7 @@ export const validateRegister = (options: UsernamePassword) => {
         };
     }
     const username_regex = new RegExp("^[A-Za-z][A-Za-z0-9_]{3,14}$");
-    if (!username_regex.test(options.username)) {
+    if (!username_regex.test(username)) {
         /* Username needs to be:
          * - 4-15 characters
          * - Must start with an alphabet
@@ -48,7 +50,7 @@ export const validateRegister = (options: UsernamePassword) => {
     /**
      * Validating password. TODO: maybe a stronger algorithm lmao.
      */
-    if (!(8 <= options.password.length && options.password.length <= 30)) {
+    if (!(8 <= password.length && password.length <= 30)) {
         return {
             success: false,
             msg: "Bad password",
