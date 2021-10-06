@@ -9,10 +9,9 @@ import {
     InstructorResolver,
     UserResolver,
 } from "./resolvers/resolvers";
-
 import { Instructor, User } from "./entities/entities";
 
-async function main() {
+(async function () {
     const schema = await buildSchema({
         resolvers: [HelloResolver, InstructorResolver, UserResolver],
         emitSchemaFile: path.resolve(__dirname, "schema.gql"),
@@ -25,7 +24,7 @@ async function main() {
         database: "owo.db",
         entities: [Instructor, User],
     });
-    const manager = getManager();
+    // const manager = getManager();
 
     // real fudge - will create tables, kinda bad though in production
     await connection.synchronize();
@@ -49,6 +48,4 @@ async function main() {
     app.listen(port, () => {
         console.log(`Example listening on port ${port}`);
     });
-}
-
-main();
+})();

@@ -1,4 +1,5 @@
 import argon2 from "argon2";
+import { resolveConfig } from "prettier";
 import { Arg, Ctx, Field, Mutation, ObjectType } from "type-graphql";
 import { getConnection } from "typeorm";
 
@@ -6,34 +7,44 @@ import { User, UsernamePassword } from "../entities/entities";
 import { Context } from "../types";
 import { validateRegister } from "../utils/validate";
 
-@ObjectType()
-class InputError {
-    @Field()
-    name!: string;
-    @Field()
-    msg!: string;
-}
+// @ObjectType()
+// class InputError {
+//     @Field()
+//     name!: string;
+//     @Field()
+//     msg!: string;
+// }
+
+// @ObjectType()
+// class Response {
+//     @Field(() => [InputError], { nullable: true })
+//     err?: InputError[];
+
+//     @Field(() => User, { nullable: true })
+//     user?: User;
+// }
 
 @ObjectType()
 class Response {
-    @Field(() => [InputError], { nullable: true })
-    err?: InputError[];
-
-    @Field(() => User, { nullable: true })
-    user?: User;
+    @Field()
+    success!: boolean;
+    @Field()
+    msg!: string;
 }
 
 export default class UserResolver {
     @Mutation(() => Response)
     async register(
         @Arg("options") options: UsernamePassword,
-        @Ctx() { req }: Context
+        @Ctx() { req, res }: Context
     ): Promise<Response> {
-        /* TODO: Validate username, password, email. */
-        const err = validateRegister(options);
-        if (err) {
-            /* Failure... Return err object (name, msg) to client. */
-            return { err };
+        /* Validate username, password, email. */
+        const response = validateRegister(options);
+        if (!response.success) {
+            return {
+                success: false,
+                msg: response.msg,
+            };
         }
 
         /* Insert entry for this user into the db (storing the hashed pw). */
@@ -52,8 +63,10 @@ export default class UserResolver {
             });
             user = await repo.save(meme);
         } catch (e: Error | any) {
-            /* Failure... Return err object (name, msg) to client. */
-            return { err: [{ name: e.name, msg: e.message }] };
+            return {
+                success: false,
+                msg: e.message,
+            };
         }
 
         // req.cookies.userId = user.id;
@@ -84,16 +97,20 @@ export default class UserResolver {
          * the link (see how registration works at figma.com).
          */
 
-        /* Success! Return User's exposed @Fields to client. */
-        return { user: user };
+        /* Success! */
+        return {
+            success: true,
+            msg: "Successfully registered!",
+        };
     }
 
     @Mutation(() => Response)
     async login(
         @Arg("usernameOrEmail") usernameOrEmail: string,
         @Arg("password") password: string,
-        @Ctx() { req }: Context
+        @Ctx() { req, res }: Context
     ): Promise<Response> {
+        /* Check that the input username/email and password are correct. */
         const conn = getConnection();
         const repo = conn.getRepository(User);
         const user = await repo.findOne(
@@ -101,33 +118,45 @@ export default class UserResolver {
                 ? { where: { email: usernameOrEmail } }
                 : { where: { username: usernameOrEmail } }
         );
-
         if (!user) {
             return {
-                err: [
-                    {
-                        name: "usernameOrEmail",
-                        msg: "Username does not exist.",
-                    },
-                ],
+                success: false,
+                msg: "Username does not exist",
             };
         }
         const valid = await argon2.verify(user.password, password);
         if (!valid) {
             return {
-                err: [
-                    {
-                        name: "password",
-                        msg: "Incorrect password.",
-                    },
-                ],
+                success: false,
+                msg: "Incorrect password",
             };
         }
 
-        // req.cookies.userId = user.id;
+        /* Details are correct! Now check that the user is verified. */
+        if (!user.verified) {
+            return {
+                success: false,
+                msg: "User is not verified",
+            };
+        }
 
+        /* User is also verified. Generate session token and store in res.cookies. */
+        res.cookie("token", generate_session_token(), {
+            httpOnly: true,
+            secure: true,
+        });
+
+        /* TODO: work out how to fix this: https://stackoverflow.com/questions/34558264/fetch-api-with-cookie */
+
+        /* Success! */
         return {
-            user,
+            success: true,
+            msg: "Successfully logged in!",
         };
     }
+}
+
+/* TODO: */
+function generate_session_token() {
+    return 5;
 }
