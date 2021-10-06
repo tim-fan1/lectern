@@ -7,23 +7,6 @@ import { User, UsernamePassword } from "../entities/entities";
 import { Context } from "../types";
 import { validateRegister } from "../utils/validate";
 
-// @ObjectType()
-// class InputError {
-//     @Field()
-//     name!: string;
-//     @Field()
-//     msg!: string;
-// }
-
-// @ObjectType()
-// class Response {
-//     @Field(() => [InputError], { nullable: true })
-//     err?: InputError[];
-
-//     @Field(() => User, { nullable: true })
-//     user?: User;
-// }
-
 @ObjectType()
 class Response {
     @Field()
@@ -36,7 +19,7 @@ export default class UserResolver {
     @Mutation(() => Response)
     async register(
         @Arg("options") options: UsernamePassword,
-        @Ctx() { req, res }: Context
+        @Ctx() { conn }: Context
     ): Promise<Response> {
         /* Validate username, password, email. */
         const response = validateRegister(options);
@@ -51,7 +34,6 @@ export default class UserResolver {
         const hashedPassword = await argon2.hash(options.password);
         let user!: User;
         try {
-            const conn = getConnection();
             const repo = conn.getRepository(User);
             let meme = repo.create({
                 username: options.username,
@@ -108,20 +90,28 @@ export default class UserResolver {
     async login(
         @Arg("usernameOrEmail") usernameOrEmail: string,
         @Arg("password") password: string,
-        @Ctx() { req, res }: Context
+        @Ctx() { res, conn }: Context
     ): Promise<Response> {
         /* Check that the input username/email and password are correct. */
-        const conn = getConnection();
-        const repo = conn.getRepository(User);
-        const user = await repo.findOne(
-            usernameOrEmail.includes("@")
-                ? { where: { email: usernameOrEmail } }
-                : { where: { username: usernameOrEmail } }
-        );
+        let user;
+        try {
+            const repo = conn.getRepository(User);
+            user = await repo.findOne(
+                usernameOrEmail.includes("@")
+                    ? { where: { email: usernameOrEmail } }
+                    : { where: { username: usernameOrEmail } }
+            );
+        } catch (e: Error | any) {
+            return {
+                success: false,
+                msg: e.message,
+            };
+        }
+
         if (!user) {
             return {
                 success: false,
-                msg: "Username does not exist",
+                msg: "Username or email does not exist",
             };
         }
         const valid = await argon2.verify(user.password, password);

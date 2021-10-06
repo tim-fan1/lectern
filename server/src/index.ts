@@ -2,7 +2,7 @@ import path from "path";
 import express, { Request, Response } from "express";
 import { graphqlHTTP } from "express-graphql";
 import { buildSchema } from "type-graphql";
-import { getManager, createConnection } from "typeorm";
+import { createConnection } from "typeorm";
 
 import {
     HelloResolver,
@@ -24,7 +24,6 @@ import { Instructor, User } from "./entities/entities";
         database: "owo.db",
         entities: [Instructor, User],
     });
-    // const manager = getManager();
 
     // real fudge - will create tables, kinda bad though in production
     await connection.synchronize();
@@ -38,14 +37,20 @@ import { Instructor, User } from "./entities/entities";
 
     app.use(
         "/graphql",
-        graphqlHTTP({
-            schema: schema,
-            graphiql: true,
-            context: (req: Request, res: Response) => ({ req, res }),
+        graphqlHTTP((req, res) => {
+            return {
+                schema: schema,
+                graphiql: true,
+                context: {
+                    req: req,
+                    res: res,
+                    conn: connection,
+                },
+            };
         })
     );
 
     app.listen(port, () => {
-        console.log(`Example listening on port ${port}`);
+        console.log(`Server listening on port ${port}`);
     });
 })();
