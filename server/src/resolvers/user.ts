@@ -46,10 +46,13 @@ export default class UserResolver {
                 username: options.username,
                 password: hashedPassword,
                 email: options.email,
-                verified: false,
+                /* When verification emails are working,
+                 * This should be set to false by default. */
+                verified: true,
             });
             user = await repo.save(meme);
         } catch (e: Error | any) {
+            /* Failure... Return err object (name, msg) to client. */
             return { err: [{ name: e.name, msg: e.message }] };
         }
 
@@ -62,18 +65,18 @@ export default class UserResolver {
          * and the user is allowed to login.
          *
          * TODO:
-         * (One possible way(?)) to do the above is:
-         * - we will probably need another table, say verify_table, that maps a
-         *   unique strong token (e.g., UUID) to a user id.
-         * - We store that strong token inside the verification email.
-         *   This token should "expire" after a set, preferably short amount of
-         *   time (i.e., remove that entry from verify_table).
-         * - Clicking the link then causes the user with the user id mapped to
-         *   the token (inside the email) to be verified.
+         * (One possible way(?)) to do the above is to use another table,
+         * say verify_table, that maps a unique strong token to a user id.
+         * We store the (token,userid) pair inside verify_table, and put the
+         * token inside the verification email. Clicking the link then causes
+         * the user with the user id mapped to the token (inside the email) to
+         * be verified. The (token,userid) entry should be removed from
+         * verify_table after a (preferably short) period of time.
          *
          * One possible issue is that someone could spam verify
          * until the token matches the user id of the user account they
-         * want to verify. However, if the token is long enough this really
+         * want to verify. However, if the token is long enough, and the
+         * verification time period is short enough, then this really
          * shouldn't be an issue.
          *
          * Bonus TODO:
