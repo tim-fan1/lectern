@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Head from "next/head";
 import { useState } from "react";
+import { useQuery } from "urql";
 import Navigation from "../components/Navigation";
 import styles from "../styles/Home.module.css";
 

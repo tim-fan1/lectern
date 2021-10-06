@@ -1,4 +1,5 @@
 import path from "path";
+import cors from "cors";
 import express, { Request, Response } from "express";
 import { graphqlHTTP } from "express-graphql";
 import { buildSchema } from "type-graphql";
@@ -35,6 +36,8 @@ import { Instructor, User } from "./entities/entities";
     app.get("/", (req, res) => {
         res.send("Hello World!");
     });
+
+    app.use(cors());
 
     app.use(
         "/graphql",
