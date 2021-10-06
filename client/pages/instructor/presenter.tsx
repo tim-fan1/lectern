@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Navigation from "../../components/Navigation";
+import TransparentButton from "../../components/TransparentButton"
 import fuLl_ScrEeN from "../../public/mdi_fullscreen.svg"
 import exit_image from "../../public/mdi_exit-to-app.svg"
 
@@ -14,12 +15,13 @@ export default function owo() {
         <div className={styles.top_level}>
             <Navigation />
             
-            <div className={`container_center ${styles.main_container}`}>
+            <div className={`container_center ${styles.main_container}`} id={"yeet"}>
                 <div className={styles.topfloat_containeR}>
+                    {/*
                     <div className={styles.topfloat}>
                         <a href="/">
                             <div className={`${styles.verticle_container} ${styles.not_grah_border} ${styles.top_bottom_margin}`}>
-                                <span className={`${styles.white_text} ${styles.verticle_item}`}>Present in fullscreen</span>
+                                <span className={`${styles.white_text} ${styles.verticle_item}`}></span>
                                 <Image src={fuLl_ScrEeN} alt="Present in fullscreen" width={40} height={40}/>
                             </div>
                         </a>
@@ -28,10 +30,12 @@ export default function owo() {
                         <a href="/">
                             <div className={`${styles.verticle_container} ${styles.not_grah_border}`}>
                                 <span className={`${styles.white_text} ${styles.verticle_item}`}>Exit from presentation mode</span>
-                                <Image src={exit_image} alt="Exit from presentation mode" width={40} height={40}/>
+                                <Image src={} alt="" width={40} height={40}/>
                             </div>
                         </a>
-                    </div>
+                    </div>*/}
+                    <TransparentButton className={styles.topfloat} src={fuLl_ScrEeN} width={40} height={40} text={"Present in fullscreen"} alt={"Fullscreen icon"} onClick={() => document.getElementById("yeet")?.requestFullscreen()}/>
+                    <TransparentButton className={styles.topfloat} src={exit_image} width={40} height={40} text={"Exit from presentation mode"} alt={"Exit icon"} onClick={() => document.exitFullscreen()}/>
                 </div>
                
                    

@@ -4,6 +4,8 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
+    background-color: var(--c-background);
+    color: var(--c-text);
 }
 
 .main_container {
@@ -41,12 +43,6 @@
     color: white;
 }
 
-.verticle_container {
-    align-items: center;
-    flex-direction: row;
-    display: flex;
-
-}
 
 .top_bottom_margin {
     margin: 4px 0 4px 0;
@@ -54,6 +50,7 @@
 
 .middle_container {
     margin: 30px 0 30px 0;
+    flex-grow: 1;
 }
 
 .middle_small_text {
@@ -71,9 +68,10 @@
 
 
 .bottom_screen {
+    flex-grow: 3;
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     margin: 80px 0 80px 0;
 }
 
