@@ -160,4 +160,24 @@ export default class UserResolver {
             msg: "Successfully logged in!",
         };
     }
+
+    @Mutation(() => Response)
+    async logout(@Ctx() { req, res, conn }: Context): Promise<Response> {
+        if (req.cookies.token === undefined) {
+            return {
+                success: false,
+                msg: "Not logged in",
+            };
+        }
+
+        // this doesn't check if the session existed or not
+        try {
+            const repo = conn.getRepository(Session);
+            repo.delete(req.cookies.token);
+            res.clearCookie("token");
+            return { success: true, msg: "Logged out" };
+        } catch (e: Error | any) {
+            return { success: false, msg: e.message };
+        }
+    }
 }

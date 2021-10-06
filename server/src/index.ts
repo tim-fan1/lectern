@@ -10,6 +10,7 @@ import {
     UserResolver,
 } from "./resolvers/resolvers";
 import { Instructor, User, Session } from "./entities/entities";
+import cookieParser from "cookie-parser";
 
 (async function () {
     const schema = await buildSchema({
@@ -31,9 +32,7 @@ import { Instructor, User, Session } from "./entities/entities";
     const app = express();
     const port = 4000;
 
-    app.get("/", (req, res) => {
-        res.send("Hello World!");
-    });
+    app.use(cookieParser());
 
     app.use(
         "/graphql",
@@ -49,6 +48,10 @@ import { Instructor, User, Session } from "./entities/entities";
             };
         })
     );
+
+    app.get("/", (req, res) => {
+        res.send("Hello World!");
+    });
 
     app.listen(port, () => {
         console.log(`Server listening on port ${port}`);
