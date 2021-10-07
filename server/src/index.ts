@@ -46,7 +46,7 @@ import config from "./config";
         graphqlHTTP((req, res) => {
             return {
                 schema: schema,
-                graphiql: config.isProduction,
+                graphiql: !config.isProduction,
                 context: {
                     req: req,
                     res: res,
