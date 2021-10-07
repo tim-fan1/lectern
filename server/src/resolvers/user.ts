@@ -1,6 +1,5 @@
 import argon2 from "argon2";
-import { Arg, Ctx, Field, Mutation, ObjectType } from "type-graphql";
-import { Connection } from "typeorm";
+import { Arg, Ctx, Field, Mutation, ObjectType, Query } from "type-graphql";
 import { v4 as uuid } from "uuid";
 
 import { User, Session } from "../entities/entities";
@@ -21,8 +20,10 @@ export default class UserResolver {
         @Arg("email") email: string,
         @Arg("username") username: string,
         @Arg("password") password: string,
-        @Ctx() { conn }: Context
+        @Ctx() { conn, res }: Context
     ): Promise<Response> {
+        if (res.locals.userId !== undefined)
+            return { success: false, msg: "Already logged in!" };
         /* Validate username, password, email. */
         const response = validateRegister(email, username, password);
         if (!response.success) {
@@ -94,6 +95,8 @@ export default class UserResolver {
         @Arg("password") password: string,
         @Ctx() { res, conn }: Context
     ): Promise<Response> {
+        if (res.locals.userId !== undefined)
+            return { success: false, msg: "Already logged in!" };
         /* Check that the input username/email and password are correct. */
         let user;
         try {
@@ -140,10 +143,12 @@ export default class UserResolver {
             if (exist)
                 throw Error("newToken already exists; go buy a lottery ticket");
 
-            repo.create({
+            const newSession = repo.create({
                 token: newToken,
                 userId: user.id,
             });
+
+            await repo.save(newSession);
         } catch (e: Error | any) {
             return { success: false, msg: e.message };
         }
@@ -163,12 +168,8 @@ export default class UserResolver {
 
     @Mutation(() => Response)
     async logout(@Ctx() { req, res, conn }: Context): Promise<Response> {
-        if (req.cookies.token === undefined) {
-            return {
-                success: false,
-                msg: "Not logged in",
-            };
-        }
+        if (res.locals.userId === undefined)
+            return { success: false, msg: "Not logged in" };
 
         // this doesn't check if the session existed or not
         try {
@@ -179,5 +180,18 @@ export default class UserResolver {
         } catch (e: Error | any) {
             return { success: false, msg: e.message };
         }
+    }
+
+    @Query(() => Response)
+    async testAuth(@Ctx() { req, res, conn }: Context): Promise<Response> {
+        // this is a temp mutation, so i havent wrapped it in try/catch
+        if (res.locals.userId === undefined) {
+            return { success: true, msg: "not logged in" };
+        }
+
+        const name = (await conn.getRepository(User).findOne(res.locals.userId))
+            ?.username;
+
+        return { success: true, msg: "hello, " + name + "!" };
     }
 }
