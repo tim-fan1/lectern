@@ -1,28 +1,10 @@
 import argon2 from "argon2";
-import { resolveConfig } from "prettier";
-import { Arg, Ctx, Field, Mutation, ObjectType } from "type-graphql";
-import { getConnection } from "typeorm";
+import { Arg, Ctx, Field, Mutation, ObjectType, Query } from "type-graphql";
+import { v4 as uuid } from "uuid";
 
-import { User, UsernamePassword } from "../entities/entities";
+import { User, LoginSession } from "../entities/entities";
 import { Context } from "../types";
 import { validateRegister } from "../utils/validate";
-
-// @ObjectType()
-// class InputError {
-//     @Field()
-//     name!: string;
-//     @Field()
-//     msg!: string;
-// }
-
-// @ObjectType()
-// class Response {
-//     @Field(() => [InputError], { nullable: true })
-//     err?: InputError[];
-
-//     @Field(() => User, { nullable: true })
-//     user?: User;
-// }
 
 @ObjectType()
 class Response {
@@ -35,11 +17,15 @@ class Response {
 export default class UserResolver {
     @Mutation(() => Response)
     async register(
-        @Arg("options") options: UsernamePassword,
-        @Ctx() { req, res }: Context
+        @Arg("email") email: string,
+        @Arg("username") username: string,
+        @Arg("password") password: string,
+        @Ctx() { conn, res }: Context
     ): Promise<Response> {
+        if (res.locals.userId !== undefined)
+            return { success: false, msg: "Already logged in!" };
         /* Validate username, password, email. */
-        const response = validateRegister(options);
+        const response = validateRegister(email, username, password);
         if (!response.success) {
             return {
                 success: false,
@@ -48,15 +34,14 @@ export default class UserResolver {
         }
 
         /* Insert entry for this user into the db (storing the hashed pw). */
-        const hashedPassword = await argon2.hash(options.password);
+        const hashedPassword = await argon2.hash(password);
         let user!: User;
         try {
-            const conn = getConnection();
             const repo = conn.getRepository(User);
             let meme = repo.create({
-                username: options.username,
+                username: username,
                 password: hashedPassword,
-                email: options.email,
+                email: email,
                 /* When verification emails are working,
                  * This should be set to false by default. */
                 verified: true,
@@ -108,20 +93,30 @@ export default class UserResolver {
     async login(
         @Arg("usernameOrEmail") usernameOrEmail: string,
         @Arg("password") password: string,
-        @Ctx() { req, res }: Context
+        @Ctx() { res, conn }: Context
     ): Promise<Response> {
+        if (res.locals.userId !== undefined)
+            return { success: false, msg: "Already logged in!" };
         /* Check that the input username/email and password are correct. */
-        const conn = getConnection();
-        const repo = conn.getRepository(User);
-        const user = await repo.findOne(
-            usernameOrEmail.includes("@")
-                ? { where: { email: usernameOrEmail } }
-                : { where: { username: usernameOrEmail } }
-        );
+        let user;
+        try {
+            const repo = conn.getRepository(User);
+            user = await repo.findOne(
+                usernameOrEmail.includes("@")
+                    ? { where: { email: usernameOrEmail } }
+                    : { where: { username: usernameOrEmail } }
+            );
+        } catch (e: Error | any) {
+            return {
+                success: false,
+                msg: e.message,
+            };
+        }
+
         if (!user) {
             return {
                 success: false,
-                msg: "Username does not exist",
+                msg: "Username or email does not exist",
             };
         }
         const valid = await argon2.verify(user.password, password);
@@ -141,7 +136,23 @@ export default class UserResolver {
         }
 
         /* User is also verified. Generate session token and store in res.cookies. */
-        res.cookie("token", generate_session_token(), {
+        const newToken = uuid();
+        try {
+            const repo = conn.getRepository(LoginSession);
+            const exist = await repo.findOne(newToken);
+            if (exist)
+                throw Error("newToken already exists; go buy a lottery ticket");
+
+            const newSession = repo.create({
+                token: newToken,
+                userId: user.id,
+            });
+
+            await repo.save(newSession);
+        } catch (e: Error | any) {
+            return { success: false, msg: e.message };
+        }
+        res.cookie("token", newToken, {
             httpOnly: true,
             secure: true,
         });
@@ -154,9 +165,33 @@ export default class UserResolver {
             msg: "Successfully logged in!",
         };
     }
-}
 
-/* TODO: */
-function generate_session_token() {
-    return 5;
+    @Mutation(() => Response)
+    async logout(@Ctx() { req, res, conn }: Context): Promise<Response> {
+        if (res.locals.userId === undefined)
+            return { success: false, msg: "Not logged in" };
+
+        // this doesn't check if the session existed or not
+        try {
+            const repo = conn.getRepository(LoginSession);
+            repo.delete(req.cookies.token);
+            res.clearCookie("token");
+            return { success: true, msg: "Logged out" };
+        } catch (e: Error | any) {
+            return { success: false, msg: e.message };
+        }
+    }
+
+    @Query(() => Response)
+    async testAuth(@Ctx() { req, res, conn }: Context): Promise<Response> {
+        // this is a temp mutation, so i havent wrapped it in try/catch
+        if (res.locals.userId === undefined) {
+            return { success: true, msg: "not logged in" };
+        }
+
+        const name = (await conn.getRepository(User).findOne(res.locals.userId))
+            ?.username;
+
+        return { success: true, msg: "hello, " + name + "!" };
+    }
 }

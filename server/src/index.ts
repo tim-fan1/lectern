@@ -1,16 +1,19 @@
 import path from "path";
 import cors from "cors";
-import express, { Request, Response } from "express";
+import express from "express";
 import { graphqlHTTP } from "express-graphql";
 import { buildSchema } from "type-graphql";
-import { getManager, createConnection } from "typeorm";
+import { createConnection } from "typeorm";
 
 import {
     HelloResolver,
     InstructorResolver,
     UserResolver,
 } from "./resolvers/resolvers";
-import { Instructor, User } from "./entities/entities";
+import { Instructor, User, LoginSession } from "./entities/entities";
+import cookieParser from "cookie-parser";
+import AuthMiddleware from "./middleware/AuthMiddleware";
+import config from "./config";
 
 (async function () {
     const schema = await buildSchema({
@@ -20,12 +23,10 @@ import { Instructor, User } from "./entities/entities";
 
     const connection = await createConnection({
         // replace this with ormconfig.json later (tm)
-        // also registers it in a global fashion so you can getConnection() from anywhere
         type: "sqlite",
         database: "owo.db",
-        entities: [Instructor, User],
+        entities: [Instructor, User, LoginSession],
     });
-    // const manager = getManager();
 
     // real fudge - will create tables, kinda bad though in production
     await connection.synchronize();
@@ -33,22 +34,29 @@ import { Instructor, User } from "./entities/entities";
     const app = express();
     const port = 4000;
 
-    app.get("/", (req, res) => {
-        res.send("Hello World!");
-    });
-
     app.use(cors());
+
+    app.use(cookieParser());
+
+    // our auth middleware
+    app.use(AuthMiddleware(connection));
 
     app.use(
         "/graphql",
-        graphqlHTTP({
-            schema: schema,
-            graphiql: true,
-            context: (req: Request, res: Response) => ({ req, res }),
+        graphqlHTTP((req, res) => {
+            return {
+                schema: schema,
+                graphiql: config.isProduction,
+                context: {
+                    req: req,
+                    res: res,
+                    conn: connection,
+                },
+            };
         })
     );
 
     app.listen(port, () => {
-        console.log(`Example listening on port ${port}`);
+        console.log(`Server listening on port ${port}`);
     });
 })();
