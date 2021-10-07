@@ -1,60 +1,43 @@
-import Image from "next/image";
 import Navigation from "../../components/Navigation";
 import TransparentButton from "../../components/TransparentButton";
-import fuLl_ScrEeN from "../../public/mdi_fullscreen.svg";
+import full_screen_image from "../../public/mdi_fullscreen.svg";
 import exit_image from "../../public/mdi_exit-to-app.svg";
 
-import Link from "next/link";
 import QRCode from "qrcode.react";
-import React from "react";
+import React, { useState } from "react";
 import styles from "../../styles/presenter.module.css";
 
-export default function owo() {
+export default function OwO() {
+    const [url, setUrl] = useState("www.owo.com")
+
     return (
         <div className={styles.top_level}>
             <Navigation />
 
             <div
                 className={`container_center ${styles.main_container}`}
-                id={"yeet"}
+                id={styles.fullscreen_box}
             >
-                <div className={styles.topfloat_containeR}>
-                    {/*
-                    <div className={styles.topfloat}>
-                        <a href="/">
-                            <div className={`${styles.verticle_container} ${styles.not_grah_border} ${styles.top_bottom_margin}`}>
-                                <span className={`${styles.white_text} ${styles.verticle_item}`}></span>
-                                <Image src={fuLl_ScrEeN} alt="Present in fullscreen" width={40} height={40}/>
-                            </div>
-                        </a>
-                    </div>
-                    <div className={styles.topfloat}>
-                        <a href="/">
-                            <div className={`${styles.verticle_container} ${styles.not_grah_border}`}>
-                                <span className={`${styles.white_text} ${styles.verticle_item}`}>Exit from presentation mode</span>
-                                <Image src={} alt="" width={40} height={40}/>
-                            </div>
-                        </a>
-                    </div>*/}
+                <div className={styles.topfloat_container}>
                     <TransparentButton
-                        className={styles.topfloat}
-                        src={fuLl_ScrEeN}
+                        className={styles.topfloat_item}
+                        src={full_screen_image}
                         width={40}
                         height={40}
                         text={"Present in fullscreen"}
                         alt={"Fullscreen icon"}
                         onClick={() =>
-                            document.getElementById("yeet")?.requestFullscreen()
+                            document.getElementById(styles.fullscreen_box)?.requestFullscreen()
                         }
                     />
                     <TransparentButton
-                        className={styles.topfloat}
+                        className={styles.topfloat_item}
                         src={exit_image}
                         width={40}
                         height={40}
                         text={"Exit from presentation mode"}
                         alt={"Exit icon"}
-                        onClick={() => document.exitFullscreen()}
+                        onClick={() => document.fullscreenElement !== null ? document.exitFullscreen() : undefined}
                     />
                 </div>
 
@@ -75,17 +58,13 @@ export default function owo() {
                         <h1 className={styles.bottom_large_text}>#123ABC</h1>
                         <h2 className={styles.bottom_small_text}>or visit</h2>
                         <h1 className={styles.bottom_large_text}>
-                            slidr.io/123ABC
+                            {url}
                         </h1>
                     </div>
-
-                    <div
-                        style={{ background: "white", width: 5, height: 200 }}
-                    ></div>
                     <div className={styles.bottom_qr_container}>
                         <QRCode
                             className={styles.qrcode}
-                            value="www.owo.com"
+                            value={url}
                             size={256}
                         />
                     </div>

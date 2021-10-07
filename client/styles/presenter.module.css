@@ -4,8 +4,6 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background-color: var(--c-background);
-    color: var(--c-text);
 }
 
 .main_container {
@@ -15,19 +13,12 @@
     justify-content: flex-start;
 }
 
-.no_text_space {
-    margin: 0;
-}
 
-.not_gray {
-    color: gray;
-}
-
-.topfloat {
+.topfloat_item {
     flex-grow: 0;
 }
 
-.topfloat_containeR {
+.topfloat_container {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -62,6 +53,11 @@
     font-size: 45px;
 }
 
+.middle_line {
+    background-color: #ffffff;
+    width: 5px;
+    height: 200px;
+}
 .bottom_screen {
     flex-grow: 3;
     display: flex;
@@ -79,7 +75,8 @@
 }
 
 .bottom_qr_container {
-    margin: 40px;
+    padding: 40px;
+    border-left: 4px white solid;
 }
 
 .qrcode {
@@ -98,4 +95,9 @@
     font-weight: 600;
     margin: 0;
     font-size: 70px;
+}
+
+#fullscreen_box {
+    background-color: var(--c-background);
+    color: var(--c-text);
 }
