@@ -13,6 +13,7 @@ import {
 import { Instructor, User, LoginSession } from "./entities/entities";
 import cookieParser from "cookie-parser";
 import AuthMiddleware from "./middleware/AuthMiddleware";
+import config from "./config";
 
 (async function () {
     const schema = await buildSchema({
@@ -22,7 +23,6 @@ import AuthMiddleware from "./middleware/AuthMiddleware";
 
     const connection = await createConnection({
         // replace this with ormconfig.json later (tm)
-        // also registers it in a global fashion so you can getConnection() from anywhere
         type: "sqlite",
         database: "owo.db",
         entities: [Instructor, User, LoginSession],
@@ -46,7 +46,7 @@ import AuthMiddleware from "./middleware/AuthMiddleware";
         graphqlHTTP((req, res) => {
             return {
                 schema: schema,
-                graphiql: true, // todo: disable in prod
+                graphiql: config.isProduction,
                 context: {
                     req: req,
                     res: res,
@@ -55,10 +55,6 @@ import AuthMiddleware from "./middleware/AuthMiddleware";
             };
         })
     );
-
-    app.get("/", (req, res) => {
-        res.send("Hello World!");
-    });
 
     app.listen(port, () => {
         console.log(`Server listening on port ${port}`);
