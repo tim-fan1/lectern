@@ -8,7 +8,7 @@ import React, { useState } from "react";
 import styles from "../../styles/presenter.module.css";
 
 export default function OwO() {
-    const [url, setUrl] = useState("www.owo.com")
+    const [url, setUrl] = useState("www.owo.com");
 
     return (
         <div className={styles.top_level}>
@@ -27,7 +27,9 @@ export default function OwO() {
                         text={"Present in fullscreen"}
                         alt={"Fullscreen icon"}
                         onClick={() =>
-                            document.getElementById(styles.fullscreen_box)?.requestFullscreen()
+                            document
+                                .getElementById(styles.fullscreen_box)
+                                ?.requestFullscreen()
                         }
                     />
                     <TransparentButton
@@ -37,7 +39,11 @@ export default function OwO() {
                         height={40}
                         text={"Exit from presentation mode"}
                         alt={"Exit icon"}
-                        onClick={() => document.fullscreenElement !== null ? document.exitFullscreen() : undefined}
+                        onClick={() =>
+                            document.fullscreenElement !== null
+                                ? document.exitFullscreen()
+                                : undefined
+                        }
                     />
                 </div>
 
@@ -57,9 +63,7 @@ export default function OwO() {
                         </h2>
                         <h1 className={styles.bottom_large_text}>#123ABC</h1>
                         <h2 className={styles.bottom_small_text}>or visit</h2>
-                        <h1 className={styles.bottom_large_text}>
-                            {url}
-                        </h1>
+                        <h1 className={styles.bottom_large_text}>{url}</h1>
                     </div>
                     <div className={styles.bottom_qr_container}>
                         <QRCode

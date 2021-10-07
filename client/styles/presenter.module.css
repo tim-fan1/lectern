@@ -13,7 +13,6 @@
     justify-content: flex-start;
 }
 
-
 .topfloat_item {
     flex-grow: 0;
 }
@@ -28,14 +27,6 @@
     padding-right: 10vw;
 }
 
-.white_text {
-    color: white;
-}
-
-.top_bottom_margin {
-    margin: 4px 0 4px 0;
-}
-
 .middle_container {
     margin: 30px 0 30px 0;
     flex-grow: 1;
@@ -44,7 +35,7 @@
 .middle_small_text {
     font-weight: 515;
     margin: 0;
-    color: gray;
+    color: var(--c-text);
     font-size: 40px;
 }
 .middle_large_text {
