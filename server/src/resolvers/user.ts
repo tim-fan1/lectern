@@ -2,7 +2,7 @@ import argon2 from "argon2";
 import { Arg, Ctx, Field, Mutation, ObjectType, Query } from "type-graphql";
 import { v4 as uuid } from "uuid";
 
-import { User, Session } from "../entities/entities";
+import { User, LoginSession } from "../entities/entities";
 import { Context } from "../types";
 import { validateRegister } from "../utils/validate";
 
@@ -138,7 +138,7 @@ export default class UserResolver {
         /* User is also verified. Generate session token and store in res.cookies. */
         const newToken = uuid();
         try {
-            const repo = conn.getRepository(Session);
+            const repo = conn.getRepository(LoginSession);
             const exist = await repo.findOne(newToken);
             if (exist)
                 throw Error("newToken already exists; go buy a lottery ticket");
@@ -173,7 +173,7 @@ export default class UserResolver {
 
         // this doesn't check if the session existed or not
         try {
-            const repo = conn.getRepository(Session);
+            const repo = conn.getRepository(LoginSession);
             repo.delete(req.cookies.token);
             res.clearCookie("token");
             return { success: true, msg: "Logged out" };

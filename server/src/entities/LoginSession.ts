@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, PrimaryColumn } from "typeorm";
 
 @Entity()
-export default class Session {
+export default class LoginSession {
     @PrimaryColumn()
     token!: string;
 

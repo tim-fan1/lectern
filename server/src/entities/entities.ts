@@ -1,5 +1,5 @@
 import Instructor from "./Instructor";
 import User from "./User";
-import Session from "./Session";
+import LoginSession from "./LoginSession";
 
-export { Instructor, User, Session };
+export { Instructor, User, LoginSession };
