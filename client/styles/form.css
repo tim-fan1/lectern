@@ -7,7 +7,7 @@
     padding: 1rem 5rem 2rem 5rem;
 }
 
-.input_container {
+.container_input_label {
     display: flex;
     flex-direction: column;
     margin: 0.75rem 0;
@@ -36,27 +36,40 @@
     margin-bottom: 0.25rem;
 }
 
-.btn_submit {
+.btn {
     cursor: pointer;
     font-size: 1rem;
     padding: 0.5rem 1rem;
-    border: 2px solid var(--c-primary);
     background: transparent;
-    color: var(--c-primary);
     width: fit-content;
     transition: all 0.1s;
     margin: 1rem 0 2rem 0;
+    font-weight: 500;
+    outline: none;
+    text-align: center;
 }
 
-.btn_submit:hover,
-.btn_submit:focus {
-    outline: none;
+.btn_primary {
+    border: 2px solid var(--c-primary);
+    color: var(--c-primary);
+}
+
+.btn_primary:hover {
     color: var(--c-background);
     background-color: var(--c-primary);
 }
 
-.btn_submit:active {
-    outline: none;
+.btn_primary:active {
     color: var(--c-background);
     background-color: var(--c-secondary);
+}
+
+.btn_secondary {
+    border: 2px solid var(--c-light-grey);
+    color: var(--c-light-grey);
+}
+
+.btn_secondary:hover {
+    border: 2px solid white;
+    color: white;
 }

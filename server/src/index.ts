@@ -1,4 +1,5 @@
 import path from "path";
+import cors from "cors";
 import express, { Request, Response } from "express";
 import { graphqlHTTP } from "express-graphql";
 import { buildSchema } from "type-graphql";
@@ -33,6 +34,8 @@ import cookieParser from "cookie-parser";
     const port = 4000;
 
     app.use(cookieParser());
+
+    app.use(cors());
 
     app.use(
         "/graphql",

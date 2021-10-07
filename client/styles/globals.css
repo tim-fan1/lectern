@@ -5,8 +5,9 @@
     --c-secondary: #6664b4;
     --c-background: #222330;
     --c-background-secondary: #333549;
+    --c-background-tertiary: #2b2a3b;
     --c-grey: #555555;
-    --c-light-grey: #9f9f9f;
+    --c-light-grey: #c4c4c4;
     --c-text: #f8f8f8;
 }
 
@@ -35,7 +36,7 @@ h2 {
 
 a {
     font-weight: 500;
-    color: var(--c-text);
+    color: var(--c-light-grey);
     text-decoration: none;
     transition: all 0.1s;
     padding-bottom: 0.25rem;
@@ -45,7 +46,7 @@ a:hover {
     color: white;
 }
 
-.centered_container {
+.container_center {
     display: flex;
     align-items: center;
     justify-content: center;
