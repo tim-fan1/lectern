@@ -1,0 +1,94 @@
+.top_level {
+    /* make this 100% the screen */
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main_container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: flex-start;
+}
+
+.topfloat_item {
+    flex-grow: 0;
+}
+
+.topfloat_container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+    width: 100%;
+    /* add a bit of padding from the edge */
+    padding-right: 10vw;
+}
+
+.middle_container {
+    margin: 30px 0 30px 0;
+    flex-grow: 1;
+}
+
+.middle_small_text {
+    font-weight: 515;
+    margin: 0;
+    color: var(--c-text);
+    font-size: 40px;
+}
+.middle_large_text {
+    font-weight: 600;
+    margin: 0;
+    font-size: 45px;
+}
+
+.middle_line {
+    background-color: #ffffff;
+    width: 5px;
+    height: 200px;
+}
+.bottom_screen {
+    flex-grow: 3;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    margin: 80px 0 80px 0;
+}
+
+.bottom_text_container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin: 40px;
+    flex-grow: 1;
+}
+
+.bottom_qr_container {
+    padding: 40px;
+    border-left: 4px white solid;
+}
+
+.qrcode {
+    padding: 20px;
+    background-color: #ffffff;
+}
+
+.bottom_small_text {
+    font-weight: 515;
+    margin: 0;
+    font-size: 45px;
+    color: gray;
+}
+
+.bottom_large_text {
+    font-weight: 600;
+    margin: 0;
+    font-size: 70px;
+}
+
+#fullscreen_box {
+    background-color: var(--c-background);
+    color: var(--c-text);
+}

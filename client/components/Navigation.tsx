@@ -17,6 +17,9 @@ export default function Navigation() {
                 <Link href="/instructor/dashboard">
                     <a>[TEMP] Dashboard</a>
                 </Link>
+                <Link href="/instructor/presenter">
+                    <a>[TEMP] Presenting Screen 😋</a>
+                </Link>
             </div>
         </div>
     );
