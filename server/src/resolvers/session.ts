@@ -52,4 +52,55 @@ export default class SessionResolver {
 
         return true;
     }
+
+    @Mutation()
+    async editSession(
+        @Ctx() { res, conn }: Context,
+        @Arg("id") id: number,
+        @Arg("name") name?: string,
+        @Arg("group") group?: string,
+        @Arg("activities") activities?: [Activity]
+    ): Promise<Boolean> {
+        if (res.locals.userId === undefined) {
+            return false;
+        }
+
+        const sessionRepo = conn.getRepository(Session);
+        try {
+            sessionRepo.update(id, {
+                name: name,
+                group: group,
+                savedActivities: activities,
+            });
+        } catch (e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Mutation()
+    async deleteSession(
+        @Ctx() { res, conn }: Context,
+        @Arg("id") id: number
+    ): Promise<Boolean> {
+        if (res.locals.userId === undefined) {
+            return false;
+        }
+
+        const sessionRepo = conn.getRepository(Session);
+        const targetSession = await sessionRepo.findOne(id);
+
+        if (!targetSession) {
+            return false;
+        }
+
+        try {
+            sessionRepo.delete(id);
+        } catch (e) {
+            return false;
+        }
+
+        return true;
+    }
 }

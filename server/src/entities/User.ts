@@ -40,6 +40,9 @@ export default class User {
     verified!: boolean;
 
     @Column()
-    @OneToMany(() => Session, (session) => session.author, { eager: true })
+    @OneToMany(() => Session, (session) => session.author, {
+        eager: true,
+        orphanedRowAction: "delete",
+    })
     sessions!: [Session];
 }
