@@ -9,15 +9,21 @@ import {
     HelloResolver,
     InstructorResolver,
     UserResolver,
+    SessionResolver,
 } from "./resolvers/resolvers";
-import { Instructor, User, LoginSession } from "./entities/entities";
+import { Instructor, User, LoginSession, Session } from "./entities/entities";
 import cookieParser from "cookie-parser";
 import userAuthChecker from "./auth/authChecker";
 import config from "./config";
 
 (async function () {
     const schema = await buildSchema({
-        resolvers: [HelloResolver, InstructorResolver, UserResolver],
+        resolvers: [
+            HelloResolver,
+            InstructorResolver,
+            UserResolver,
+            SessionResolver,
+        ],
         emitSchemaFile: path.resolve(__dirname, "schema.gql"),
         authChecker: userAuthChecker,
     });
@@ -26,7 +32,7 @@ import config from "./config";
         // replace this with ormconfig.json later (tm)
         type: "sqlite",
         database: "owo.db",
-        entities: [Instructor, User, LoginSession],
+        entities: [Instructor, User, LoginSession, Session],
     });
 
     // real fudge - will create tables, kinda bad though in production
