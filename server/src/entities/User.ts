@@ -3,9 +3,11 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from "typeorm";
+import { Session } from "./entities";
 
 @ObjectType()
 @Entity()
@@ -33,6 +35,11 @@ export default class User {
     @Column()
     password!: string;
 
+    //why isn't this exposed as a field? won't the frontend need to know if a user is verified?
     @Column()
     verified!: boolean;
+
+    @Column()
+    @OneToMany(() => Session, (session) => session.author, { eager: true })
+    sessions!: [Session];
 }
