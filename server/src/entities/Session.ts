@@ -1,4 +1,4 @@
-import { Field, ObjectType } from "type-graphql";
+import { Field, Int, ObjectType } from "type-graphql";
 import {
     Column,
     CreateDateColumn,
@@ -14,7 +14,7 @@ type SessionState = "draft" | "open" | "archived";
 @ObjectType()
 @Entity()
 export default class Session {
-    @Field()
+    @Field(() => Int)
     @PrimaryGeneratedColumn()
     id!: number;
 

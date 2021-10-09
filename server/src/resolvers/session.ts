@@ -1,4 +1,4 @@
-import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
+import { Arg, Ctx, Int, Mutation, Query, Resolver } from "type-graphql";
 import { Session, Activity, User } from "../entities/entities";
 import { Context } from "../types";
 
@@ -55,7 +55,7 @@ export default class SessionResolver {
     @Mutation(() => Boolean)
     async editSession(
         @Ctx() { res, conn }: Context,
-        @Arg("id") id: number,
+        @Arg("id", () => Int) id: number,
         @Arg("name", { nullable: true }) name?: string,
         @Arg("group", { nullable: true }) group?: string,
         /// @Arg("activities", () => [Activity], { nullable: true }) activities?: Activity[]
@@ -66,13 +66,17 @@ export default class SessionResolver {
 
         const sessionRepo = conn.getRepository(Session);
         try {
-            sessionRepo.update(id, {
-                name: name,
-                group: group,
-                // savedActivities: activities,
-            });
+            let entity: any = {}
+            if (name !== undefined) {
+                entity.name = name;
+            }
+            if (group !== undefined) {
+                entity.group = group;
+            }
+
+            await sessionRepo.update(id, entity);
         } catch (e) {
-            return false;
+            console.log(e)
         }
 
         return true;
@@ -81,7 +85,7 @@ export default class SessionResolver {
     @Mutation(() => Boolean)
     async deleteSession(
         @Ctx() { res, conn }: Context,
-        @Arg("id") id: number
+        @Arg("id", () => Int) id: number
     ): Promise<Boolean> {
         if (res.locals.userId === undefined) {
             return false;

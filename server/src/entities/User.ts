@@ -1,4 +1,4 @@
-import { Field, ObjectType } from "type-graphql";
+import { Field, Int, ObjectType } from "type-graphql";
 import {
     Column,
     CreateDateColumn,
@@ -12,7 +12,7 @@ import { Session } from "./entities";
 @ObjectType()
 @Entity()
 export default class User {
-    @Field()
+    @Field(() => Int)
     @PrimaryGeneratedColumn()
     id!: number;
 

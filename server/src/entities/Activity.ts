@@ -1,4 +1,4 @@
-import { Field, ObjectType } from "type-graphql";
+import { Field, Int, ObjectType } from "type-graphql";
 import {
     Column,
     CreateDateColumn,
@@ -11,7 +11,7 @@ import {
 @ObjectType()
 @Entity()
 export default class Activity {
-    @Field()
+    @Field(() => Int)
     @PrimaryGeneratedColumn()
     id!: number;
 
