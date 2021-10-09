@@ -7,6 +7,7 @@ import {
     Mutation,
     ObjectType,
     Query,
+    registerEnumType,
 } from "type-graphql";
 import { v4 as uuid } from "uuid";
 
@@ -15,24 +16,72 @@ import { Context } from "../types";
 import { validateRegister } from "../utils/validate";
 
 @ObjectType()
-class Response {
+class RespError {
     @Field()
-    success!: boolean;
+    kind!: string;
     @Field()
-    msg!: string;
+    msg?: string;
+
+    static fromError(kind: string, e: Error | any) {
+        return {
+            kind: kind,
+            msg: e.message,
+        };
+    }
+}
+
+@ObjectType()
+class EndpointResponse {
+    @Field(() => [RespError])
+    errors!: RespError[];
+    @Field()
+    msg?: string;
+
+    /**
+     * Creates a response with an empty message and the given list of errors.
+     * Not sure yet if it's cleaner to use this or just define the obj in-place
+     * @param errors Any number of errors of shape RespError
+     * @returns a response with the given list of errors set in the errors field
+     */
+    static withErrors(...errors: RespError[]): EndpointResponse {
+        return {
+            errors: errors,
+        };
+    }
+}
+
+/**
+ * This only exists now for convenience and reference. The original design
+ * had RespError as a generic which took in an error enum, however (1) enum
+ * support in TypeGQL is... odd, and (2) generics support is similarly odd
+ */
+enum UserError {
+    DB_ERROR = "DB_ERROR",
+    LOGGED_IN = "LOGGED_IN",
+    EMAIL_EXISTS = "EMAIL_EXISTS",
+    EMAIL_NOT_EXIST = "EMAIL_NOT_EXIST",
+    BAD_EMAIL = "BAD_EMAIL",
+    BAD_PASSWORD = "BAD_PASSWORD",
+    INCORRECT_PASSWORD = "INCORRECT_PASSWORD",
+    USER_UNVERIFIED = "USER_UNVERIFIED",
+    USED_TOKEN = "USED_TOKEN",
 }
 
 export default class UserResolver {
-    @Mutation(() => Response)
+    @Mutation(() => EndpointResponse)
     async register(
         @Arg("email") email: string,
         @Arg("username") username: string,
         @Arg("password") password: string,
         @Ctx() { conn, res }: Context
-    ): Promise<Response> {
+    ): Promise<EndpointResponse> {
         if (res.locals.userId !== undefined)
-            return { success: false, msg: "Already logged in!" };
-        /* Validate username, password, email. */
+            return EndpointResponse.withErrors({
+                kind: UserError.LOGGED_IN,
+                msg: "Already logged in!",
+            });
+
+        /* Validate username, password, email. TODO: */
         const response = validateRegister(email, username, password);
         if (!response.success) {
             return {
@@ -56,10 +105,10 @@ export default class UserResolver {
             });
             user = await repo.save(meme);
         } catch (e: Error | any) {
-            return {
-                success: false,
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
                 msg: e.message,
-            };
+            });
         }
 
         /**
@@ -90,19 +139,22 @@ export default class UserResolver {
 
         /* Success! */
         return {
-            success: true,
+            errors: [],
             msg: "Successfully registered!",
         };
     }
 
-    @Mutation(() => Response)
+    @Mutation(() => EndpointResponse)
     async login(
         @Arg("usernameOrEmail") usernameOrEmail: string,
         @Arg("password") password: string,
         @Ctx() { res, conn }: Context
-    ): Promise<Response> {
+    ): Promise<EndpointResponse> {
         if (res.locals.userId !== undefined)
-            return { success: false, msg: "Already logged in!" };
+            return EndpointResponse.withErrors({
+                kind: UserError.LOGGED_IN,
+                msg: "Already logged in!",
+            });
         /* Check that the input username/email and password are correct. */
         let user;
         try {
@@ -113,32 +165,32 @@ export default class UserResolver {
                     : { where: { username: usernameOrEmail } }
             );
         } catch (e: Error | any) {
-            return {
-                success: false,
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
                 msg: e.message,
-            };
+            });
         }
 
         if (!user) {
-            return {
-                success: false,
+            return EndpointResponse.withErrors({
+                kind: UserError.EMAIL_NOT_EXIST,
                 msg: "Username or email does not exist",
-            };
+            });
         }
         const valid = await argon2.verify(user.password, password);
         if (!valid) {
-            return {
-                success: false,
+            return EndpointResponse.withErrors({
+                kind: UserError.INCORRECT_PASSWORD,
                 msg: "Incorrect password",
-            };
+            });
         }
 
         /* Details are correct! Now check that the user is verified. */
         if (!user.verified) {
-            return {
-                success: false,
-                msg: "User is not verified",
-            };
+            return EndpointResponse.withErrors({
+                kind: UserError.USER_UNVERIFIED,
+                msg: "User not verified",
+            });
         }
 
         /* User is also verified. Generate session token and store in res.cookies. */
@@ -147,7 +199,10 @@ export default class UserResolver {
             const repo = conn.getRepository(LoginSession);
             const exist = await repo.findOne(newToken);
             if (exist)
-                throw Error("newToken already exists; go buy a lottery ticket");
+                return EndpointResponse.withErrors({
+                    kind: UserError.USED_TOKEN,
+                    msg: "Token already exists; go buy a lottery ticket",
+                });
 
             const newSession = repo.create({
                 token: newToken,
@@ -156,7 +211,10 @@ export default class UserResolver {
 
             await repo.save(newSession);
         } catch (e: Error | any) {
-            return { success: false, msg: e.message };
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
         }
         res.cookie("token", newToken, {
             httpOnly: true,
@@ -167,32 +225,38 @@ export default class UserResolver {
 
         /* Success! */
         return {
-            success: true,
+            errors: [],
             msg: "Successfully logged in!",
         };
     }
 
     @Authorized()
-    @Mutation(() => Response)
-    async logout(@Ctx() { req, res, conn }: Context): Promise<Response> {
+    @Mutation(() => EndpointResponse)
+    async logout(
+        @Ctx() { req, res, conn }: Context
+    ): Promise<EndpointResponse> {
         // this doesn't check if the session existed or not
         try {
             const repo = conn.getRepository(LoginSession);
             repo.delete(req.cookies.token);
             res.clearCookie("token");
-            return { success: true, msg: "Logged out" };
+
+            return { errors: [], msg: "Logged out" };
         } catch (e: Error | any) {
-            return { success: false, msg: e.message };
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
         }
     }
 
     @Authorized()
-    @Query(() => Response)
-    async testAuth(@Ctx() { req, res, conn }: Context): Promise<Response> {
+    @Query(() => EndpointResponse)
+    async testAuth(@Ctx() { res, conn }: Context): Promise<EndpointResponse> {
         // this is a temp mutation, so i havent wrapped it in try/catch
         const name = (await conn.getRepository(User).findOne(res.locals.userId))
             ?.username;
 
-        return { success: true, msg: "hello, " + name + "!" };
+        return { errors: [], msg: "hello, " + name + "!" };
     }
 }
