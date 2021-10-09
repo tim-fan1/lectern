@@ -5,6 +5,7 @@
     align-items: center;
     background-color: var(--c-background-secondary);
     padding: 1rem 5rem 2rem 5rem;
+    margin-bottom: 4rem;
 }
 
 .container_input_label {

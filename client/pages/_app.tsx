@@ -6,6 +6,7 @@ doesn't make sense to use component level CSS modules. Maybe if we make a Form c
 import "../styles/form.css";
 
 function App({ Component, pageProps }: AppProps) {
+    /* Setting up connection to GraphQL. */
     const client = createClient({
         url: `${process.env.NEXT_PUBLIC_SERVER_HOST}/graphql`,
     });

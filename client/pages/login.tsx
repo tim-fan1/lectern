@@ -1,25 +1,70 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { FormEvent, useState } from "react";
+import { useMutation } from "urql";
 import Navigation from "../components/Navigation";
 import styles from "../styles/Login.module.css";
 
+const MutationLogin = `
+    mutation ($usernameOrEmail: String!, $password: String!) {
+        login(usernameOrEmail: $usernameOrEmail, password: $password) {
+            success
+            msg
+        }
+    }
+`;
+
 export default function Login() {
+    const router = useRouter();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const [_, login] = useMutation(MutationLogin);
+
+    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        const variables = {
+            usernameOrEmail: email,
+            password: password,
+        };
+        login(variables).then((result) => {
+            if (result.data.login.success) {
+                router.push("/instructor/dashboard");
+            }
+            // TODO: handle errors
+        });
+    };
+
     return (
         <div>
             <Navigation />
             <div className="container_center">
                 <h1>Instructor log in</h1>
-                <form className="form">
+                <form className="form" onSubmit={handleSubmit}>
                     <div className="container_input_label">
-                        <label className="label" htmlFor="">
-                            Email
-                        </label>
-                        <input className="input" type="email" />
+                        <label className="label">Email</label>
+                        <input
+                            className="input"
+                            type="email"
+                            onChange={(e) =>
+                                setEmail((e.target as HTMLInputElement).value)
+                            }
+                            required
+                        />
                     </div>
                     <div className="container_input_label">
-                        <label className="label" htmlFor="">
-                            Password
-                        </label>
-                        <input className="input" type="password" />
+                        <label className="label">Password</label>
+                        <input
+                            className="input"
+                            type="password"
+                            onChange={(e) =>
+                                setPassword(
+                                    (e.target as HTMLInputElement).value
+                                )
+                            }
+                            required
+                        />
                     </div>
                     <button className="btn btn_primary" type="submit">
                         Log in
