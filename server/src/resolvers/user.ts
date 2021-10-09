@@ -1,7 +1,14 @@
 import argon2 from "argon2";
-import { Arg, Ctx, Field, Mutation, ObjectType, Query } from "type-graphql";
+import {
+    Arg,
+    Authorized,
+    Ctx,
+    Field,
+    Mutation,
+    ObjectType,
+    Query,
+} from "type-graphql";
 import { v4 as uuid } from "uuid";
-import Authenticate from "../auth/decorator";
 
 import { User, LoginSession } from "../entities/entities";
 import { Context } from "../types";
@@ -54,8 +61,6 @@ export default class UserResolver {
                 msg: e.message,
             };
         }
-
-        // req.cookies.userId = user.id;
 
         /**
          * TODO:
@@ -167,11 +172,9 @@ export default class UserResolver {
         };
     }
 
+    @Authorized()
     @Mutation(() => Response)
     async logout(@Ctx() { req, res, conn }: Context): Promise<Response> {
-        if (res.locals.userId === undefined)
-            return { success: false, msg: "Not logged in" };
-
         // this doesn't check if the session existed or not
         try {
             const repo = conn.getRepository(LoginSession);
@@ -183,14 +186,10 @@ export default class UserResolver {
         }
     }
 
-    @Authenticate
+    @Authorized()
     @Query(() => Response)
     async testAuth(@Ctx() { req, res, conn }: Context): Promise<Response> {
         // this is a temp mutation, so i havent wrapped it in try/catch
-        if (res.locals.userId === undefined) {
-            return { success: true, msg: "not logged in" };
-        }
-
         const name = (await conn.getRepository(User).findOne(res.locals.userId))
             ?.username;
 

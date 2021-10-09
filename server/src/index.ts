@@ -12,13 +12,15 @@ import {
 } from "./resolvers/resolvers";
 import { Instructor, User, LoginSession } from "./entities/entities";
 import cookieParser from "cookie-parser";
-import AuthMiddleware from "./auth/middleware";
+// import AuthMiddleware from "./auth/middleware";
+import userAuthChecker from "./auth/authChecker";
 import config from "./config";
 
 (async function () {
     const schema = await buildSchema({
         resolvers: [HelloResolver, InstructorResolver, UserResolver],
         emitSchemaFile: path.resolve(__dirname, "schema.gql"),
+        authChecker: userAuthChecker,
     });
 
     const connection = await createConnection({
@@ -37,9 +39,6 @@ import config from "./config";
     app.use(cors());
 
     app.use(cookieParser());
-
-    // our auth middleware
-    app.use(AuthMiddleware(connection));
 
     app.use(
         "/graphql",
