@@ -12,7 +12,7 @@ import {
 } from "./resolvers/resolvers";
 import { Instructor, User, LoginSession } from "./entities/entities";
 import cookieParser from "cookie-parser";
-import AuthMiddleware from "./middleware/AuthMiddleware";
+import AuthMiddleware from "./auth/middleware";
 import config from "./config";
 
 (async function () {

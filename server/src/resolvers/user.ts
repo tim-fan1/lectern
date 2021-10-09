@@ -1,6 +1,7 @@
 import argon2 from "argon2";
 import { Arg, Ctx, Field, Mutation, ObjectType, Query } from "type-graphql";
 import { v4 as uuid } from "uuid";
+import Authenticate from "../auth/decorator";
 
 import { User, LoginSession } from "../entities/entities";
 import { Context } from "../types";
@@ -182,6 +183,7 @@ export default class UserResolver {
         }
     }
 
+    @Authenticate
     @Query(() => Response)
     async testAuth(@Ctx() { req, res, conn }: Context): Promise<Response> {
         // this is a temp mutation, so i havent wrapped it in try/catch

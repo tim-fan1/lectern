@@ -6,7 +6,7 @@ import { LoginSession } from "../entities/entities";
 // if their session token was valid, otherwise it stays undefined.
 // checking (res.locals.userId !== undefined) is enough to check
 // that this user is logged in
-export default function (conn: Connection) {
+export default function AuthMiddleware(conn: Connection) {
     return async (req: Request, res: Response, next: NextFunction) => {
         res.locals.userId = undefined;
         const token = req.cookies.token;
