@@ -1,54 +1,14 @@
 import argon2 from "argon2";
-import {
-    Arg,
-    Authorized,
-    Ctx,
-    Field,
-    Mutation,
-    ObjectType,
-    Query,
-    registerEnumType,
-} from "type-graphql";
+import { Arg, Authorized, Ctx, Mutation, Query } from "type-graphql";
 import { v4 as uuid } from "uuid";
 
 import { User, LoginSession } from "../entities/entities";
-import { Context } from "../types";
-import { validateRegister } from "../utils/validate";
-
-@ObjectType()
-class RespError {
-    @Field()
-    kind!: string;
-    @Field()
-    msg?: string;
-
-    static fromError(kind: string, e: Error | any) {
-        return {
-            kind: kind,
-            msg: e.message,
-        };
-    }
-}
-
-@ObjectType()
-class EndpointResponse {
-    @Field(() => [RespError])
-    errors!: RespError[];
-    @Field()
-    msg?: string;
-
-    /**
-     * Creates a response with an empty message and the given list of errors.
-     * Not sure yet if it's cleaner to use this or just define the obj in-place
-     * @param errors Any number of errors of shape RespError
-     * @returns a response with the given list of errors set in the errors field
-     */
-    static withErrors(...errors: RespError[]): EndpointResponse {
-        return {
-            errors: errors,
-        };
-    }
-}
+import { Context, EndpointResponse, RespError } from "../types";
+import {
+    validateEmail,
+    validatePassword,
+    validateUsername,
+} from "../utils/validate";
 
 /**
  * This only exists now for convenience and reference. The original design
@@ -62,6 +22,7 @@ enum UserError {
     EMAIL_NOT_EXIST = "EMAIL_NOT_EXIST",
     BAD_EMAIL = "BAD_EMAIL",
     BAD_PASSWORD = "BAD_PASSWORD",
+    BAD_USERNAME = "BAD_USERNAME",
     INCORRECT_PASSWORD = "INCORRECT_PASSWORD",
     USER_UNVERIFIED = "USER_UNVERIFIED",
     USED_TOKEN = "USED_TOKEN",
@@ -81,14 +42,25 @@ export default class UserResolver {
                 msg: "Already logged in!",
             });
 
-        /* Validate username, password, email. TODO: */
-        const response = validateRegister(email, username, password);
-        if (!response.success) {
-            return {
-                success: false,
-                msg: response.msg,
-            };
-        }
+        /* Validate username, password, email. */
+        const validationErrors: RespError[] = [];
+        if (!validateEmail(email))
+            validationErrors.push({
+                kind: UserError.BAD_EMAIL,
+                msg: "Invalid email",
+            });
+        if (!validatePassword(password))
+            validationErrors.push({
+                kind: UserError.BAD_PASSWORD,
+                msg: "Invalid password",
+            });
+        if (!validateUsername(username))
+            validationErrors.push({
+                kind: UserError.BAD_USERNAME,
+                msg: "Invalid username",
+            });
+        if (validationErrors.length > 0)
+            return EndpointResponse.withErrors(...validationErrors);
 
         /* Insert entry for this user into the db (storing the hashed pw). */
         const hashedPassword = await argon2.hash(password);
@@ -148,13 +120,15 @@ export default class UserResolver {
     async login(
         @Arg("usernameOrEmail") usernameOrEmail: string,
         @Arg("password") password: string,
-        @Ctx() { res, conn }: Context
+        @Ctx() { req, res, conn }: Context
     ): Promise<EndpointResponse> {
-        if (res.locals.userId !== undefined)
+        /* Really shady way of checking if someone's logged in */
+        if (req.cookies.token !== undefined)
             return EndpointResponse.withErrors({
                 kind: UserError.LOGGED_IN,
                 msg: "Already logged in!",
             });
+
         /* Check that the input username/email and password are correct. */
         let user;
         try {
