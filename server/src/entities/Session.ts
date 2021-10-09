@@ -34,19 +34,19 @@ export default class Session {
     state!: SessionState;
 
     @Field()
-    @Column()
+    @Column({ default: () => "CURRENT_TIMESTAMP" })
     startTime!: Date;
 
-    @Field()
+    @Field({ nullable: true })
     @Column({ nullable: true })
-    endTme?: Date;
+    endTime?: Date;
 
-    @Field(() => [Activity])
-    @Column({ default: [] })
+    // @Field(() => [Activity])
+    // @Column({ default: [] })
     savedActivities?: Activity[];
 
-    @Field(() => [Activity])
-    @Column({ default: [] })
+    // @Field(() => [Activity])
+    // @Column({ default: [] })
     activeActivities!: Activity[];
 
     @Field()
