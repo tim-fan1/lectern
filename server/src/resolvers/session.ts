@@ -1,14 +1,13 @@
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
-import Session, { Activity } from "../entities/Session";
-import User from "../entities/User";
+import { Session, Activity, User } from "../entities/entities";
 import { Context } from "../types";
 
 @Resolver()
 export default class SessionResolver {
-    @Query()
+    @Query(() => [Session])
     async getSessions(
         @Ctx() { conn, res }: Context
-    ): Promise<[Session] | null> {
+    ): Promise<Session[] | null> {
         if (res.locals.userId === undefined) {
             return null;
         }
@@ -17,16 +16,16 @@ export default class SessionResolver {
             .getRepository(User)
             .findOne(res.locals.userId)
             .then((user) => {
-                return user?.sessions ? user?.sessions : null;
+                return user?.sessions ? user?.sessions : [];
             });
     }
 
-    @Mutation()
+    @Mutation(() => Boolean)
     async createSession(
         @Ctx() { res, conn }: Context,
         @Arg("name") name: string,
-        @Arg("group") group?: string,
-        @Arg("activities") activities?: [Activity]
+        @Arg("group", { nullable: true }) group?: string,
+        // @Arg("activities", () => [Activity], { nullable: true }) activities?: Activity[]
     ): Promise<Boolean> {
         if (res.locals.userId === undefined) {
             return false;
@@ -36,7 +35,7 @@ export default class SessionResolver {
         const newSession = sessionRepo.create({
             name: name,
             group: group,
-            savedActivities: activities,
+            // savedActivities: activities,
         });
         await sessionRepo.save(newSession);
         const userRepo = conn.getRepository(User);
@@ -53,13 +52,13 @@ export default class SessionResolver {
         return true;
     }
 
-    @Mutation()
+    @Mutation(() => Boolean)
     async editSession(
         @Ctx() { res, conn }: Context,
         @Arg("id") id: number,
-        @Arg("name") name?: string,
-        @Arg("group") group?: string,
-        @Arg("activities") activities?: [Activity]
+        @Arg("name", { nullable: true }) name?: string,
+        @Arg("group", { nullable: true }) group?: string,
+        /// @Arg("activities", () => [Activity], { nullable: true }) activities?: Activity[]
     ): Promise<Boolean> {
         if (res.locals.userId === undefined) {
             return false;
@@ -70,7 +69,7 @@ export default class SessionResolver {
             sessionRepo.update(id, {
                 name: name,
                 group: group,
-                savedActivities: activities,
+                // savedActivities: activities,
             });
         } catch (e) {
             return false;
@@ -79,7 +78,7 @@ export default class SessionResolver {
         return true;
     }
 
-    @Mutation()
+    @Mutation(() => Boolean)
     async deleteSession(
         @Ctx() { res, conn }: Context,
         @Arg("id") id: number

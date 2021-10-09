@@ -7,12 +7,7 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from "typeorm";
-import { User } from "./entities";
-
-export interface Activity {
-    name: string;
-    body: {};
-}
+import { User, Activity } from "./entities";
 
 type SessionState = "draft" | "open" | "archived";
 
@@ -23,7 +18,6 @@ export default class Session {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column()
     @ManyToOne(() => User, (user) => user.sessions)
     author!: User;
 
@@ -47,13 +41,13 @@ export default class Session {
     @Column({ nullable: true })
     endTme?: Date;
 
-    @Field()
+    @Field(() => [Activity])
     @Column({ default: [] })
-    savedActivities?: [Activity];
+    savedActivities?: Activity[];
 
-    @Field()
+    @Field(() => [Activity])
     @Column({ default: [] })
-    activeActivities!: [Activity];
+    activeActivities!: Activity[];
 
     @Field()
     @Column({ nullable: true })
