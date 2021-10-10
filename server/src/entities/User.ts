@@ -42,7 +42,8 @@ export default class User {
     @OneToMany(() => Session, (session) => session.author, {
         eager: true,
         orphanedRowAction: "delete",
-        cascade: true
+        cascade: true,
+        nullable: false,
     })
     sessions!: Session[];
 }

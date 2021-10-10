@@ -1,109 +1,171 @@
-import { Arg, Ctx, Int, Mutation, Query, Resolver } from "type-graphql";
-import { Session, Activity, User } from "../entities/entities";
-import { Context } from "../types";
+import {
+    Arg,
+    Authorized,
+    Ctx,
+    Field,
+    Int,
+    Mutation,
+    ObjectType,
+    Query,
+    Resolver,
+} from "type-graphql";
+import { Session, User } from "../entities/entities";
+import { Context, EndpointResponse } from "../types";
+
+@ObjectType()
+class SessionResponse extends EndpointResponse {
+    @Field({ nullable: true })
+    session?: Session;
+}
+
+@ObjectType()
+class SessionArrResponse extends EndpointResponse {
+    @Field(() => [Session], { nullable: true })
+    sessions?: Session[];
+}
+
+enum SessionErrors {
+    DB_ERROR = "DB_ERROR",
+    USER_NOT_EXIST = "USER_NOT_EXIST", // shouldn't be possible but ts complains
+    SESSION_NOT_EXIST = "SESSION_NOT_EXIST",
+}
 
 @Resolver()
 export default class SessionResolver {
-    @Query(() => [Session])
+    @Authorized()
+    @Query(() => SessionArrResponse)
     async getSessions(
         @Ctx() { conn, res }: Context
-    ): Promise<Session[] | null> {
-        if (res.locals.userId === undefined) {
-            return null;
-        }
+    ): Promise<SessionArrResponse> {
+        try {
+            const user = await conn
+                .getRepository(User)
+                .findOne(res.locals.userId);
 
-        return conn
-            .getRepository(User)
-            .findOne(res.locals.userId)
-            .then((user) => {
-                return user?.sessions ? user?.sessions : [];
+            if (user === undefined)
+                return SessionResponse.withErrors({
+                    kind: SessionErrors.USER_NOT_EXIST,
+                });
+
+            return {
+                errors: [],
+                sessions: user.sessions,
+            };
+        } catch (e: Error | any) {
+            return SessionArrResponse.withErrors({
+                kind: SessionErrors.DB_ERROR,
+                msg: e.message,
             });
+        }
     }
 
-    @Mutation(() => Boolean)
+    @Authorized()
+    @Mutation(() => SessionResponse)
     async createSession(
         @Ctx() { res, conn }: Context,
         @Arg("name") name: string,
-        @Arg("group", { nullable: true }) group?: string,
+        @Arg("group", { nullable: true }) group?: string
         // @Arg("activities", () => [Activity], { nullable: true }) activities?: Activity[]
-    ): Promise<Boolean> {
-        if (res.locals.userId === undefined) {
-            return false;
-        }
+    ): Promise<SessionResponse> {
+        try {
+            const sessionRepo = conn.getRepository(Session);
+            const newSession = sessionRepo.create({
+                name: name,
+                group: group,
+                // savedActivities: activities,
+            });
+            await sessionRepo.save(newSession);
 
-        const sessionRepo = conn.getRepository(Session);
-        const newSession = sessionRepo.create({
-            name: name,
-            group: group,
-            // savedActivities: activities,
-        });
-        await sessionRepo.save(newSession);
-        const userRepo = conn.getRepository(User);
-        let user = await userRepo.findOne(res.locals.userId);
+            const userRepo = conn.getRepository(User);
+            const user = await userRepo.findOne(res.locals.userId);
+            if (user === undefined)
+                return SessionResponse.withErrors({
+                    kind: SessionErrors.USER_NOT_EXIST,
+                });
 
-        if (user && user?.sessions) {
             user.sessions.push(newSession);
             await userRepo.save(user);
-        } else if (user) {
-            user.sessions = [newSession];
-            await userRepo.save(user);
-        }
 
-        return true;
+            return { errors: [], session: newSession };
+        } catch (e: Error | any) {
+            return SessionResponse.withErrors({
+                kind: SessionErrors.DB_ERROR,
+                msg: e.message,
+            });
+        }
     }
 
-    @Mutation(() => Boolean)
+    /* TODO add more edit fields? and define entity type properly */
+    @Authorized()
+    @Mutation(() => EndpointResponse)
     async editSession(
         @Ctx() { res, conn }: Context,
         @Arg("id", () => Int) id: number,
         @Arg("name", { nullable: true }) name?: string,
-        @Arg("group", { nullable: true }) group?: string,
+        @Arg("group", { nullable: true }) group?: string
         /// @Arg("activities", () => [Activity], { nullable: true }) activities?: Activity[]
-    ): Promise<Boolean> {
-        if (res.locals.userId === undefined) {
-            return false;
-        }
-
-        const sessionRepo = conn.getRepository(Session);
+    ): Promise<EndpointResponse> {
         try {
-            let entity: any = {}
+            const sessionRepo = conn.getRepository(Session);
+            const targetSession = await sessionRepo.findOne(id);
+
+            if (targetSession === undefined)
+                return EndpointResponse.withErrors({
+                    kind: SessionErrors.SESSION_NOT_EXIST,
+                });
+            if (targetSession.author.id !== res.locals.userId)
+                // I don't think we should reveal that this session exists if
+                // this author isn't allowed to access it
+                return EndpointResponse.withErrors({
+                    kind: SessionErrors.SESSION_NOT_EXIST,
+                });
+
+            let entity: { name?: string; group?: string } = {};
             if (name !== undefined) {
                 entity.name = name;
             }
             if (group !== undefined) {
                 entity.group = group;
             }
-
             await sessionRepo.update(id, entity);
-        } catch (e) {
-            console.log(e)
-        }
 
-        return true;
+            return { errors: [] };
+        } catch (e: Error | any) {
+            return EndpointResponse.withErrors({
+                kind: SessionErrors.DB_ERROR,
+                msg: e.message,
+            });
+        }
     }
 
-    @Mutation(() => Boolean)
+    @Authorized()
+    @Mutation(() => EndpointResponse)
     async deleteSession(
         @Ctx() { res, conn }: Context,
         @Arg("id", () => Int) id: number
-    ): Promise<Boolean> {
-        if (res.locals.userId === undefined) {
-            return false;
-        }
-
-        const sessionRepo = conn.getRepository(Session);
-        const targetSession = await sessionRepo.findOne(id);
-
-        if (!targetSession) {
-            return false;
-        }
-
+    ): Promise<EndpointResponse> {
         try {
-            sessionRepo.delete(id);
-        } catch (e) {
-            return false;
-        }
+            const sessionRepo = conn.getRepository(Session);
+            const targetSession = await sessionRepo.findOne(id);
 
-        return true;
+            if (targetSession === undefined)
+                return EndpointResponse.withErrors({
+                    kind: SessionErrors.SESSION_NOT_EXIST,
+                });
+            if (targetSession.author.id !== res.locals.userId)
+                // I don't think we should reveal that this session exists if
+                // this author isn't allowed to access it
+                return EndpointResponse.withErrors({
+                    kind: SessionErrors.SESSION_NOT_EXIST,
+                });
+
+            sessionRepo.delete(id);
+            return { errors: [] };
+        } catch (e: Error | any) {
+            return SessionResponse.withErrors({
+                kind: SessionErrors.DB_ERROR,
+                msg: e.message,
+            });
+        }
     }
 }
