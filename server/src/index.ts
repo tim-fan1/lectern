@@ -12,7 +12,6 @@ import {
 } from "./resolvers/resolvers";
 import { Instructor, User, LoginSession } from "./entities/entities";
 import cookieParser from "cookie-parser";
-// import AuthMiddleware from "./auth/middleware";
 import userAuthChecker from "./auth/authChecker";
 import config from "./config";
 

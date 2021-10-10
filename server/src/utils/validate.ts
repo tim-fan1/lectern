@@ -13,6 +13,8 @@ const username_regex = new RegExp("^[A-Za-z][A-Za-z0-9_]{3,14}$");
  * Validating email.
  */
 export const validateEmail = (email: string): boolean => {
+    // the regex looks big and scawy so I'm not touching it
+    if (email.length > 128) return false;
     return email_regexp.test(email);
 };
 
