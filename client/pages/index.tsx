@@ -2,7 +2,7 @@ import Link from "next/link";
 import Head from "next/head";
 import { useState } from "react";
 import Navigation from "../components/Navigation";
-import styles from "../styles/Home.module.css";
+import styles from "../styles/index.module.css";
 
 function Home() {
     const [sessionCode, setSessionCode] = useState("");
@@ -15,7 +15,7 @@ function Home() {
 
             <Navigation />
             <form className="container_center">
-                <h1>Enter session code</h1>
+                <h1>Enter your session code!</h1>
                 <div id={styles.input_code_container}>
                     <h1>#</h1>
                     <input
@@ -26,9 +26,7 @@ function Home() {
                         size={8}
                         placeholder="e.g. 123ABC"
                         value={sessionCode}
-                        onChange={(e) =>
-                            setSessionCode((e.target as HTMLInputElement).value)
-                        }
+                        onChange={(e) => setSessionCode((e.target as HTMLInputElement).value)}
                         required
                     />
                 </div>

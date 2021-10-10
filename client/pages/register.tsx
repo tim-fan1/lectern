@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useMutation } from "urql";
 import Navigation from "../components/Navigation";
-import styles from "../styles/Register.module.css";
+import styles from "../styles/register.module.css";
 
 const MutationRegister = `
     mutation ($email: String!, $username: String!, $password: String!) {
@@ -16,19 +16,24 @@ const MutationRegister = `
 // TODO: this should be a class         nocheckin
 export default function Register() {
     /* TODO: Find a better way to manage this state? */
-    /* TODO: check confirmPassword and password are equal */
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [registerSuccess, setRegsiterSuccess] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
+    const [registerSuccess, setRegsiterSuccess] = useState(false);
     const [_, register] = useMutation(MutationRegister);
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         // TODO: enforce constraints on name, email, passwords etc
+        if (password != confirmPassword) {
+            setErrorMessage("Passwords are not equal!");
+        } else {
+            setErrorMessage("");
+        }
 
         const variables = {
             email: email,
@@ -36,7 +41,6 @@ export default function Register() {
             password: password,
         };
         register(variables).then((result) => {
-            console.log(result.data);
             if (result.data.register.success) {
                 setRegsiterSuccess(true);
             }
@@ -57,11 +61,8 @@ export default function Register() {
                             <input
                                 className="input"
                                 type="text"
-                                onChange={(e) =>
-                                    setName(
-                                        (e.target as HTMLInputElement).value
-                                    )
-                                }
+                                maxLength={128}
+                                onChange={(e) => setName((e.target as HTMLInputElement).value)}
                                 required
                             />
                         </div>
@@ -73,26 +74,21 @@ export default function Register() {
                                 className="input"
                                 id="email"
                                 type="email"
-                                onChange={(e) =>
-                                    setEmail(
-                                        (e.target as HTMLInputElement).value
-                                    )
-                                }
+                                onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
                                 required
                             />
                         </div>
                         <div className="container_input_label">
+                            {errorMessage && <p className="error">{errorMessage}</p>}
                             <label className="label" htmlFor="">
                                 Password
                             </label>
                             <input
                                 className="input"
                                 type="password"
-                                onChange={(e) =>
-                                    setPassword(
-                                        (e.target as HTMLInputElement).value
-                                    )
-                                }
+                                minLength={8}
+                                maxLength={30}
+                                onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
                                 required
                             />
                         </div>
@@ -103,10 +99,10 @@ export default function Register() {
                             <input
                                 className="input"
                                 type="password"
+                                minLength={8}
+                                maxLength={30}
                                 onChange={(e) =>
-                                    setConfirmPassword(
-                                        (e.target as HTMLInputElement).value
-                                    )
+                                    setConfirmPassword((e.target as HTMLInputElement).value)
                                 }
                                 required
                             />

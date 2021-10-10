@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Navigation from "../../components/Navigation";
-import styles from "../../styles/Create.module.css";
+import styles from "../../styles/create.module.css";
 
 export default function Dashboard() {
     return (

@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
 import { useMutation } from "urql";
 import Navigation from "../components/Navigation";
-import styles from "../styles/Login.module.css";
+import styles from "../styles/login.module.css";
 
 const MutationLogin = `
     mutation ($usernameOrEmail: String!, $password: String!) {
@@ -19,6 +19,7 @@ export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
+    const [errorMessage, setErrorMessage] = useState("");
     const [_, login] = useMutation(MutationLogin);
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -31,8 +32,9 @@ export default function Login() {
         login(variables).then((result) => {
             if (result.data.login.success) {
                 router.push("/instructor/dashboard");
+            } else {
+                setErrorMessage("Incorrect email or password.");
             }
-            // TODO: handle errors
         });
     };
 
@@ -41,15 +43,14 @@ export default function Login() {
             <Navigation />
             <div className="container_center">
                 <h1>Instructor log in</h1>
+                {errorMessage && <p className="error">{errorMessage}</p>}
                 <form className="form" onSubmit={handleSubmit}>
                     <div className="container_input_label">
                         <label className="label">Email</label>
                         <input
                             className="input"
                             type="email"
-                            onChange={(e) =>
-                                setEmail((e.target as HTMLInputElement).value)
-                            }
+                            onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
                             required
                         />
                     </div>
@@ -58,11 +59,7 @@ export default function Login() {
                         <input
                             className="input"
                             type="password"
-                            onChange={(e) =>
-                                setPassword(
-                                    (e.target as HTMLInputElement).value
-                                )
-                            }
+                            onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
                             required
                         />
                     </div>
@@ -73,7 +70,7 @@ export default function Login() {
                         <Link href="/">
                             <a>Forgot password?</a>
                         </Link>
-                        <Link href="/register">
+                        <Link href="/loginSuccess">
                             <a>Don&apos;t have an account?</a>
                         </Link>
                     </div>
