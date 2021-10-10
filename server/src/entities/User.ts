@@ -1,16 +1,18 @@
-import { Field, ObjectType } from "type-graphql";
+import { Field, Int, ObjectType } from "type-graphql";
 import {
     Column,
     CreateDateColumn,
     Entity,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from "typeorm";
+import { Session } from "./entities";
 
 @ObjectType()
 @Entity()
 export default class User {
-    @Field()
+    @Field(() => Int)
     @PrimaryGeneratedColumn()
     id!: number;
 
@@ -33,6 +35,15 @@ export default class User {
     @Column()
     password!: string;
 
+    //why isn't this exposed as a field? won't the frontend need to know if a user is verified?
     @Column()
     verified!: boolean;
+
+    @OneToMany(() => Session, (session) => session.author, {
+        eager: true,
+        orphanedRowAction: "delete",
+        cascade: true,
+        nullable: false,
+    })
+    sessions!: Session[];
 }
