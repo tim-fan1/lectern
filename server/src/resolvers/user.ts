@@ -1,19 +1,36 @@
 import argon2 from "argon2";
-import { Arg, Authorized, Ctx, Mutation, Query } from "type-graphql";
+import {
+    Arg,
+    Authorized,
+    Ctx,
+    Field,
+    Mutation,
+    ObjectType,
+    Query,
+} from "type-graphql";
 import { v4 as uuid } from "uuid";
 
 import { User, LoginSession } from "../entities/entities";
-import { Context, EndpointResponse, RespError } from "../types";
+import { Context, EndpointResponse, RespError, StringResponse } from "../types";
 import {
     validateEmail,
     validatePassword,
     validateUsername,
 } from "../utils/validate";
 
+@ObjectType()
+class UserResponse extends EndpointResponse {
+    @Field({ nullable: true })
+    user?: User;
+}
+
 /**
  * This only exists now for convenience and reference. The original design
  * had RespError as a generic which took in an error enum, however (1) enum
  * support in TypeGQL is... odd, and (2) generics support is similarly odd
+ * (it would be nicer, but implementing that would require two generic class
+ * factories to be called for each new error type + an accompanying function
+ * call to register each error enum and that really just doesn't sound worth)
  */
 enum UserError {
     DB_ERROR = "DB_ERROR",
@@ -29,15 +46,15 @@ enum UserError {
 }
 
 export default class UserResolver {
-    @Mutation(() => EndpointResponse)
+    @Mutation(() => UserResponse)
     async register(
         @Arg("email") email: string,
         @Arg("username") username: string,
         @Arg("password") password: string,
         @Ctx() { conn, res }: Context
-    ): Promise<EndpointResponse> {
+    ): Promise<UserResponse> {
         if (res.locals.userId !== undefined)
-            return EndpointResponse.withErrors({
+            return UserResponse.withErrors({
                 kind: UserError.LOGGED_IN,
                 msg: "Already logged in!",
             });
@@ -60,7 +77,7 @@ export default class UserResolver {
                 msg: "Invalid username",
             });
         if (validationErrors.length > 0)
-            return EndpointResponse.withErrors(...validationErrors);
+            return UserResponse.withErrors(...validationErrors);
 
         /* Insert entry for this user into the db (storing the hashed pw). */
         const hashedPassword = await argon2.hash(password);
@@ -77,7 +94,7 @@ export default class UserResolver {
             });
             user = await repo.save(meme);
         } catch (e: Error | any) {
-            return EndpointResponse.withErrors({
+            return UserResponse.withErrors({
                 kind: UserError.DB_ERROR,
                 msg: e.message,
             });
@@ -112,7 +129,7 @@ export default class UserResolver {
         /* Success! */
         return {
             errors: [],
-            msg: "Successfully registered!",
+            user: user,
         };
     }
 
@@ -200,7 +217,6 @@ export default class UserResolver {
         /* Success! */
         return {
             errors: [],
-            msg: "Successfully logged in!",
         };
     }
 
@@ -215,7 +231,7 @@ export default class UserResolver {
             repo.delete(req.cookies.token);
             res.clearCookie("token");
 
-            return { errors: [], msg: "Logged out" };
+            return { errors: [] };
         } catch (e: Error | any) {
             return EndpointResponse.withErrors({
                 kind: UserError.DB_ERROR,
@@ -225,8 +241,8 @@ export default class UserResolver {
     }
 
     @Authorized()
-    @Query(() => EndpointResponse)
-    async testAuth(@Ctx() { res, conn }: Context): Promise<EndpointResponse> {
+    @Query(() => StringResponse)
+    async testAuth(@Ctx() { res, conn }: Context): Promise<StringResponse> {
         // this is a temp mutation, so i havent wrapped it in try/catch
         const name = (await conn.getRepository(User).findOne(res.locals.userId))
             ?.username;

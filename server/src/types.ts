@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Connection } from "typeorm";
-import { ObjectType, Field } from "type-graphql";
+import { ObjectType, Field, ClassType } from "type-graphql";
 
 /**
  * The Context type used by express-graphql. This is generated for each request
@@ -12,12 +12,15 @@ export type Context = {
     conn: Connection;
 };
 
+/**
+ * This is a basic response type that only includes the errors array. It should
+ * be extended whenever there's some additional data to send. Decorators need
+ * to be repeated; see https://typegraphql.com/docs/inheritance.html.
+ */
 @ObjectType()
 export class EndpointResponse {
     @Field(() => [RespError])
     errors!: RespError[];
-    @Field({ nullable: true })
-    msg?: string;
 
     /**
      * Creates a response with an empty message and the given list of errors.
@@ -32,6 +35,18 @@ export class EndpointResponse {
     }
 }
 
+/**
+ * Example subclass of EndpointResponse w/ string message.
+ */
+@ObjectType()
+export class StringResponse extends EndpointResponse {
+    @Field({ nullable: true })
+    msg?: string;
+}
+
+/**
+ * Error type for returned errors.
+ */
 @ObjectType()
 export class RespError {
     @Field()
