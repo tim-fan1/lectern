@@ -1,37 +1,83 @@
 import argon2 from "argon2";
-import { Arg, Ctx, Field, Mutation, ObjectType, Query } from "type-graphql";
+import {
+    Arg,
+    Authorized,
+    Ctx,
+    Field,
+    Mutation,
+    ObjectType,
+    Query,
+} from "type-graphql";
 import { v4 as uuid } from "uuid";
 
 import { User, LoginSession } from "../entities/entities";
-import { Context } from "../types";
-import { validateRegister } from "../utils/validate";
+import { Context, EndpointResponse, RespError, StringResponse } from "../types";
+import {
+    validateEmail,
+    validatePassword,
+    validateUsername,
+} from "../utils/validate";
 
 @ObjectType()
-class Response {
-    @Field()
-    success!: boolean;
-    @Field()
-    msg!: string;
+class UserResponse extends EndpointResponse {
+    @Field({ nullable: true })
+    user?: User;
+}
+
+/**
+ * This only exists now for convenience and reference. The original design
+ * had RespError as a generic which took in an error enum, however (1) enum
+ * support in TypeGQL is... odd, and (2) generics support is similarly odd
+ * (it would be nicer, but implementing that would require two generic class
+ * factories to be called for each new error type + an accompanying function
+ * call to register each error enum and that really just doesn't sound worth)
+ */
+enum UserError {
+    DB_ERROR = "DB_ERROR",
+    LOGGED_IN = "LOGGED_IN",
+    EMAIL_EXISTS = "EMAIL_EXISTS",
+    EMAIL_NOT_EXIST = "EMAIL_NOT_EXIST",
+    BAD_EMAIL = "BAD_EMAIL",
+    BAD_PASSWORD = "BAD_PASSWORD",
+    BAD_USERNAME = "BAD_USERNAME",
+    INCORRECT_PASSWORD = "INCORRECT_PASSWORD",
+    USER_UNVERIFIED = "USER_UNVERIFIED",
+    USED_TOKEN = "USED_TOKEN",
 }
 
 export default class UserResolver {
-    @Mutation(() => Response)
+    @Mutation(() => UserResponse)
     async register(
         @Arg("email") email: string,
         @Arg("username") username: string,
         @Arg("password") password: string,
         @Ctx() { conn, res }: Context
-    ): Promise<Response> {
+    ): Promise<UserResponse> {
         if (res.locals.userId !== undefined)
-            return { success: false, msg: "Already logged in!" };
+            return UserResponse.withErrors({
+                kind: UserError.LOGGED_IN,
+                msg: "Already logged in!",
+            });
+
         /* Validate username, password, email. */
-        const response = validateRegister(email, username, password);
-        if (!response.success) {
-            return {
-                success: false,
-                msg: response.msg,
-            };
-        }
+        const validationErrors: RespError[] = [];
+        if (!validateEmail(email))
+            validationErrors.push({
+                kind: UserError.BAD_EMAIL,
+                msg: "Invalid email",
+            });
+        if (!validatePassword(password))
+            validationErrors.push({
+                kind: UserError.BAD_PASSWORD,
+                msg: "Invalid password",
+            });
+        if (!validateUsername(username))
+            validationErrors.push({
+                kind: UserError.BAD_USERNAME,
+                msg: "Invalid username",
+            });
+        if (validationErrors.length > 0)
+            return UserResponse.withErrors(...validationErrors);
 
         /* Insert entry for this user into the db (storing the hashed pw). */
         const hashedPassword = await argon2.hash(password);
@@ -48,13 +94,11 @@ export default class UserResolver {
             });
             user = await repo.save(meme);
         } catch (e: Error | any) {
-            return {
-                success: false,
+            return UserResponse.withErrors({
+                kind: UserError.DB_ERROR,
                 msg: e.message,
-            };
+            });
         }
-
-        // req.cookies.userId = user.id;
 
         /**
          * TODO:
@@ -84,19 +128,24 @@ export default class UserResolver {
 
         /* Success! */
         return {
-            success: true,
-            msg: "Successfully registered!",
+            errors: [],
+            user: user,
         };
     }
 
-    @Mutation(() => Response)
+    @Mutation(() => EndpointResponse)
     async login(
         @Arg("usernameOrEmail") usernameOrEmail: string,
         @Arg("password") password: string,
-        @Ctx() { res, conn }: Context
-    ): Promise<Response> {
-        if (res.locals.userId !== undefined)
-            return { success: false, msg: "Already logged in!" };
+        @Ctx() { req, res, conn }: Context
+    ): Promise<EndpointResponse> {
+        /* Really shady way of checking if someone's logged in */
+        if (req.cookies.token !== undefined)
+            return EndpointResponse.withErrors({
+                kind: UserError.LOGGED_IN,
+                msg: "Already logged in!",
+            });
+
         /* Check that the input username/email and password are correct. */
         let user;
         try {
@@ -107,32 +156,32 @@ export default class UserResolver {
                     : { where: { username: usernameOrEmail } }
             );
         } catch (e: Error | any) {
-            return {
-                success: false,
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
                 msg: e.message,
-            };
+            });
         }
 
         if (!user) {
-            return {
-                success: false,
+            return EndpointResponse.withErrors({
+                kind: UserError.EMAIL_NOT_EXIST,
                 msg: "Username or email does not exist",
-            };
+            });
         }
         const valid = await argon2.verify(user.password, password);
         if (!valid) {
-            return {
-                success: false,
+            return EndpointResponse.withErrors({
+                kind: UserError.INCORRECT_PASSWORD,
                 msg: "Incorrect password",
-            };
+            });
         }
 
         /* Details are correct! Now check that the user is verified. */
         if (!user.verified) {
-            return {
-                success: false,
-                msg: "User is not verified",
-            };
+            return EndpointResponse.withErrors({
+                kind: UserError.USER_UNVERIFIED,
+                msg: "User not verified",
+            });
         }
 
         /* User is also verified. Generate session token and store in res.cookies. */
@@ -141,7 +190,10 @@ export default class UserResolver {
             const repo = conn.getRepository(LoginSession);
             const exist = await repo.findOne(newToken);
             if (exist)
-                throw Error("newToken already exists; go buy a lottery ticket");
+                return EndpointResponse.withErrors({
+                    kind: UserError.USED_TOKEN,
+                    msg: "Token already exists; go buy a lottery ticket",
+                });
 
             const newSession = repo.create({
                 token: newToken,
@@ -150,7 +202,10 @@ export default class UserResolver {
 
             await repo.save(newSession);
         } catch (e: Error | any) {
-            return { success: false, msg: e.message };
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
         }
         res.cookie("token", newToken, {
             httpOnly: true,
@@ -161,37 +216,37 @@ export default class UserResolver {
 
         /* Success! */
         return {
-            success: true,
-            msg: "Successfully logged in!",
+            errors: [],
         };
     }
 
-    @Mutation(() => Response)
-    async logout(@Ctx() { req, res, conn }: Context): Promise<Response> {
-        if (res.locals.userId === undefined)
-            return { success: false, msg: "Not logged in" };
-
+    @Authorized()
+    @Mutation(() => EndpointResponse)
+    async logout(
+        @Ctx() { req, res, conn }: Context
+    ): Promise<EndpointResponse> {
         // this doesn't check if the session existed or not
         try {
             const repo = conn.getRepository(LoginSession);
             repo.delete(req.cookies.token);
             res.clearCookie("token");
-            return { success: true, msg: "Logged out" };
+
+            return { errors: [] };
         } catch (e: Error | any) {
-            return { success: false, msg: e.message };
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
         }
     }
 
-    @Query(() => Response)
-    async testAuth(@Ctx() { req, res, conn }: Context): Promise<Response> {
+    @Authorized()
+    @Query(() => StringResponse)
+    async testAuth(@Ctx() { res, conn }: Context): Promise<StringResponse> {
         // this is a temp mutation, so i havent wrapped it in try/catch
-        if (res.locals.userId === undefined) {
-            return { success: true, msg: "not logged in" };
-        }
-
         const name = (await conn.getRepository(User).findOne(res.locals.userId))
             ?.username;
 
-        return { success: true, msg: "hello, " + name + "!" };
+        return { errors: [], msg: "hello, " + name + "!" };
     }
 }
