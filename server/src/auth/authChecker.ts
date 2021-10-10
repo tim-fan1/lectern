@@ -16,7 +16,11 @@ const userAuthChecker: AuthChecker<Context> = async ({
         /* checks if the session is valid */
         const repo = conn.getRepository(LoginSession);
         const thisSess = await repo.findOne({ token: token });
-        if (thisSess === undefined) return false;
+        if (thisSess === undefined) {
+            /* user had an invalid cookie; unset it */
+            res.clearCookie("token");
+            return false;
+        }
 
         /* session valid, set user details and return */
         res.locals.userId = thisSess.userId;

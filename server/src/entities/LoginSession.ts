@@ -8,6 +8,7 @@ export default class LoginSession {
     @CreateDateColumn()
     created!: Date;
 
+    /* TODO use a relation here */
     @Column()
     userId!: number;
 }

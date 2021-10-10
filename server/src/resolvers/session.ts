@@ -68,20 +68,21 @@ export default class SessionResolver {
         // @Arg("activities", () => [Activity], { nullable: true }) activities?: Activity[]
     ): Promise<SessionResponse> {
         try {
-            const sessionRepo = conn.getRepository(Session);
-            const newSession = sessionRepo.create({
-                name: name,
-                group: group,
-                // savedActivities: activities,
-            });
-            await sessionRepo.save(newSession);
-
             const userRepo = conn.getRepository(User);
             const user = await userRepo.findOne(res.locals.userId);
             if (user === undefined)
                 return SessionResponse.withErrors({
                     kind: SessionErrors.USER_NOT_EXIST,
                 });
+
+            const sessionRepo = conn.getRepository(Session);
+            const newSession = sessionRepo.create({
+                name: name,
+                group: group,
+                author: user,
+                // savedActivities: activities,
+            });
+            await sessionRepo.save(newSession);
 
             user.sessions.push(newSession);
             await userRepo.save(user);
@@ -107,7 +108,9 @@ export default class SessionResolver {
     ): Promise<EndpointResponse> {
         try {
             const sessionRepo = conn.getRepository(Session);
-            const targetSession = await sessionRepo.findOne(id);
+            const targetSession = await sessionRepo.findOne(id, {
+                relations: ["author"],
+            });
 
             if (targetSession === undefined)
                 return EndpointResponse.withErrors({
@@ -146,7 +149,9 @@ export default class SessionResolver {
     ): Promise<EndpointResponse> {
         try {
             const sessionRepo = conn.getRepository(Session);
-            const targetSession = await sessionRepo.findOne(id);
+            const targetSession = await sessionRepo.findOne(id, {
+                relations: ["author"],
+            });
 
             if (targetSession === undefined)
                 return EndpointResponse.withErrors({
@@ -162,7 +167,7 @@ export default class SessionResolver {
             sessionRepo.delete(id);
             return { errors: [] };
         } catch (e: Error | any) {
-            return SessionResponse.withErrors({
+            return EndpointResponse.withErrors({
                 kind: SessionErrors.DB_ERROR,
                 msg: e.message,
             });
