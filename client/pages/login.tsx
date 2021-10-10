@@ -8,8 +8,10 @@ import styles from "../styles/login.module.css";
 const MutationLogin = `
     mutation ($usernameOrEmail: String!, $password: String!) {
         login(usernameOrEmail: $usernameOrEmail, password: $password) {
-            success
-            msg
+            errors {
+                kind
+                msg
+            }
         }
     }
 `;
@@ -30,7 +32,7 @@ export default function Login() {
             password: password,
         };
         login(variables).then((result) => {
-            if (result.data.login.success) {
+            if (result.data.login.errors.length == 0) {
                 router.push("/instructor/dashboard");
             } else {
                 setErrorMessage("Incorrect email or password.");

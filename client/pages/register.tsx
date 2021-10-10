@@ -7,13 +7,15 @@ import styles from "../styles/register.module.css";
 const MutationRegister = `
     mutation ($email: String!, $username: String!, $password: String!) {
         register(email: $email, username: $username, password: $password) {
-            success
-            msg
+            errors {
+                kind
+                msg
+            }
         }
     }
 `;
 
-// TODO: this should be a class         nocheckin
+// TODO: should this be a class
 export default function Register() {
     /* TODO: Find a better way to manage this state? */
     const [name, setName] = useState("");
@@ -41,7 +43,7 @@ export default function Register() {
             password: password,
         };
         register(variables).then((result) => {
-            if (result.data.register.success) {
+            if (result.data.register.errors.length == 0) {
                 setRegsiterSuccess(true);
             }
         });
