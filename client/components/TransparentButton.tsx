@@ -11,15 +11,7 @@ type TransparentButtonProps = {
     className: string;
 };
 
-const uwu = ({
-    className,
-    width,
-    height,
-    src,
-    text,
-    onClick,
-    alt,
-}: TransparentButtonProps) => (
+const uwu = ({ className, width, height, src, text, onClick, alt }: TransparentButtonProps) => (
     <div className={className}>
         {/* cursed code */}
         <a onClick={() => (onClick ? onClick() : null)}>

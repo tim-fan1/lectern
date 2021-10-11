@@ -1,12 +1,11 @@
 import Link from "next/link";
 import Head from "next/head";
 import { useState } from "react";
-import { useQuery } from "urql";
 import Navigation from "../components/Navigation";
-import styles from "../styles/Home.module.css";
+import styles from "../styles/index.module.css";
 
 function Home() {
-    const [input, setInput] = useState("");
+    const [sessionCode, setSessionCode] = useState("");
 
     return (
         <div className={styles.container}>
@@ -16,7 +15,7 @@ function Home() {
 
             <Navigation />
             <form className="container_center">
-                <h1>Enter session code</h1>
+                <h1>Enter your session code!</h1>
                 <div id={styles.input_code_container}>
                     <h1>#</h1>
                     <input
@@ -26,14 +25,12 @@ function Home() {
                         maxLength={6}
                         size={8}
                         placeholder="e.g. 123ABC"
-                        value={input}
-                        onInput={(e) =>
-                            setInput((e.target as HTMLInputElement).value)
-                        }
+                        value={sessionCode}
+                        onChange={(e) => setSessionCode((e.target as HTMLInputElement).value)}
                         required
                     />
                 </div>
-                <Link href={`/join/${input.toUpperCase()}`} passHref>
+                <Link href={`/join/${sessionCode.toUpperCase()}`} passHref>
                     <button id={styles.btn_join} type="submit">
                         Join
                     </button>

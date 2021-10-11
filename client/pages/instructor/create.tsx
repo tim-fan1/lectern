@@ -61,29 +61,17 @@ export default function Dashboard() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                 />
-                <div
-                    id={styles.container_add_activity}
-                    className="container_center"
-                >
-                    <h2>
-                        Prepare session activities to activate during the
-                        session
-                    </h2>
+                <div id={styles.container_add_activity} className="container_center">
+                    <h2>Prepare session activities to activate during the session</h2>
                     <div id={styles.container_create_cards}>
                         <Link href="/instructor/create">
-                            <a className={styles.card_create_activity}>
-                                Create a Poll (soon™)
-                            </a>
+                            <a className={styles.card_create_activity}>Create a Poll (soon™)</a>
                         </Link>
                         <Link href="/instructor/create">
-                            <a className={styles.card_create_activity}>
-                                Create a Quiz (soon™)
-                            </a>
+                            <a className={styles.card_create_activity}>Create a Quiz (soon™)</a>
                         </Link>
                         <Link href="/instructor/create">
-                            <a className={styles.card_create_activity}>
-                                Create a Q&A (soon™)
-                            </a>
+                            <a className={styles.card_create_activity}>Create a Q&A (soon™)</a>
                         </Link>
                     </div>
                 </div>

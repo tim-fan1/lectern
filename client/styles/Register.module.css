@@ -1,0 +1,10 @@
+#container_register_success {
+    background-color: var(--c-background-secondary);
+    text-align: center;
+    padding: 2rem 4rem;
+    margin: 1rem;
+}
+
+#container_register_success h2 {
+    margin-bottom: 1.5rem;
+}
