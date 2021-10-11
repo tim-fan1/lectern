@@ -9,8 +9,10 @@ import {
     Query,
     Resolver,
 } from "type-graphql";
+import * as df from "date-fns";
 import { Session, User } from "../entities/entities";
 import { Context, EndpointResponse } from "../types";
+import generateAlphanumCode from "../utils/generateCode";
 
 @ObjectType()
 class SessionResponse extends EndpointResponse {
@@ -28,6 +30,8 @@ enum SessionErrors {
     DB_ERROR = "DB_ERROR",
     USER_NOT_EXIST = "USER_NOT_EXIST", // shouldn't be possible but ts complains
     SESSION_NOT_EXIST = "SESSION_NOT_EXIST",
+    SESSION_ALREADY_STARTED = "SESSION_ALREADY_STARTED",
+    SESSION_CODE_EXIST = "SESSION_CODE_EXIST",
 }
 
 @Resolver()
@@ -153,13 +157,12 @@ export default class SessionResolver {
                 relations: ["author"],
             });
 
-            if (targetSession === undefined)
-                return EndpointResponse.withErrors({
-                    kind: SessionErrors.SESSION_NOT_EXIST,
-                });
-            if (targetSession.author.id !== res.locals.userId)
+            if (
+                targetSession === undefined ||
+                targetSession.author.id !== res.locals.userId
+            )
                 // I don't think we should reveal that this session exists if
-                // this author isn't allowed to access it
+                // this user isn't allowed to access it
                 return EndpointResponse.withErrors({
                     kind: SessionErrors.SESSION_NOT_EXIST,
                 });
@@ -168,6 +171,62 @@ export default class SessionResolver {
             return { errors: [] };
         } catch (e: Error | any) {
             return EndpointResponse.withErrors({
+                kind: SessionErrors.DB_ERROR,
+                msg: e.message,
+            });
+        }
+    }
+
+    @Authorized()
+    @Mutation(() => SessionResponse)
+    async startSession(
+        @Arg("id") id: number,
+        @Ctx() { res, conn }: Context
+    ): Promise<SessionResponse> {
+        try {
+            const userRepo = conn.getRepository(User);
+            const user = await userRepo.findOne(res.locals.userId);
+            if (user === undefined)
+                return SessionResponse.withErrors({
+                    kind: SessionErrors.USER_NOT_EXIST,
+                });
+
+            const sessionRepo = conn.getRepository(Session);
+            const session = await sessionRepo.findOne(id, {
+                relations: ["author"],
+            });
+            if (
+                session === undefined ||
+                session.author.id !== res.locals.userId
+            )
+                return SessionResponse.withErrors({
+                    kind: SessionErrors.SESSION_NOT_EXIST,
+                });
+            if (session.state != "draft")
+                return SessionResponse.withErrors({
+                    kind: SessionErrors.SESSION_ALREADY_STARTED,
+                });
+
+            /* In-memory session logic goes here. */
+
+            const thisCode = generateAlphanumCode(6);
+            if (await sessionRepo.findOne({ where: { code: thisCode } }))
+                // code already exists, somewhat unlikely (unlike session token)
+                return SessionResponse.withErrors({
+                    kind: SessionErrors.SESSION_CODE_EXIST,
+                    msg: "Code already exists; don't buy a lottery ticket \
+                        but maybe roll some gacha or something",
+                });
+
+            session.code = thisCode;
+            session.state = "open";
+            // TODO: make this configurable; default for now is 6 hours
+            session.endTime = df.add(Date.now(), { hours: 6 });
+            await sessionRepo.save(session);
+
+            return { errors: [], session: session };
+        } catch (e: Error | any) {
+            return SessionResponse.withErrors({
                 kind: SessionErrors.DB_ERROR,
                 msg: e.message,
             });

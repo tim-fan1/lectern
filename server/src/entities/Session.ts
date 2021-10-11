@@ -49,7 +49,7 @@ export default class Session {
     // @Column({ default: [] })
     activeActivities!: Activity[];
 
-    @Field()
+    @Field({ nullable: true })
     @Column({ nullable: true })
     group?: string;
 
@@ -57,7 +57,7 @@ export default class Session {
     @Column()
     name!: string;
 
-    @Field()
+    @Field({ nullable: true })
     @Column({ unique: true, nullable: true })
     code?: string;
 }
