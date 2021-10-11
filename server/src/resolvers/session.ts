@@ -221,10 +221,35 @@ export default class SessionResolver {
             session.code = thisCode;
             session.state = "open";
             // TODO: make this configurable; default for now is 6 hours
-            session.endTime = df.add(Date.now(), { hours: 6 });
+            session.startTime = new Date(Date.now());
+            session.endTime = df.add(session.startTime, { hours: 6 });
             await sessionRepo.save(session);
 
             return { errors: [], session: session };
+        } catch (e: Error | any) {
+            return SessionResponse.withErrors({
+                kind: SessionErrors.DB_ERROR,
+                msg: e.message,
+            });
+        }
+    }
+
+    @Query(() => SessionResponse)
+    async sessionDetails(
+        @Arg("code") code: string,
+        @Ctx() { res, conn }: Context
+    ): Promise<SessionResponse> {
+        try {
+            const sessionRepo = conn.getRepository(Session);
+            const thisSession = await sessionRepo.findOne({
+                where: { code: code.trim().toUpperCase() },
+            });
+            if (thisSession === undefined)
+                return SessionResponse.withErrors({
+                    kind: SessionErrors.SESSION_NOT_EXIST,
+                });
+
+            return { errors: [], session: thisSession };
         } catch (e: Error | any) {
             return SessionResponse.withErrors({
                 kind: SessionErrors.DB_ERROR,

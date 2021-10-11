@@ -33,9 +33,9 @@ export default class Session {
     @Column({ default: "draft" })
     state!: SessionState;
 
-    @Field()
-    @Column({ default: () => "CURRENT_TIMESTAMP" })
-    startTime!: Date;
+    @Field({ nullable: true })
+    @Column({ nullable: true })
+    startTime?: Date;
 
     @Field({ nullable: true })
     @Column({ nullable: true })
