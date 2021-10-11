@@ -5,10 +5,10 @@ import exit_image from "../../../public/mdi_exit-to-app.svg";
 
 import QRCode from "qrcode.react";
 import React from "react";
-import styles from "../../../styles/presenter.module.css";
+import styles from "../../../styles/present.module.css";
 import { useRouter } from "next/router";
 
-export default function OwO() {
+export default function Present() {
     const router = useRouter();
     const { code } = router.query;
     const url = process.env.NEXT_PUBLIC_FRONTEND_HOST + "/join/" + code;
@@ -66,7 +66,7 @@ export default function OwO() {
                         </h2>
                         <h1 className={styles.bottom_large_text}>#{code}</h1>
                         <h2 className={styles.bottom_small_text}>or visit</h2>
-                        <h1 className={styles.bottomUrlText}>{url}</h1>
+                        <h1 className={styles.bottom_url_text}>{url}</h1>
                     </div>
                     <div className={styles.bottom_qr_container}>
                         <QRCode
