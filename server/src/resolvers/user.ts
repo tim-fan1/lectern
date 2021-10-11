@@ -43,6 +43,7 @@ enum UserError {
     INCORRECT_PASSWORD = "INCORRECT_PASSWORD",
     USER_UNVERIFIED = "USER_UNVERIFIED",
     USED_TOKEN = "USED_TOKEN",
+    USER_NOT_EXIST = "USER_NOT_EXIST",
 }
 
 export default class UserResolver {
@@ -237,6 +238,29 @@ export default class UserResolver {
             return { errors: [] };
         } catch (e: Error | any) {
             return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
+        }
+    }
+
+    @Authorized()
+    @Query(() => UserResponse)
+    async userDetails(@Ctx() { res, conn }: Context): Promise<UserResponse> {
+        try {
+            const userRepo = conn.getRepository(User);
+            const thisUser = await userRepo.findOne(res.locals.userId);
+            if (thisUser === undefined)
+                return UserResponse.withErrors({
+                    kind: UserError.USER_NOT_EXIST,
+                });
+
+            return {
+                errors: [],
+                user: thisUser,
+            };
+        } catch (e: Error | any) {
+            return UserResponse.withErrors({
                 kind: UserError.DB_ERROR,
                 msg: e.message,
             });
