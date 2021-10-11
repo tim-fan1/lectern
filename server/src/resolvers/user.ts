@@ -229,7 +229,10 @@ export default class UserResolver {
         try {
             const repo = conn.getRepository(LoginSession);
             repo.delete(req.cookies.token);
-            res.clearCookie("token");
+            res.clearCookie("token", {
+                httpOnly: true,
+                secure: true,
+            });
 
             return { errors: [] };
         } catch (e: Error | any) {

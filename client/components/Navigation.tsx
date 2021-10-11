@@ -5,8 +5,13 @@ import { useAuth } from "../contexts/ContextAuth";
 import styles from "../styles/Navigation.module.css";
 
 const MutationLogout = `
-    mutation () {
-        logout() {}
+    mutation {
+        logout {
+            errors {
+                kind
+                msg
+            }
+        }
     }
 `;
 
@@ -18,7 +23,7 @@ export default function Navigation() {
 
     const handleLogout = () => {
         gqlLogout({}).then((result) => {
-            if (result.data.login.errors.length == 0) {
+            if (result.data.logout.errors.length == 0) {
                 router.push("/");
                 logout();
             }
