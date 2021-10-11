@@ -15,23 +15,21 @@ const MutationRegister = `
     }
 `;
 
-// TODO: should this be a class
 export default function Register() {
-    /* TODO: Find a better way to manage this state? */
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
+    const [passwordConfirm, setPasswordConfirm] = useState("");
 
     const [registerSuccess, setRegisterSuccess] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+
     const [_, register] = useMutation(MutationRegister);
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        // TODO: enforce constraints on name, email, passwords etc
-        if (password != confirmPassword) {
+        if (password != passwordConfirm) {
             setErrorMessage("Passwords are not equal!");
         } else {
             setErrorMessage("");
@@ -105,7 +103,7 @@ export default function Register() {
                                 minLength={8}
                                 maxLength={30}
                                 onChange={(e) =>
-                                    setConfirmPassword((e.target as HTMLInputElement).value)
+                                    setPasswordConfirm((e.target as HTMLInputElement).value)
                                 }
                                 required
                             />

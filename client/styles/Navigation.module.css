@@ -5,6 +5,10 @@
     align-items: center;
 }
 
+.container_links_auth {
+    display: inline-block;
+}
+
 #links {
     justify-self: flex-end;
     margin-right: 3rem;

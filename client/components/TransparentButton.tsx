@@ -1,7 +1,6 @@
 import Image, { ImageProps } from "next/image";
 import styles from "../styles/TransparentButton.module.css";
 
-// TODO: should onClick be an optional?
 type TransparentButtonProps = {
     width: number;
     height: number;
