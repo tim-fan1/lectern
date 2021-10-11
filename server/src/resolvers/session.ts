@@ -243,6 +243,7 @@ export default class SessionResolver {
             const sessionRepo = conn.getRepository(Session);
             const thisSession = await sessionRepo.findOne({
                 where: { code: code.trim().toUpperCase() },
+                relations: ["author"],
             });
             if (thisSession === undefined)
                 return SessionResponse.withErrors({
