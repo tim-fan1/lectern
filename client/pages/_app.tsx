@@ -11,11 +11,9 @@ function App({ Component, pageProps }: AppProps) {
     /* Setting up connection to GraphQL. */
     const client = createClient({
         url: `${process.env.NEXT_PUBLIC_SERVER_HOST}/graphql`,
-        fetchOptions: () => {
-            return {
-                // include cookie cookie-credentials
-                credentials: "include",
-            };
+        fetchOptions: {
+            // include cookie cookie-credentials
+            credentials: "include",
         },
     });
 
