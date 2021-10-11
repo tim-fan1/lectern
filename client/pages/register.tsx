@@ -24,7 +24,7 @@ export default function Register() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
 
-    const [registerSuccess, setRegsiterSuccess] = useState(false);
+    const [registerSuccess, setRegisterSuccess] = useState(false);
     const [_, register] = useMutation(MutationRegister);
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -44,7 +44,8 @@ export default function Register() {
         };
         register(variables).then((result) => {
             if (result.data.register.errors.length == 0) {
-                setRegsiterSuccess(true);
+                /* a register success prompt will pop up when this is set to true. */
+                setRegisterSuccess(true);
             }
         });
     };
