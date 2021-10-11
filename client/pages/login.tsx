@@ -19,18 +19,17 @@ const MutationLogin = `
 
 export default function Login() {
     const router = useRouter();
-    const { isAuthenticated, login, logout } = useAuth();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    const [errors, setErrors] = useState([] as string[]);
+    const [errorMessage, setErrorMessage] = useState("");
+    const { isAuthenticated, login, logout } = useAuth();
 
     const [_, gqlLogin] = useMutation(MutationLogin);
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setErrors([]);
 
         const variables = {
             usernameOrEmail: email,
@@ -41,10 +40,8 @@ export default function Login() {
                 router.push("/instructor/dashboard");
                 login();
             } else {
-                const errorMessages = result.data.login.errors.map(
-                    (error: { msg: string }) => error.msg
-                );
-                setErrors((errors) => [...errors, errorMessages]);
+                /* This is probably shifty. We haven't asserted that length equals 1. */
+                setErrorMessage(result.data.login.errors[0].msg);
             }
         });
     };
@@ -54,9 +51,7 @@ export default function Login() {
             <Navigation />
             <div className="container_center">
                 <h1>Instructor log in</h1>
-                {errors.map((error) => (
-                    <p className="error">{error}</p>
-                ))}
+                {errorMessage && <p className="error">{errorMessage}</p>}
                 <form className="form" onSubmit={handleSubmit}>
                     <div className="container_input_label">
                         <label className="label">Email</label>

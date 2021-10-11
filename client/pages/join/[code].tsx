@@ -8,9 +8,6 @@ export default function JoinCode() {
     const router = useRouter();
     const { code } = router.query;
 
-    /* Since this component does represent a possible route in the app, we have to consider that
-     * the user has entered an invalid session code by entering it in the URL, even though there
-     * are checks on the join form. */
     let isValidCode = true;
     if (code === undefined || typeof code != "string" || !validateSessionCode(code)) {
         isValidCode = false;
