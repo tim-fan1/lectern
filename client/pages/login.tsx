@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
 import { useMutation } from "urql";
+import { useAuth } from "../contexts/ContextAuth";
 import Navigation from "../components/Navigation";
 import styles from "../styles/login.module.css";
 
@@ -18,11 +19,14 @@ const MutationLogin = `
 
 export default function Login() {
     const router = useRouter();
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
     const [errorMessage, setErrorMessage] = useState("");
-    const [_, login] = useMutation(MutationLogin);
+    const { isAuthenticated, login, logout } = useAuth();
+
+    const [_, gqlLogin] = useMutation(MutationLogin);
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -31,9 +35,10 @@ export default function Login() {
             usernameOrEmail: email,
             password: password,
         };
-        login(variables).then((result) => {
+        gqlLogin(variables).then((result) => {
             if (result.data.login.errors.length == 0) {
                 router.push("/instructor/dashboard");
+                login();
             } else {
                 setErrorMessage("Incorrect email or password.");
             }

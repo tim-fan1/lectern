@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { validateSessionCode } from "../../util";
 import Navigation from "../../components/Navigation";
@@ -54,9 +55,12 @@ export default function JoinCode() {
             {!isValidCode && (
                 <div id={styles.container_invalid_code}>
                     <h2>
-                        The session code <b>#{code}</b> entered is invalid.
+                        The session code <b>#{code}</b> entered is either invalid or expired.
                     </h2>
                     <h2>Please double check it is the correct code.</h2>
+                    <Link href="/">
+                        <a>Back to home.</a>
+                    </Link>
                 </div>
             )}
         </div>
