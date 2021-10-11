@@ -21,8 +21,8 @@ export default function Register() {
     const [password, setPassword] = useState("");
     const [passwordConfirm, setPasswordConfirm] = useState("");
 
+    const [registerSuccess, setRegisterSuccess] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-    const [registerSuccess, setRegsiterSuccess] = useState(false);
 
     const [_, register] = useMutation(MutationRegister);
 
@@ -42,7 +42,8 @@ export default function Register() {
         };
         register(variables).then((result) => {
             if (result.data.register.errors.length == 0) {
-                setRegsiterSuccess(true);
+                /* a register success prompt will pop up when this is set to true. */
+                setRegisterSuccess(true);
             }
         });
     };

@@ -40,7 +40,8 @@ export default function Login() {
                 router.push("/instructor/dashboard");
                 login();
             } else {
-                setErrorMessage("Incorrect email or password.");
+                /* This is probably shifty. We haven't asserted that length equals 1. */
+                setErrorMessage(result.data.login.errors[0].msg);
             }
         });
     };
