@@ -1,25 +1,80 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { FormEvent, useState } from "react";
+import { useMutation } from "urql";
+import { useAuth } from "../contexts/ContextAuth";
 import Navigation from "../components/Navigation";
-import styles from "../styles/Login.module.css";
+import styles from "../styles/login.module.css";
+
+const MutationLogin = `
+    mutation ($usernameOrEmail: String!, $password: String!) {
+        login(usernameOrEmail: $usernameOrEmail, password: $password) {
+            errors {
+                kind
+                msg
+            }
+        }
+    }
+`;
 
 export default function Login() {
+    const router = useRouter();
+    const { isAuthenticated, login, logout } = useAuth();
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const [errors, setErrors] = useState([] as string[]);
+
+    const [_, gqlLogin] = useMutation(MutationLogin);
+
+    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setErrors([]);
+
+        const variables = {
+            usernameOrEmail: email,
+            password: password,
+        };
+        gqlLogin(variables).then((result) => {
+            if (result.data.login.errors.length == 0) {
+                router.push("/instructor/dashboard");
+                login();
+            } else {
+                const errorMessages = result.data.login.errors.map(
+                    (error: { msg: string }) => error.msg
+                );
+                setErrors((errors) => [...errors, errorMessages]);
+            }
+        });
+    };
+
     return (
         <div>
             <Navigation />
             <div className="container_center">
                 <h1>Instructor log in</h1>
-                <form className="form">
+                {errors.map((error) => (
+                    <p className="error">{error}</p>
+                ))}
+                <form className="form" onSubmit={handleSubmit}>
                     <div className="container_input_label">
-                        <label className="label" htmlFor="">
-                            Email
-                        </label>
-                        <input className="input" type="email" />
+                        <label className="label">Email</label>
+                        <input
+                            className="input"
+                            type="email"
+                            onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
+                            required
+                        />
                     </div>
                     <div className="container_input_label">
-                        <label className="label" htmlFor="">
-                            Password
-                        </label>
-                        <input className="input" type="password" />
+                        <label className="label">Password</label>
+                        <input
+                            className="input"
+                            type="password"
+                            onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
+                            required
+                        />
                     </div>
                     <button className="btn btn_primary" type="submit">
                         Log in
@@ -28,7 +83,7 @@ export default function Login() {
                         <Link href="/">
                             <a>Forgot password?</a>
                         </Link>
-                        <Link href="/register">
+                        <Link href="/loginSuccess">
                             <a>Don&apos;t have an account?</a>
                         </Link>
                     </div>

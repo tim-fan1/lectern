@@ -16,8 +16,8 @@
 
 #input_code {
     outline: none;
-    border: 3px solid var(--c-grey);
-    background-color: var(--c-background-secondary);
+    border: 3px solid var(--c-background-secondary);
+    background-color: var(--c-background);
     color: white;
     text-align: center;
     font-size: 2rem;

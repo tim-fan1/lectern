@@ -27,3 +27,8 @@
 #btn_continue svg {
     fill: var(--c-primary);
 }
+
+#container_invalid_code {
+    text-align: center;
+    color: var(--c-red);
+}

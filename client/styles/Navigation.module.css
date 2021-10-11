@@ -5,9 +5,13 @@
     align-items: center;
 }
 
+.container_links_auth {
+    display: inline-block;
+}
+
 #links {
     justify-self: flex-end;
-    margin-right: 5rem;
+    margin-right: 3rem;
 }
 
 #links a {
@@ -38,7 +42,7 @@
     cursor: pointer;
     margin-bottom: 2rem;
     width: fit-content;
-    margin-left: 5rem;
+    margin-left: 3rem;
 }
 
 #logo:hover {
