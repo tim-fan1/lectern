@@ -56,4 +56,8 @@ export default class Session {
     @Field()
     @Column()
     name!: string;
+
+    @Field()
+    @Column({ unique: true, nullable: true })
+    code?: string;
 }
