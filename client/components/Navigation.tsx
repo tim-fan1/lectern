@@ -26,8 +26,9 @@ export default function Navigation() {
             if (result.data.logout.errors.length == 0) {
                 router.push("/");
                 logout();
+            } else {
+                console.error("Could not logout.");
             }
-            // TODO: error checking
         });
     };
 

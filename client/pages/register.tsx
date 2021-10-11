@@ -22,7 +22,8 @@ export default function Register() {
     const [passwordConfirm, setPasswordConfirm] = useState("");
 
     const [registerSuccess, setRegisterSuccess] = useState(false);
-    const [errorMessage, setErrorMessage] = useState("");
+
+    const [errors, setErrors] = useState([] as string[]);
 
     const [_, register] = useMutation(MutationRegister);
 
@@ -30,9 +31,9 @@ export default function Register() {
         event.preventDefault();
 
         if (password != passwordConfirm) {
-            setErrorMessage("Passwords are not equal!");
+            setErrors(["Passwords are not equal!"]);
         } else {
-            setErrorMessage("");
+            setErrors([]);
         }
 
         const variables = {
@@ -44,6 +45,11 @@ export default function Register() {
             if (result.data.register.errors.length == 0) {
                 /* a register success prompt will pop up when this is set to true. */
                 setRegisterSuccess(true);
+            } else {
+                const errorMessages = result.data.register.errors.map(
+                    (error: { msg: string }) => error.msg
+                );
+                setErrors((errors) => [...errors, errorMessages]);
             }
         });
     };
@@ -53,6 +59,9 @@ export default function Register() {
             <Navigation />
             <div className="container_center">
                 <h1>Register an instructor account</h1>
+                {errors.map((error) => (
+                    <p className="error">{error}</p>
+                ))}
                 {!registerSuccess && (
                     <form className="form" onSubmit={handleSubmit}>
                         <div className="container_input_label">
@@ -80,7 +89,6 @@ export default function Register() {
                             />
                         </div>
                         <div className="container_input_label">
-                            {errorMessage && <p className="error">{errorMessage}</p>}
                             <label className="label" htmlFor="">
                                 Password
                             </label>
