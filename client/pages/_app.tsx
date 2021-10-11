@@ -8,11 +8,9 @@ import "../styles/form.css";
 function App({ Component, pageProps }: AppProps) {
     const client = createClient({
         url: `${process.env.NEXT_PUBLIC_SERVER_HOST}/graphql`,
-        fetchOptions: () => {
-            return {
-                // include cookie cookie-credentials
-                credentials: "include",
-            };
+        fetchOptions: {
+            // include cookie cookie-credentials
+            credentials: "include",
         },
     });
 
