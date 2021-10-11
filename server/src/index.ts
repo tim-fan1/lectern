@@ -35,7 +35,7 @@ import config from "./config";
     const app = express();
     const port = 4000;
 
-    app.use(cors());
+    app.use(cors({ origin: config.frontend_url, credentials: true }));
 
     app.use(cookieParser());
 

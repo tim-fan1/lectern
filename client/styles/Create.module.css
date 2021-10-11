@@ -8,6 +8,9 @@
     text-align: center;
     outline: none;
     margin-top: 3rem;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
 }
 
 #input_session_name:active,
@@ -44,9 +47,13 @@
 
 #container_btn {
     margin-top: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #container_btn button {
     width: 10rem;
-    margin: 1rem 0.5rem;
+    margin: 1rem 1rem;
 }
+
