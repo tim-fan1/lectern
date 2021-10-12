@@ -1,12 +1,28 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { FormEvent, useState } from "react";
+import { useClient } from "urql";
 import { validateSessionCode } from "../../util";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/joincode.module.css";
 
+const QuerySessionDetials = `
+    query ($code: String!) {
+        sessionDetails(code: $code) {
+            session
+            errors {
+                kind
+                msg
+            }
+        }
+    }
+`;
+
 export default function JoinCode() {
     const router = useRouter();
     const { code } = router.query;
+
+    const [displayName, setDisplayName] = useState("");
 
     /* Since this component does represent a possible route in the app, we have to consider that
      * the user has entered an invalid session code by entering it in the URL, even though there
@@ -15,6 +31,16 @@ export default function JoinCode() {
     if (code === undefined || typeof code != "string" || !validateSessionCode(code)) {
         isValidCode = false;
     }
+
+    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        const client = useClient();
+        client
+            .query(QuerySessionDetials, { code: code })
+            .toPromise()
+            .then((result) => console.log(result));
+    };
 
     return (
         <div className="container_center">
@@ -32,12 +58,16 @@ export default function JoinCode() {
                         </div>
                     </div>
 
-                    <form className="container_center" id={styles.form_join}>
+                    <form
+                        className="container_center"
+                        id={styles.form_join}
+                        onSubmit={handleSubmit}
+                    >
                         <div className="container_input_label">
                             <label className="label">
                                 Enter your name to be displayed (optional)
                             </label>
-                            <input className="input" type="text" />
+                            <input className="input" type="text" onChange={setDisplayName} />
                         </div>
                         <button className="btn btn_primary" id={styles.btn_continue} type="submit">
                             Continue

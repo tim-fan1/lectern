@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Navigation from "../../components/Navigation";
 import { useQuery } from "urql";
+import CardSession from "../../components/CardSession";
 
-const QuerySession = `
+const QueryGetSessions = `
     query {
         getSessions {
             errors {
@@ -14,15 +15,24 @@ const QuerySession = `
                 id,
                 name,
                 startTime,
+                state,
             }
         }
     }
 `;
 
+type Session = {
+    created: string;
+    id: string;
+    name: string;
+    startedTime: string;
+};
+
 export default function Dashboard() {
-    const [result, reexecuteQuery] = useQuery({ query: QuerySession });
+    const [result] = useQuery({ query: QueryGetSessions });
 
     const { data, fetching, error } = result;
+    // TODO: error handling, use https://www.npmjs.com/package/next-urql with getServerSideProps
 
     return (
         <div className="container_center">
@@ -31,10 +41,15 @@ export default function Dashboard() {
                 <a className="btn btn_primary">Create session</a>
             </Link>
             <h1>Instructor dashboard</h1>
-            {!fetching ? <p>done fetching {JSON.stringify(data)}</p> : <p>fetching</p>}
-            <h3>Prepared sessions (not yet active)</h3>
-            <h3>Currently active sessions</h3>
-            <h3>Closed sessions</h3>
+            <h3>Sessions</h3>
+            {!fetching &&
+                data.getSessions.sessions.map((session: Session) => (
+                    <CardSession
+                        key={session.id}
+                        timeCreatedUTC={session.created}
+                        name={session.name}
+                    />
+                ))}
         </div>
     );
 }

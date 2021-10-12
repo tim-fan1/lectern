@@ -251,6 +251,7 @@ export default class SessionResolver {
             if (thisSession === undefined || thisSession.state !== "open")
                 return SessionResponse.withErrors({
                     kind: SessionErrors.SESSION_NOT_EXIST,
+                    msg: "Session does not exist or has not been opened",
                 });
 
             return { errors: [], session: thisSession };

@@ -24,5 +24,3 @@ const uwu = ({ className, width, height, src, text, onClick, alt }: TransparentB
 );
 
 export default uwu;
-
-// className={`${styles.white_text} ${styles.verticle_item}`}
