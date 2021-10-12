@@ -210,7 +210,10 @@ export default class SessionResolver {
             /* In-memory session logic goes here. */
 
             const thisCode = generateAlphanumCode(6);
-            if (await sessionRepo.findOne({ where: { code: thisCode } }))
+            if (
+                (await sessionRepo.findOne({ where: { code: thisCode } })) !==
+                undefined
+            )
                 // code already exists, somewhat unlikely (unlike session token)
                 return SessionResponse.withErrors({
                     kind: SessionErrors.SESSION_CODE_EXIST,
@@ -237,7 +240,7 @@ export default class SessionResolver {
     @Query(() => SessionResponse)
     async sessionDetails(
         @Arg("code") code: string,
-        @Ctx() { res, conn }: Context
+        @Ctx() { conn }: Context
     ): Promise<SessionResponse> {
         try {
             const sessionRepo = conn.getRepository(Session);
@@ -245,7 +248,7 @@ export default class SessionResolver {
                 where: { code: code.trim().toUpperCase() },
                 relations: ["author"],
             });
-            if (thisSession === undefined)
+            if (thisSession === undefined || thisSession.state !== "open")
                 return SessionResponse.withErrors({
                     kind: SessionErrors.SESSION_NOT_EXIST,
                 });
