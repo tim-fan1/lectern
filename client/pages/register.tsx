@@ -33,6 +33,7 @@ export default function Register() {
 
         if (password != passwordConfirm) {
             setErrors(["Passwords are not equal!"]);
+            return;
         } else {
             setErrors([]);
         }
