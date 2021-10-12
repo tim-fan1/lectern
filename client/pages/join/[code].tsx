@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
-import { useClient } from "urql";
+import { OperationResult, useClient, useQuery } from "urql";
 import { validateSessionCode } from "../../util";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/joincode.module.css";
@@ -9,7 +9,12 @@ import styles from "../../styles/joincode.module.css";
 const QuerySessionDetails = `
     query ($code: String!) {
         sessionDetails(code: $code) {
-            session
+            session {
+                name
+                author { name }
+                group
+                code
+            }
             errors {
                 kind
                 msg
@@ -20,40 +25,39 @@ const QuerySessionDetails = `
 
 export default function JoinCode() {
     const router = useRouter();
-    const client = useClient();
+    // const client = useClient();
     const { code } = router.query;
-
-    const [displayName, setDisplayName] = useState("");
+    console.log(code);
 
     /* Since this component does represent a possible route in the app, we have to consider that
      * the user has entered an invalid session code by entering it in the URL, even though there
      * are checks on the join form. */
     let isValidCode = true;
-    if (code === undefined || typeof code != "string" || !validateSessionCode(code)) {
+    if (typeof code != "string" || !validateSessionCode(code)) {
         isValidCode = false;
     }
 
+    const [displayName, setDisplayName] = useState("");
+
+    const [result] = useQuery({ query: QuerySessionDetails, variables: { code: code } });
+    const { data, fetching, error } = result;
+
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-
-        client
-            .query(QuerySessionDetails, { code: code })
-            .toPromise()
-            .then((result) => console.log(result));
     };
 
     return (
         <div className="container_center">
             <Navigation />
-            {isValidCode && (
+            {isValidCode && !fetching && (
                 <div>
                     <h2 id={styles.header_enter_session}>
                         About to enter session <span id={styles.code}>{code}</span>
                     </h2>
-                    <h1 id={styles.header_session_title}>Example session title.</h1>
+                    <h1 id={styles.header_session_title}>{data.sessionDetails.session.name}</h1>
                     <div>
                         <div>
-                            <h3>Instructor name</h3>
+                            <h3>{data.sessionDetails.session.author.name}</h3>
                             <p>This is the bio of the instructor.</p>
                         </div>
                     </div>
