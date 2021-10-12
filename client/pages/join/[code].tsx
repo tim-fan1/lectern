@@ -6,7 +6,7 @@ import { validateSessionCode } from "../../util";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/joincode.module.css";
 
-const QuerySessionDetials = `
+const QuerySessionDetails = `
     query ($code: String!) {
         sessionDetails(code: $code) {
             session
@@ -20,6 +20,7 @@ const QuerySessionDetials = `
 
 export default function JoinCode() {
     const router = useRouter();
+    const client = useClient();
     const { code } = router.query;
 
     const [displayName, setDisplayName] = useState("");
@@ -35,9 +36,8 @@ export default function JoinCode() {
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const client = useClient();
         client
-            .query(QuerySessionDetials, { code: code })
+            .query(QuerySessionDetails, { code: code })
             .toPromise()
             .then((result) => console.log(result));
     };
@@ -67,7 +67,11 @@ export default function JoinCode() {
                             <label className="label">
                                 Enter your name to be displayed (optional)
                             </label>
-                            <input className="input" type="text" onChange={setDisplayName} />
+                            <input
+                                className="input"
+                                type="text"
+                                onChange={(e) => setDisplayName(e.target.value)}
+                            />
                         </div>
                         <button className="btn btn_primary" id={styles.btn_continue} type="submit">
                             Continue
