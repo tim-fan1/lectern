@@ -19,6 +19,7 @@ import {
 } from "../utils/validate";
 import send_email from "../utils/sendEmail";
 import generateAlphanumCode from "../utils/generateCode";
+import config from "../config";
 
 @ObjectType()
 class UserResponse extends EndpointResponse {
@@ -151,7 +152,11 @@ export default class UserResolver {
                 msg: e.message,
             });
         }
-        await send_email(email, "Verify Your Email", verification_code);
+        await send_email(
+            email,
+            "Verify Your Email",
+            `${config.frontend_url}/verify/${verification_code}`
+        );
 
         /* Success! */
         return {
