@@ -18,6 +18,7 @@ export default class Session {
     @PrimaryGeneratedColumn()
     id!: number;
 
+    @Field(() => User)
     @ManyToOne(() => User, (user) => user.sessions)
     author!: User;
 

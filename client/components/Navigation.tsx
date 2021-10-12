@@ -1,8 +1,19 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useMutation } from "urql";
+import { useClient, useMutation } from "urql";
 import { useAuth } from "../contexts/ContextAuth";
 import styles from "../styles/Navigation.module.css";
+
+const QueryAuthCheck = `
+    query {
+        userDetails {
+            errors {
+                kind
+                msg
+            }
+        }
+    }
+`;
 
 const MutationLogout = `
     mutation {
@@ -20,6 +31,19 @@ export default function Navigation() {
     const { isAuthenticated, login, logout } = useAuth();
 
     const [_, gqlLogout] = useMutation(MutationLogout);
+
+    const client = useClient();
+    if (!isAuthenticated) {
+        client
+            .query(QueryAuthCheck, {})
+            .toPromise()
+            .then((result) => {
+                console.log(result);
+                if (result.error === undefined && result.data.userDetails.errors.length === 0) {
+                    login();
+                }
+            });
+    }
 
     const handleLogout = () => {
         gqlLogout({}).then((result) => {

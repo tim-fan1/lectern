@@ -1,46 +1,108 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { FormEvent, useState } from "react";
+import { OperationResult, useClient, useQuery } from "urql";
 import { validateSessionCode } from "../../util";
 import Navigation from "../../components/Navigation";
-import styles from "../../styles/joincode.module.css";
+import styles from "../../styles/join.module.css";
 
-export default function JoinCode() {
+const QuerySessionDetails = `
+    query ($code: String!) {
+        sessionDetails(code: $code) {
+            session {
+                name
+                author { name }
+                group
+                code
+            }
+            errors {
+                kind
+                msg
+            }
+        }
+    }
+`;
+
+export default function Join() {
     const router = useRouter();
+    // const client = useClient();
     const { code } = router.query;
 
     /* Since this component does represent a possible route in the app, we have to consider that
      * the user has entered an invalid session code by entering it in the URL, even though there
      * are checks on the join form. */
     let isValidCode = true;
-    if (code === undefined || typeof code != "string" || !validateSessionCode(code)) {
+    if (typeof code !== "string" || !validateSessionCode(code)) {
         isValidCode = false;
     }
 
-    return (
-        <div className="container_center">
-            <Navigation />
-            {isValidCode && (
-                <div>
-                    <h2 id={styles.header_enter_session}>
-                        About to enter session <span id={styles.code}>{code}</span>
-                    </h2>
-                    <h1 id={styles.header_session_title}>Example session title.</h1>
-                    <div>
-                        <div>
-                            <h3>Instructor name</h3>
-                            <p>This is the bio of the instructor.</p>
-                        </div>
-                    </div>
+    let [enteredName, setEnteredName] = useState(false);
+    let [isAnon, setIsAnon] = useState(false);
 
-                    <form className="container_center" id={styles.form_join}>
-                        <div className="container_input_label">
-                            <label className="label">
-                                Enter your name to be displayed (optional)
-                            </label>
-                            <input className="input" type="text" />
-                        </div>
-                        <button className="btn btn_primary" id={styles.btn_continue} type="submit">
-                            Continue
+    const [displayName, setDisplayName] = useState("");
+
+    const [result] = useQuery({ query: QuerySessionDetails, variables: { code: code } });
+    const { data, fetching, error } = result;
+
+    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!isAnon && displayName.length == 0) return;
+        setEnteredName(true);
+    };
+
+    let content;
+    if (fetching) {
+        content = <div className="container_center"></div>;
+    } else if (!isValidCode) {
+        content = (
+            <div id={styles.container_invalid_code}>
+                <h2>
+                    The session code <b>#{code}</b> entered is either invalid or expired.
+                </h2>
+                <h2>Please double check it is the correct code.</h2>
+                <Link href="/">
+                    <a>Back to home.</a>
+                </Link>
+            </div>
+        );
+    } else if (error !== undefined || data.sessionDetails.errors.length !== 0) {
+        content = (
+            <div id={styles.container_invalid_code}>
+                <h2>
+                    The session with code <b>#{code}</b> could not be accessed.
+                </h2>
+                <h2>Please double check it is the correct code.</h2>
+                <p>
+                    Error message:{" "}
+                    {error !== undefined ? error.message : data.sessionDetails.errors[0].msg}
+                </p>
+                <Link href="/">
+                    <a>Back to home.</a>
+                </Link>
+            </div>
+        );
+    } else {
+        let nameSection;
+        if (!enteredName) {
+            nameSection = (
+                <form className="container_center" id={styles.form_join} onSubmit={handleSubmit}>
+                    <div className="container_input_label">
+                        <label className="label">Enter your name to be displayed (optional)</label>
+                        <input
+                            className="input"
+                            type="text"
+                            onChange={(e) => setDisplayName(e.target.value.trim())}
+                        />
+                    </div>
+                    <div id={styles.container_submit}>
+                        <button
+                            className={`btn btn_secondary ${styles.btn_continue}`}
+                            id={styles.btn_submit_anon}
+                            type="submit"
+                            onClick={() => setIsAnon(true)}
+                        >
+                            Continue anonymously
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 height="24px"
@@ -52,20 +114,51 @@ export default function JoinCode() {
                                 <path d="M10.02 6L8.61 7.41 13.19 12l-4.58 4.59L10.02 18l6-6-6-6z" />
                             </svg>
                         </button>
-                    </form>
+                        <button
+                            className={`btn btn_primary ${styles.btn_continue}`}
+                            id={styles.btn_submit}
+                            type="submit"
+                        >
+                            Continue with name
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                height="24px"
+                                viewBox="0 0 24 24"
+                                width="24px"
+                                fill="#000000"
+                            >
+                                <path d="M0 0h24v24H0V0z" fill="none" />
+                                <path d="M10.02 6L8.61 7.41 13.19 12l-4.58 4.59L10.02 18l6-6-6-6z" />
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            );
+        }
+
+        content = (
+            <div id={styles.container_join}>
+                <h2 id={styles.header_enter_session}>
+                    About to enter session <span id={styles.code}>{code}</span>
+                </h2>
+                <h1 id={styles.header_session_title}>{data.sessionDetails.session.name}</h1>
+                <div>
+                    <div>
+                        <h3>Instructor: {data.sessionDetails.session.author.name}</h3>
+                        {enteredName && !isAnon && <p>Joining as &apos;{displayName}&apos;...</p>}
+                        {enteredName && isAnon && <p>Joining anonymously...</p>}
+                    </div>
                 </div>
-            )}
-            {!isValidCode && (
-                <div id={styles.container_invalid_code}>
-                    <h2>
-                        The session code <b>#{code}</b> entered is either invalid or expired.
-                    </h2>
-                    <h2>Please double check it is the correct code.</h2>
-                    <Link href="/">
-                        <a>Back to home.</a>
-                    </Link>
-                </div>
-            )}
+
+                {nameSection}
+            </div>
+        );
+    }
+
+    return (
+        <div className="container_center">
+            <Navigation />
+            {content}
         </div>
     );
 }

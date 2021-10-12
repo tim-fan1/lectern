@@ -3,6 +3,7 @@ import Navigation from "../../components/Navigation";
 import styles from "../../styles/Create.module.css";
 import { FormEvent, useState } from "react";
 import { useMutation } from "urql";
+import { useRouter } from "next/router";
 
 const MutationSession = `
     mutation ($group: String!, $name: String!) {
@@ -22,6 +23,7 @@ const MutationSession = `
 `;
 
 export default function Dashboard() {
+    const router = useRouter();
     const [_, createSession] = useMutation(MutationSession);
     /* "error" message */
     const [errorMessage, setErrorMessage] = useState("");
@@ -38,7 +40,7 @@ export default function Dashboard() {
         createSession(variables).then((result) => {
             console.log(result.data);
             if (result.data.createSession.errors.length === 0) {
-                setErrorMessage("Successfully created the session");
+                router.push("/instructor/dashboard");
             } else {
                 setErrorMessage(
                     `Could not create the session: ${result.data.createSession.errors}`

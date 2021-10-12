@@ -37,6 +37,7 @@ export default function Login() {
             password: password,
         };
         gqlLogin(variables).then((result) => {
+            // TODO: check if the network request actually succeeded.
             if (result.data.login.errors.length == 0) {
                 router.push("/instructor/dashboard");
                 login();
@@ -54,8 +55,10 @@ export default function Login() {
             <Navigation />
             <div className="container_center">
                 <h1>Instructor log in</h1>
-                {errors.map((error) => (
-                    <p className="error">{error}</p>
+                {errors.map((error, i) => (
+                    <p className="error" key={i}>
+                        {error}
+                    </p>
                 ))}
                 <form className="form" onSubmit={handleSubmit}>
                     <div className="container_input_label">
