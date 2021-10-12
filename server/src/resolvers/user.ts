@@ -103,17 +103,18 @@ export default class UserResolver {
         } catch (e: Error | any) {
             return UserResponse.withErrors({
                 kind: UserError.DB_ERROR,
-                msg: e.message,
+                /* FIXME: hack. this just assumes the error is because of email's unique constraint. */
+                msg: `An account with the email ${email} already exists`,
             });
         }
 
         /**
-         * TODO:
+         * TODO: TODO:
          * Send a verification email to the user (at options.email).
          * Once the user clicks on the link in that email, user.verified is set,
          * and the user is allowed to login.
          *
-         * TODO:
+         * TODO: TODO:
          * (One possible way(?)) to do the above is to use another table,
          * say verify_table, that maps a unique strong token to a user id.
          * We store the (token,userid) pair inside verify_table, and put the
@@ -142,11 +143,11 @@ export default class UserResolver {
 
     @Mutation(() => EndpointResponse)
     async login(
-        @Arg("usernameOrEmail") usernameOrEmail: string,
+        @Arg("email") email: string,
         @Arg("password") password: string,
         @Ctx() { req, res, conn }: Context
     ): Promise<EndpointResponse> {
-        /* Really shady way of checking if someone's logged in */
+        /* FIXME: Really shady way of checking if someone's logged in */
         if (req.cookies.token !== undefined)
             return EndpointResponse.withErrors({
                 kind: UserError.LOGGED_IN,
@@ -157,14 +158,11 @@ export default class UserResolver {
         let user;
         try {
             const repo = conn.getRepository(User);
-            user = await repo.findOne(
-                usernameOrEmail.includes("@")
-                    ? { where: { email: usernameOrEmail } }
-                    : { where: { username: usernameOrEmail } }
-            );
+            user = await repo.findOne({ where: { email: email } });
         } catch (e: Error | any) {
             return EndpointResponse.withErrors({
                 kind: UserError.DB_ERROR,
+                /* FIXME: control shouldn't reach here :))) */
                 msg: e.message,
             });
         }
@@ -172,7 +170,7 @@ export default class UserResolver {
         if (!user) {
             return EndpointResponse.withErrors({
                 kind: UserError.EMAIL_NOT_EXIST,
-                msg: "Username or email does not exist",
+                msg: `An account with the email address ${email} does not exist`,
             });
         }
         const valid = await argon2.verify(user.password, password);
@@ -211,6 +209,7 @@ export default class UserResolver {
         } catch (e: Error | any) {
             return EndpointResponse.withErrors({
                 kind: UserError.DB_ERROR,
+                /* FIXME: control shouldn't reach here :)) */
                 msg: e.message,
             });
         }
