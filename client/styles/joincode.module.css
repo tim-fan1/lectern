@@ -20,12 +20,27 @@
     content: "#";
 }
 
-#btn_continue {
+.btn_continue {
     margin-top: 0.5rem;
 }
 
-#btn_continue svg {
+#btn_submit svg {
     fill: var(--c-primary);
+}
+
+#btn_submit_anon svg {
+    fill: var(--c-light-grey);
+}
+
+#container_submit {
+    display: flex;
+}
+
+#container_submit button {
+    margin: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #container_invalid_code {
