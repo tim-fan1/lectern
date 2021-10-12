@@ -37,11 +37,12 @@
 }
 
 .middle_small_text {
-    font-weight: 515;
+    font-weight: 500;
+    font-size: 1.5rem;
     margin: 0;
-    color: var(--c-text);
-    font-size: 40px;
+    color: var(--c-grey);
 }
+
 .middle_large_text {
     font-weight: 600;
     margin: 0;
@@ -53,6 +54,7 @@
     width: 5px;
     height: 200px;
 }
+
 .bottom_screen {
     flex-grow: 3;
     display: flex;

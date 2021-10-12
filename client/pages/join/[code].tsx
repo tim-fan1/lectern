@@ -4,7 +4,7 @@ import { FormEvent, useState } from "react";
 import { OperationResult, useClient, useQuery } from "urql";
 import { validateSessionCode } from "../../util";
 import Navigation from "../../components/Navigation";
-import styles from "../../styles/joincode.module.css";
+import styles from "../../styles/join.module.css";
 
 const QuerySessionDetails = `
     query ($code: String!) {
@@ -23,7 +23,7 @@ const QuerySessionDetails = `
     }
 `;
 
-export default function JoinCode() {
+export default function Join() {
     const router = useRouter();
     // const client = useClient();
     const { code } = router.query;
