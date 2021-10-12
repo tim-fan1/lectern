@@ -5,8 +5,8 @@ import Navigation from "../components/Navigation";
 import styles from "../styles/register.module.css";
 
 const MutationRegister = `
-    mutation ($email: String!, $username: String!, $password: String!) {
-        register(email: $email, username: $username, password: $password) {
+    mutation ($email: String!, $fname: String!, $lname: String!, $password: String!) {
+        register(email: $email, fname: $fname, lname: $lname, password: $password) {
             errors {
                 kind
                 msg
@@ -16,7 +16,8 @@ const MutationRegister = `
 `;
 
 export default function Register() {
-    const [name, setName] = useState("");
+    const [fname, setFirstName] = useState("");
+    const [lname, setLastName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -38,7 +39,8 @@ export default function Register() {
 
         const variables = {
             email: email,
-            username: name,
+            fname: fname,
+            lname: lname,
             password: password,
         };
         register(variables).then((result) => {
@@ -66,13 +68,25 @@ export default function Register() {
                     <form className="form" onSubmit={handleSubmit}>
                         <div className="container_input_label">
                             <label className="label" htmlFor="">
-                                Name
+                                First Name
                             </label>
                             <input
                                 className="input"
                                 type="text"
-                                maxLength={128}
-                                onChange={(e) => setName((e.target as HTMLInputElement).value)}
+                                maxLength={26}
+                                onChange={(e) => setFirstName((e.target as HTMLInputElement).value)}
+                                required
+                            />
+                        </div>
+                        <div className="container_input_label">
+                            <label className="label" htmlFor="">
+                                Last Name
+                            </label>
+                            <input
+                                className="input"
+                                type="text"
+                                maxLength={26}
+                                onChange={(e) => setLastName((e.target as HTMLInputElement).value)}
                                 required
                             />
                         </div>

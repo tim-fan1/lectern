@@ -15,7 +15,7 @@ import { Context, EndpointResponse, RespError, StringResponse } from "../types";
 import {
     validateEmail,
     validatePassword,
-    validateUsername,
+    validateName,
 } from "../utils/validate";
 
 @ObjectType()
@@ -50,7 +50,8 @@ export default class UserResolver {
     @Mutation(() => UserResponse)
     async register(
         @Arg("email") email: string,
-        @Arg("username") username: string,
+        @Arg("fname") fname: string,
+        @Arg("lname") lname: string,
         @Arg("password") password: string,
         @Ctx() { conn, res }: Context
     ): Promise<UserResponse> {
@@ -70,12 +71,17 @@ export default class UserResolver {
         if (!validatePassword(password))
             validationErrors.push({
                 kind: UserError.BAD_PASSWORD,
-                msg: "Invalid password",
+                msg: "Your password should be between 8 and 30 characters inclusive",
             });
-        if (!validateUsername(username))
+        if (!validateName(fname))
             validationErrors.push({
                 kind: UserError.BAD_USERNAME,
-                msg: "Invalid username",
+                msg: "Your first name should be between 2 and 26 characters inclusive",
+            });
+        if (!validateName(lname))
+            validationErrors.push({
+                kind: UserError.BAD_USERNAME,
+                msg: "Your last name should be between 2 and 26 characters inclusive",
             });
         if (validationErrors.length > 0)
             return UserResponse.withErrors(...validationErrors);
@@ -86,7 +92,7 @@ export default class UserResolver {
         try {
             const repo = conn.getRepository(User);
             let meme = repo.create({
-                username: username,
+                name: fname + " " + lname,
                 password: hashedPassword,
                 email: email,
                 /* When verification emails are working,
@@ -267,13 +273,13 @@ export default class UserResolver {
         }
     }
 
-    @Authorized()
-    @Query(() => StringResponse)
-    async testAuth(@Ctx() { res, conn }: Context): Promise<StringResponse> {
-        // this is a temp mutation, so i havent wrapped it in try/catch
-        const name = (await conn.getRepository(User).findOne(res.locals.userId))
-            ?.username;
+    // @Authorized()
+    // @Query(() => StringResponse)
+    // async testAuth(@Ctx() { res, conn }: Context): Promise<StringResponse> {
+    //     // this is a temp mutation, so i havent wrapped it in try/catch
+    //     const name = (await conn.getRepository(User).findOne(res.locals.userId))
+    //         ?.username;
 
-        return { errors: [], msg: "hello, " + name + "!" };
-    }
+    //     return { errors: [], msg: "hello, " + name + "!" };
+    // }
 }
