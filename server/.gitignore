@@ -38,3 +38,6 @@ yarn-error.log*
 
 # local database files
 *.db
+
+# config.private
+config.private.ts

@@ -10,13 +10,15 @@ import {
 } from "type-graphql";
 import { v4 as uuid } from "uuid";
 
-import { User, LoginSession } from "../entities/entities";
+import { User, LoginSession, VerifyEmail } from "../entities/entities";
 import { Context, EndpointResponse, RespError, StringResponse } from "../types";
 import {
     validateEmail,
     validatePassword,
     validateName,
 } from "../utils/validate";
+import send_email from "../utils/sendEmail";
+import generateAlphanumCode from "../utils/generateCode";
 
 @ObjectType()
 class UserResponse extends EndpointResponse {
@@ -44,6 +46,7 @@ enum UserError {
     USER_UNVERIFIED = "USER_UNVERIFIED",
     USED_TOKEN = "USED_TOKEN",
     USER_NOT_EXIST = "USER_NOT_EXIST",
+    INVALID_VERIFICATION_CODE = "INVALID_VERIFICATION_CODE",
 }
 
 export default class UserResolver {
@@ -86,53 +89,69 @@ export default class UserResolver {
         if (validationErrors.length > 0)
             return UserResponse.withErrors(...validationErrors);
 
+        /* Check that account with given email doesn't already exist. */
+        let user;
+        try {
+            const repo = conn.getRepository(User);
+            user = await repo.findOne({ where: { email: email } });
+        } catch (e: Error | any) {
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
+        }
+        if (user) {
+            return EndpointResponse.withErrors({
+                kind: UserError.EMAIL_EXISTS,
+                msg: `An account with the email ${email} already exists`,
+            });
+        }
+
         /* Insert entry for this user into the db (storing the hashed pw). */
         const hashedPassword = await argon2.hash(password);
-        let user!: User;
         try {
             const repo = conn.getRepository(User);
             let meme = repo.create({
                 name: fname + " " + lname,
                 password: hashedPassword,
                 email: email,
-                /* When verification emails are working,
-                 * This should be set to false by default. */
-                verified: true,
+                verified: false,
             });
             user = await repo.save(meme);
         } catch (e: Error | any) {
             return UserResponse.withErrors({
                 kind: UserError.DB_ERROR,
-                /* FIXME: hack. this just assumes the error is because of email's unique constraint. */
-                msg: `An account with the email ${email} already exists`,
+                msg: e.message,
             });
         }
 
-        /**
-         * TODO: TODO:
-         * Send a verification email to the user (at options.email).
-         * Once the user clicks on the link in that email, user.verified is set,
-         * and the user is allowed to login.
-         *
-         * TODO: TODO:
-         * (One possible way(?)) to do the above is to use another table,
-         * say verify_table, that maps a unique strong token to a user id.
-         * We store the (token,userid) pair inside verify_table, and put the
-         * token inside the verification email. Clicking the link then causes
-         * the user with the user id mapped to the token (inside the email) to
-         * be verified. The (token,userid) entry should be removed from
-         * verify_table after a (preferably short) period of time.
-         *
-         * One possible issue is that someone could spam verify
-         * until the token matches the user id of the user account they
-         * want to verify. However, if the token is long enough, and the
-         * verification time period is short enough, then this really
-         * shouldn't be an issue.
-         *
-         * Bonus TODO:
-         * Also allow the user to be automatically logged in after they click
-         * the link (see how registration works at figma.com).
-         */
+        /* Send verification email. TODO: this uses a new table VerifyEmail,
+         * even though LoginSession already exists and does the same thing.
+         * Decided to make a new table anyway because I don't want to
+         * and don't know if I should mess with the LoginSession table. */
+        const verification_code = generateAlphanumCode();
+        try {
+            const repo = conn.getRepository(VerifyEmail);
+            const exist = await repo.findOne(verification_code);
+            if (exist)
+                return EndpointResponse.withErrors({
+                    kind: UserError.USED_TOKEN,
+                    msg: "Token already exists; go buy a lottery ticket",
+                });
+
+            const newVerificationToken = repo.create({
+                token: verification_code,
+                userId: user.id,
+            });
+
+            await repo.save(newVerificationToken);
+        } catch (e: Error | any) {
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
+        }
+        await send_email(email, "Verify Your Email", verification_code);
 
         /* Success! */
         return {
@@ -162,7 +181,6 @@ export default class UserResolver {
         } catch (e: Error | any) {
             return EndpointResponse.withErrors({
                 kind: UserError.DB_ERROR,
-                /* FIXME: control shouldn't reach here :))) */
                 msg: e.message,
             });
         }
@@ -209,7 +227,6 @@ export default class UserResolver {
         } catch (e: Error | any) {
             return EndpointResponse.withErrors({
                 kind: UserError.DB_ERROR,
-                /* FIXME: control shouldn't reach here :)) */
                 msg: e.message,
             });
         }
@@ -270,6 +287,80 @@ export default class UserResolver {
                 msg: e.message,
             });
         }
+    }
+
+    @Mutation(() => EndpointResponse)
+    async verify_email(
+        @Arg("verification_code") verification_code: string,
+        @Ctx() { req, res, conn }: Context
+    ): Promise<EndpointResponse> {
+        /* Check if verification code is valid. */
+        let VerifyEmailItem;
+        try {
+            const repo = conn.getRepository(VerifyEmail);
+            VerifyEmailItem = await repo.findOne({
+                where: { token: verification_code },
+            });
+        } catch (e: Error | any) {
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
+        }
+        if (!VerifyEmailItem) {
+            return EndpointResponse.withErrors({
+                kind: UserError.INVALID_VERIFICATION_CODE,
+                msg: `Invalid verification code`,
+            });
+        }
+
+        /* Valid verification code. Find user pointed by valid code. */
+        let user;
+        try {
+            const repo = conn.getRepository(User);
+            user = await repo.findOne({
+                where: { id: VerifyEmailItem.userId },
+            });
+        } catch (e: Error | any) {
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
+        }
+        if (!user) {
+            return EndpointResponse.withErrors({
+                kind: UserError.USER_NOT_EXIST,
+                msg: `User doesn't exist... Something went really wrong on our end`,
+            });
+        }
+
+        /* Found user. Now verify them. */
+        user.verified = true;
+        try {
+            const repo = conn.getRepository(User);
+            await repo.save(user);
+        } catch (e: Error | any) {
+            return UserResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
+        }
+
+        /* Remove VerifyEmailItem from VerifyEmail. Free up that code. */
+        try {
+            const repo = conn.getRepository(VerifyEmail);
+            await repo.remove(VerifyEmailItem);
+        } catch (e: Error | any) {
+            return UserResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
+        }
+
+        /* User should be verified now. Success! */
+        return {
+            errors: [],
+        };
     }
 
     // @Authorized()

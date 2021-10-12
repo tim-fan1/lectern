@@ -10,7 +10,7 @@ import {
     UserResolver,
     SessionResolver,
 } from "./resolvers/resolvers";
-import { User, LoginSession, Session } from "./entities/entities";
+import { User, LoginSession, Session, VerifyEmail } from "./entities/entities";
 import cookieParser from "cookie-parser";
 import userAuthChecker from "./auth/authChecker";
 import config from "./config";
@@ -26,7 +26,7 @@ import config from "./config";
         // replace this with ormconfig.json later (tm)
         type: "sqlite",
         database: "owo.db",
-        entities: [User, LoginSession, Session],
+        entities: [User, LoginSession, Session, VerifyEmail],
     });
 
     // real fudge - will create tables, kinda bad though in production
