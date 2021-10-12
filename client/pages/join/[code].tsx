@@ -27,7 +27,6 @@ export default function Join() {
     const router = useRouter();
     // const client = useClient();
     const { code } = router.query;
-    console.log(code);
 
     /* Since this component does represent a possible route in the app, we have to consider that
      * the user has entered an invalid session code by entering it in the URL, even though there
@@ -37,6 +36,9 @@ export default function Join() {
         isValidCode = false;
     }
 
+    let [enteredName, setEnteredName] = useState(false);
+    let [isAnon, setIsAnon] = useState(false);
+
     const [displayName, setDisplayName] = useState("");
 
     const [result] = useQuery({ query: QuerySessionDetails, variables: { code: code } });
@@ -44,6 +46,9 @@ export default function Join() {
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        if (!isAnon && displayName.length == 0) return;
+        setEnteredName(true);
     };
 
     let content;
@@ -78,26 +83,16 @@ export default function Join() {
             </div>
         );
     } else {
-        content = (
-            <div>
-                <h2 id={styles.header_enter_session}>
-                    About to enter session <span id={styles.code}>{code}</span>
-                </h2>
-                <h1 id={styles.header_session_title}>{data.sessionDetails.session.name}</h1>
-                <div>
-                    <div>
-                        <h3>{data.sessionDetails.session.author.name}</h3>
-                        <p>Waiting for the session to start...</p>
-                    </div>
-                </div>
-
+        let nameSection;
+        if (!enteredName) {
+            nameSection = (
                 <form className="container_center" id={styles.form_join} onSubmit={handleSubmit}>
                     <div className="container_input_label">
                         <label className="label">Enter your name to be displayed (optional)</label>
                         <input
                             className="input"
                             type="text"
-                            onChange={(e) => setDisplayName(e.target.value)}
+                            onChange={(e) => setDisplayName(e.target.value.trim())}
                         />
                     </div>
                     <div id={styles.container_submit}>
@@ -105,6 +100,7 @@ export default function Join() {
                             className={`btn btn_secondary ${styles.btn_continue}`}
                             id={styles.btn_submit_anon}
                             type="submit"
+                            onClick={() => setIsAnon(true)}
                         >
                             Continue anonymously
                             <svg
@@ -137,6 +133,24 @@ export default function Join() {
                         </button>
                     </div>
                 </form>
+            );
+        }
+
+        content = (
+            <div id={styles.container_join}>
+                <h2 id={styles.header_enter_session}>
+                    About to enter session <span id={styles.code}>{code}</span>
+                </h2>
+                <h1 id={styles.header_session_title}>{data.sessionDetails.session.name}</h1>
+                <div>
+                    <div>
+                        <h3>Instructor: {data.sessionDetails.session.author.name}</h3>
+                        {enteredName && !isAnon && <p>Joining as &apos;{displayName}&apos;...</p>}
+                        {enteredName && isAnon && <p>Joining anonymously...</p>}
+                    </div>
+                </div>
+
+                {nameSection}
             </div>
         );
     }
