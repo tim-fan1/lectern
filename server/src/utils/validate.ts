@@ -3,11 +3,6 @@ const email_regexp = new RegExp(
     /* https://stackoverflow.com/a/1373724. Hope this works... */
     "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"
 );
-/* Username needs to be:
- * - 4-15 characters
- * - Must start with an alphabet
- * - Must contain only the alphabet + the numbers + the underscore. */
-const username_regex = new RegExp("^[A-Za-z][A-Za-z0-9_]{3,14}$");
 
 /**
  * Validating email.
@@ -21,8 +16,8 @@ export const validateEmail = (email: string): boolean => {
 /**
  * Validating username.
  */
-export const validateUsername = (username: string): boolean => {
-    return username_regex.test(username);
+export const validateName = (name: string): boolean => {
+    return name.length >= 2 && name.length <= 26;
 };
 
 /**

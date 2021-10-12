@@ -25,8 +25,8 @@ export default class User {
     updated!: Date;
 
     @Field()
-    @Column({ unique: true })
-    username!: string;
+    @Column()
+    name!: string;
 
     @Field()
     @Column({ unique: true })

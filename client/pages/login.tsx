@@ -4,11 +4,11 @@ import { FormEvent, useState } from "react";
 import { useMutation } from "urql";
 import { useAuth } from "../contexts/ContextAuth";
 import Navigation from "../components/Navigation";
-import styles from "../styles/login.module.css";
+import styles from "../styles/Login.module.css";
 
 const MutationLogin = `
-    mutation ($usernameOrEmail: String!, $password: String!) {
-        login(usernameOrEmail: $usernameOrEmail, password: $password) {
+    mutation ($email: String!, $password: String!) {
+        login(email: $email, password: $password) {
             errors {
                 kind
                 msg
@@ -33,7 +33,7 @@ export default function Login() {
         setErrors([]);
 
         const variables = {
-            usernameOrEmail: email,
+            email: email,
             password: password,
         };
         gqlLogin(variables).then((result) => {
