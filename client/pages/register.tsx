@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useMutation } from "urql";
 import Navigation from "../components/Navigation";
-import styles from "../styles/register.module.css";
+import styles from "../styles/Register.module.css";
 
 const MutationRegister = `
     mutation ($email: String!, $fname: String!, $lname: String!, $password: String!) {
@@ -73,6 +73,7 @@ export default function Register() {
                             <input
                                 className="input"
                                 type="text"
+                                minLength={2}
                                 maxLength={26}
                                 onChange={(e) => setFirstName((e.target as HTMLInputElement).value)}
                                 required
@@ -85,6 +86,7 @@ export default function Register() {
                             <input
                                 className="input"
                                 type="text"
+                                minLength={2}
                                 maxLength={26}
                                 onChange={(e) => setLastName((e.target as HTMLInputElement).value)}
                                 required
