@@ -38,7 +38,6 @@ export default function Dashboard() {
             name: name,
         };
         createSession(variables).then((result) => {
-            console.log(result.data);
             if (result.data.createSession.errors.length === 0) {
                 router.push("/instructor/dashboard");
             } else {
