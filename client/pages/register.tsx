@@ -61,8 +61,10 @@ export default function Register() {
             <Navigation />
             <div className="container_center">
                 <h1>Register an instructor account</h1>
-                {errors.map((error) => (
-                    <p className="error">{error}</p>
+                {errors.map((error, i) => (
+                    <p className="error" key={i}>
+                        {error}
+                    </p>
                 ))}
                 {!registerSuccess && (
                     <form className="form" onSubmit={handleSubmit}>
@@ -142,7 +144,7 @@ export default function Register() {
                 )}
                 {registerSuccess && (
                     <div id={styles.container_register_success}>
-                        <h2>You've registered!</h2>
+                        <h2>You&apos;ve registered!</h2>
                         {/* TODO: this login message is simply temporary until email verification is implemented. */}
                         <Link href="/login">
                             <a>Click here to login</a>

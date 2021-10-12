@@ -45,7 +45,7 @@ export default function VerifyEmail() {
             <button onClick={doVerifyEmail}>Click me to verify!</button>
             {verificationSuccess && (
                 <div id={styles.container_register_success}>
-                    <h2>You've been verified!</h2>
+                    <h2>You&apos;ve been verified!</h2>
                 </div>
             )}
         </div>
