@@ -149,10 +149,10 @@ export default function Register() {
                         <Link href="/login">
                             <a>Click here to login</a>
                         </Link>
-                        {/* <p>
-                            Please check the email we sent to <b>{email}</b> to
-                            verify your account before logging in.
-                        </p> */}
+                        <p>
+                            Please check the email we sent to <b>{email}</b> to verify your account
+                            before logging in.
+                        </p>
                     </div>
                 )}
             </div>
