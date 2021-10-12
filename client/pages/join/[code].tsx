@@ -33,7 +33,7 @@ export default function Join() {
      * the user has entered an invalid session code by entering it in the URL, even though there
      * are checks on the join form. */
     let isValidCode = true;
-    if (typeof code != "string" || !validateSessionCode(code)) {
+    if (typeof code !== "string" || !validateSessionCode(code)) {
         isValidCode = false;
     }
 
@@ -46,39 +46,67 @@ export default function Join() {
         event.preventDefault();
     };
 
-    return (
-        <div className="container_center">
-            <Navigation />
-            {isValidCode && !fetching && (
+    let content;
+    if (fetching) {
+        content = <div className="container_center"></div>;
+    } else if (!isValidCode) {
+        content = (
+            <div id={styles.container_invalid_code}>
+                <h2>
+                    The session code <b>#{code}</b> entered is either invalid or expired.
+                </h2>
+                <h2>Please double check it is the correct code.</h2>
+                <Link href="/">
+                    <a>Back to home.</a>
+                </Link>
+            </div>
+        );
+    } else if (error !== undefined || data.sessionDetails.errors.length !== 0) {
+        content = (
+            <div id={styles.container_invalid_code}>
+                <h2>
+                    The session with code <b>#{code}</b> could not be accessed.
+                </h2>
+                <h2>Please double check it is the correct code.</h2>
+                <p>
+                    Error message:{" "}
+                    {error !== undefined ? error.message : data.sessionDetails.errors[0].msg}
+                </p>
+                <Link href="/">
+                    <a>Back to home.</a>
+                </Link>
+            </div>
+        );
+    } else {
+        content = (
+            <div>
+                <h2 id={styles.header_enter_session}>
+                    About to enter session <span id={styles.code}>{code}</span>
+                </h2>
+                <h1 id={styles.header_session_title}>{data.sessionDetails.session.name}</h1>
                 <div>
-                    <h2 id={styles.header_enter_session}>
-                        About to enter session <span id={styles.code}>{code}</span>
-                    </h2>
-                    <h1 id={styles.header_session_title}>{data.sessionDetails.session.name}</h1>
                     <div>
-                        <div>
-                            <h3>{data.sessionDetails.session.author.name}</h3>
-                            <p>This is the bio of the instructor.</p>
-                        </div>
+                        <h3>{data.sessionDetails.session.author.name}</h3>
+                        <p>Waiting for the session to start...</p>
                     </div>
+                </div>
 
-                    <form
-                        className="container_center"
-                        id={styles.form_join}
-                        onSubmit={handleSubmit}
-                    >
-                        <div className="container_input_label">
-                            <label className="label">
-                                Enter your name to be displayed (optional)
-                            </label>
-                            <input
-                                className="input"
-                                type="text"
-                                onChange={(e) => setDisplayName(e.target.value)}
-                            />
-                        </div>
-                        <button className="btn btn_primary" id={styles.btn_continue} type="submit">
-                            Continue
+                <form className="container_center" id={styles.form_join} onSubmit={handleSubmit}>
+                    <div className="container_input_label">
+                        <label className="label">Enter your name to be displayed (optional)</label>
+                        <input
+                            className="input"
+                            type="text"
+                            onChange={(e) => setDisplayName(e.target.value)}
+                        />
+                    </div>
+                    <div id={styles.container_submit}>
+                        <button
+                            className={`btn btn_secondary ${styles.btn_continue}`}
+                            id={styles.btn_submit_anon}
+                            type="submit"
+                        >
+                            Continue anonymously
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 height="24px"
@@ -90,20 +118,33 @@ export default function Join() {
                                 <path d="M10.02 6L8.61 7.41 13.19 12l-4.58 4.59L10.02 18l6-6-6-6z" />
                             </svg>
                         </button>
-                    </form>
-                </div>
-            )}
-            {!isValidCode && (
-                <div id={styles.container_invalid_code}>
-                    <h2>
-                        The session code <b>#{code}</b> entered is either invalid or expired.
-                    </h2>
-                    <h2>Please double check it is the correct code.</h2>
-                    <Link href="/">
-                        <a>Back to home.</a>
-                    </Link>
-                </div>
-            )}
+                        <button
+                            className={`btn btn_primary ${styles.btn_continue}`}
+                            id={styles.btn_submit}
+                            type="submit"
+                        >
+                            Continue with name
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                height="24px"
+                                viewBox="0 0 24 24"
+                                width="24px"
+                                fill="#000000"
+                            >
+                                <path d="M0 0h24v24H0V0z" fill="none" />
+                                <path d="M10.02 6L8.61 7.41 13.19 12l-4.58 4.59L10.02 18l6-6-6-6z" />
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        );
+    }
+
+    return (
+        <div className="container_center">
+            <Navigation />
+            {content}
         </div>
     );
 }
