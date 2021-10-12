@@ -16,6 +16,9 @@ interface Props {
 const MutationStartSession = `
     mutation ($id: Float!) {
         startSession(id: $id) {
+            session {
+                code
+            }
             errors {
                 kind
                 msg
@@ -37,6 +40,9 @@ export default function CardSession({ timeCreatedUTC, name, id, state, code }: P
         startSession(variables).then((result) => {
             if (result.data.startSession.errors.length == 0) {
                 setSessionState(SessionState.open);
+                /* Since we have now started the session, the server has generated a code, therefore we must update
+                 * the prop as at this point it will be null since the session was previously in an open state. */
+                code = result.data.startSession.session.code;
             } else {
                 // TODO
             }
