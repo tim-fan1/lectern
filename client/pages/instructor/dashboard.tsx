@@ -1,7 +1,8 @@
 import Link from "next/link";
-import Navigation from "../../components/Navigation";
 import { useQuery } from "urql";
+import Navigation from "../../components/Navigation";
 import CardSession from "../../components/CardSession";
+import { SessionStateString, sessionStateStringToEnum } from "../../util";
 
 const QueryGetSessions = `
     query {
@@ -11,6 +12,7 @@ const QueryGetSessions = `
                 msg
             }
             sessions {
+                code,
                 created,
                 id,
                 name,
@@ -23,9 +25,11 @@ const QueryGetSessions = `
 
 type Session = {
     created: string;
-    id: string;
+    id: number;
     name: string;
     startedTime: string;
+    state: SessionStateString;
+    code?: string;
 };
 
 export default function Dashboard() {
@@ -48,6 +52,9 @@ export default function Dashboard() {
                         key={session.id}
                         timeCreatedUTC={session.created}
                         name={session.name}
+                        id={session.id}
+                        state={sessionStateStringToEnum(session.state)}
+                        code={session.code}
                     />
                 ))}
         </div>

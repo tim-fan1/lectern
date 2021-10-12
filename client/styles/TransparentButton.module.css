@@ -4,3 +4,7 @@
     display: flex;
     user-select: none;
 }
+
+#text {
+    margin-right: 1rem;
+}
