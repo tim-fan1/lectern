@@ -47,7 +47,7 @@ export default function Navigation() {
                     }
                 });
         }
-    }, []);
+    }, [client, isAuthenticated, login]);
 
     const handleLogout = () => {
         gqlLogout({}).then((result) => {
