@@ -24,7 +24,7 @@ export default function VerifyEmail() {
     const [verificationSuccess, setVerificationSuccess] = useState(false);
 
     const doVerifyEmail = () => {
-        setErrors(() => []); // don't ask me why this might work.
+        setErrors([]);
         const variables = {
             verification_code: verification_code,
         };
@@ -32,13 +32,13 @@ export default function VerifyEmail() {
         gqlVerifyEmail(variables).then((result) => {
             console.log(result);
             if (result.data.verify_email.errors.length == 0) {
-                setVerificationSuccess(() => true);
+                setVerificationSuccess(true);
             } else {
                 router.push("fail");
             }
         });
     };
-    useEffect(doVerifyEmail, []);
+    // useEffect(doVerifyEmail, []);
     return (
         <div>
             <Navigation />
