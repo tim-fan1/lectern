@@ -1,0 +1,14 @@
+### Week 1
+Discussed ideas for the project, creating a shortlist together. Individually, worked on the proposal for our online board game idea.
+
+### Week 2
+As a team, chose the final project ("slido clone"), and refined the list of requirements and functionalities.
+
+### Week 3
+As a team, finalised the list of functionalities, and discussed some project specifics for the proposal. Individually, worked on the system architecture portion of the proposal.
+
+### Week 4
+As a team, initialised our frontend and backend repositories, and decided on our conventions re. code style, version control. Individually, worked on backend features.
+
+### Week 5
+As a team, organised development of stories, and how we'd run our demo. Individually, worked on more backend features for the first demo, including setting up our GraphQL endpoints, some user features, and some session features.
