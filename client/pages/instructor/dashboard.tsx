@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Head from "next/head";
 import { useQuery } from "urql";
 import Navigation from "../../components/Navigation";
 import CardSession from "../../components/CardSession";
@@ -40,6 +41,9 @@ export default function Dashboard() {
 
     return (
         <div className="container_center">
+            <Head>
+                <title>lectern - instructor dashboard</title>
+            </Head>
             <Navigation />
             <Link href="/instructor/create">
                 <a className="btn btn_primary">Create session</a>

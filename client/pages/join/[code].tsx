@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
-import { OperationResult, useClient, useQuery } from "urql";
+import { useQuery } from "urql";
 import { validateSessionCode } from "../../util";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/join.module.css";
@@ -25,7 +25,6 @@ const QuerySessionDetails = `
 
 export default function Join() {
     const router = useRouter();
-    // const client = useClient();
     const { code } = router.query;
 
     /* Since this component does represent a possible route in the app, we have to consider that

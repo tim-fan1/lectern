@@ -1,8 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useClient, useMutation } from "urql";
 import { useAuth } from "../contexts/ContextAuth";
 import styles from "../styles/Navigation.module.css";
+import favicon from "../public/favicon.ico";
+import { useEffect } from "react";
 
 const QueryAuthCheck = `
     query {
@@ -33,17 +36,18 @@ export default function Navigation() {
     const [_, gqlLogout] = useMutation(MutationLogout);
 
     const client = useClient();
-    if (!isAuthenticated) {
-        client
-            .query(QueryAuthCheck, {})
-            .toPromise()
-            .then((result) => {
-                console.log(result);
-                if (result.error === undefined && result.data.userDetails.errors.length === 0) {
-                    login();
-                }
-            });
-    }
+    useEffect(() => {
+        if (!isAuthenticated) {
+            client
+                .query(QueryAuthCheck, {})
+                .toPromise()
+                .then((result) => {
+                    if (result.error === undefined && result.data.userDetails.errors.length === 0) {
+                        login();
+                    }
+                });
+        }
+    }, []);
 
     const handleLogout = () => {
         gqlLogout({}).then((result) => {
@@ -59,7 +63,10 @@ export default function Navigation() {
     return (
         <div id={styles.container}>
             <Link href="/" passHref>
-                <h1 id={styles.logo}>lectern?</h1>
+                <div id={styles.logo}>
+                    <Image src={favicon} alt={"lectern favicon"} width={32} height={32} />
+                    <h1>lectern?</h1>
+                </div>
             </Link>
             <div id={styles.links}>
                 {!isAuthenticated && (

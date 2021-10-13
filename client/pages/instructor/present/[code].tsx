@@ -1,7 +1,8 @@
+import Link from "next/link";
+import Head from "next/head";
+import { useRouter } from "next/router";
 import QRCode from "qrcode.react";
 import React, { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/router";
 import { useQuery } from "urql";
 
 import TransparentButton from "../../../components/TransparentButton";
@@ -51,6 +52,9 @@ export default function Present() {
 
     return (
         <div className={styles.top_level}>
+            <Head>
+                <title>lectern - present {code}</title>
+            </Head>
             <Navigation />
             <div className="container_center">
                 <Link href="/instructor/dashboard">

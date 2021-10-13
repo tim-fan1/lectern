@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Head from "next/head";
 import { FormEvent, useState } from "react";
 import { useMutation } from "urql";
 import Navigation from "../components/Navigation";
@@ -59,6 +60,9 @@ export default function Register() {
 
     return (
         <div>
+            <Head>
+                <title>lectern - register</title>
+            </Head>
             <Navigation />
             <div className="container_center">
                 <h1>Register an instructor account</h1>

@@ -10,7 +10,7 @@ function Home() {
     return (
         <div className={styles.container}>
             <Head>
-                <title>lectern? - Home page</title>
+                <title>lectern - welcome</title>
             </Head>
 
             <Navigation />
