@@ -13,4 +13,9 @@
 
 ## Week 4
 * Worked on frontend for the issues for sprint 1.
+* Mainly setting up frontend and styling, working on making pages and components for dashboard, register, login etc.
+
+## Week 5
+* Worked on frontend for the issues for sprint 1.
+* Finished implementing login, register, start session, did some of join.
 
