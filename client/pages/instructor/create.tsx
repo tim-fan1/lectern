@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Head from "next/head";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/Create.module.css";
 import { FormEvent, useState } from "react";
@@ -50,6 +51,9 @@ export default function Dashboard() {
 
     return (
         <div className="container_center">
+            <Head>
+                <title>lectern - create session</title>
+            </Head>
             <Navigation />
             <Link href="/instructor/dashboard">
                 <a>Back to dashboard</a>

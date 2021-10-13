@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
 import { useMutation } from "urql";
@@ -52,6 +53,9 @@ export default function Login() {
 
     return (
         <div>
+            <Head>
+                <title>lectern - login</title>
+            </Head>
             <Navigation />
             <div className="container_center">
                 <h1>Instructor log in</h1>

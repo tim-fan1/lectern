@@ -1,4 +1,5 @@
 import type { AppProps } from "next/app";
+import Head from "next/head";
 import React from "react";
 import { createClient, Provider } from "urql";
 import { ContextAuthProvider } from "../contexts/ContextAuth";
@@ -18,11 +19,22 @@ function App({ Component, pageProps }: AppProps) {
     });
 
     return (
-        <Provider value={client}>
-            <ContextAuthProvider>
-                <Component {...pageProps} />
-            </ContextAuthProvider>
-        </Provider>
+        <>
+            <Head>
+                <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+                <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+                <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+                <link rel="manifest" href="/site.webmanifest" />
+                <link rel="shortcut icon" href="/favicon.ico" />
+                <title>lectern</title>
+            </Head>
+
+            <Provider value={client}>
+                <ContextAuthProvider>
+                    <Component {...pageProps} />
+                </ContextAuthProvider>
+            </Provider>
+        </>
     );
 }
 export default App;
