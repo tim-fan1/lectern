@@ -3,7 +3,7 @@ import cors from "cors";
 import express from "express";
 import { graphqlHTTP } from "express-graphql";
 import { buildSchema } from "type-graphql";
-import { createConnection } from "typeorm";
+import { Connection, createConnection } from "typeorm";
 
 import {
     HelloResolver,
@@ -15,23 +15,12 @@ import cookieParser from "cookie-parser";
 import userAuthChecker from "./auth/authChecker";
 import config from "./config";
 
-async function make_app(): Promise<express.Express> {
+async function make_app(connection: Connection): Promise<express.Express> {
     const schema = await buildSchema({
         resolvers: [HelloResolver, UserResolver, SessionResolver],
         emitSchemaFile: path.resolve(__dirname, "schema.gql"),
         authChecker: userAuthChecker,
     });
-
-    const connection = await createConnection({
-        // replace this with ormconfig.json later (tm)
-        type: "sqlite",
-        database: "owo.db",
-        entities: [User, LoginSession, Session, VerifyEmail],
-    });
-
-    // real fudge - will create tables, kinda bad though in production
-    await connection.synchronize();
-
     const app = express();
 
     app.use(cors({ origin: config.frontend_url, credentials: true }));
@@ -62,12 +51,20 @@ if (require.main === module) {
 
     // ah yes, who doesn't like async code on the top level scope
     (async () => {
-            const app = await make_app()
-            app.listen(port, () => {
-                console.log(`Server listening on port ${port}`);
-            });
-        }
-    )()
+        const connection = await createConnection({
+            // replace this with ormconfig.json later (tm)
+            type: "sqlite",
+            database: "owo.db",
+            entities: [User, LoginSession, Session, VerifyEmail],
+        });
+
+        // real fudge - will create tables, kinda bad though in production
+        await connection.synchronize();
+        const app = await make_app(connection);
+        app.listen(port, () => {
+            console.log(`Server listening on port ${port}`);
+        });
+    })();
 }
 
 export default make_app;
