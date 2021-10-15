@@ -24,6 +24,7 @@ export default function VerifyEmail() {
     const [verificationSuccess, setVerificationSuccess] = useState(false);
 
     const doVerifyEmail = () => {
+        if (!router.isReady) return;
         setErrors([]);
         const variables = {
             verification_code: verification_code,
