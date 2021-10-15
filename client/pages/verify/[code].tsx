@@ -24,13 +24,12 @@ export default function VerifyEmail() {
     const [verificationSuccess, setVerificationSuccess] = useState(false);
 
     const doVerifyEmail = () => {
+        if (!router.isReady) return;
         setErrors([]);
         const variables = {
             verification_code: verification_code,
         };
-        console.log(variables);
         gqlVerifyEmail(variables).then((result) => {
-            console.log(result);
             if (result.data.verify_email.errors.length == 0) {
                 setVerificationSuccess(true);
             } else {
@@ -38,11 +37,11 @@ export default function VerifyEmail() {
             }
         });
     };
+    useEffect(doVerifyEmail, [router.isReady]);
     return (
         <div>
             <Navigation />
-            {/* <div className="container_center">We are verifying your email...</div> */}
-            <button onClick={doVerifyEmail}>Click me to verify!</button>
+            <div className="container_center">We are verifying your email...</div>
             {verificationSuccess && (
                 <div id={styles.container_register_success}>
                     <h2>You&apos;ve been verified!</h2>
