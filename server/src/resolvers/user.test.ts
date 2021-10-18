@@ -2,6 +2,7 @@ import make_app from "../index";
 import supertest from "supertest";
 import { createConnection, getConnection } from "typeorm";
 import http from "http";
+import User from "../entities/User";
 
 let app: http.Server;
 beforeAll(async () => {
@@ -69,14 +70,17 @@ describe("graphql sanity checks", () => {
     });
 });
 describe("graphql user detail tests", () => {
-    test("register test", async () => {
-        const fname = "owo";
-        const lname = "uwu";
-        const email = "uwu@hewwo.com";
-        let res = await sendGraphqlRequest(
+    /// Register a user, and do some basic tests to ensure state is correct
+    const registerUser = async (
+        fname: string,
+        lname: string,
+        email: string,
+        password: string
+    ): Promise<User> => {
+        const res = await sendGraphqlRequest(
             `mutation {
               register(
-                password: "whats this",
+                password: "${password}",
                 fname: "${fname}",
                 lname: "${lname}",
                 # 4 char min :(
@@ -110,5 +114,38 @@ describe("graphql user detail tests", () => {
                 },
             })
         );
+        return res.body.data.register.user;
+    };
+    test("register test", async () => {
+        const fname = "owo";
+        const lname = "uwu";
+        const email = "uwu@hewwo.com";
+        const password = "whats this";
+        await registerUser(fname, lname, email, password);
+    });
+
+    test("verification test", async () => {
+        const fname = "owo";
+        const lname = "uwu";
+        const email = "uwu@hewwo.com";
+        const password = "whats this";
+        await registerUser(fname, lname, email, password);
+
+        let res = await sendGraphqlRequest(`
+        mutation {
+            login(email: "${email}", password: "${password}") {
+                errors {    
+                    kind,
+                    msg
+                }
+            }
+        }`)
+        expect(res.statusCode).toBe(200)
+        expect(res.body).toEqual({
+            errors: [{
+                kind: "USER_UNVERIFIED",
+                msg: "User not verified"
+            }],
+        })
     });
 });
