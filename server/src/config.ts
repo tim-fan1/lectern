@@ -24,7 +24,7 @@ export default {
     company_email_password: company_email_password,
 };
 
-if (!emailCredentialsSpecified()) {
+if (!emailCredentialsSpecified() && !isTest) {
     console.warn(
         `Email credentials not specified - emails will not be sent, and instead printed to console\n` +
             `this warning can be safely ignored if expected (e.g. run in a testing environment)`
