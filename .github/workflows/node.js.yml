@@ -23,6 +23,10 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
+    - name: Upgrade NPM
+      run: npm install -g npm
+      # we need to use newer version of NPM to support v2 lockfiles
+      # https://stackoverflow.com/questions/68021121/fsevents-not-accessible-from-jest-haste-map, second answer
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v2
