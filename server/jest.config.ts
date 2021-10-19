@@ -1,8 +1,9 @@
-/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
-module.exports = {
+import type { Config } from "@jest/types";
+
+const config: Config.InitialOptions = {
+    verbose: true,
     preset: "ts-jest",
     testEnvironment: "node",
-    verbose: true,
     globals: {
         "ts-jest": {
             tsconfig: "tsconfig.json",
@@ -10,3 +11,4 @@ module.exports = {
     },
     roots: ["<rootDir>/src"],
 };
+export default config;
