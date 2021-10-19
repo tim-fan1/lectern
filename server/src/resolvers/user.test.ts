@@ -139,13 +139,20 @@ describe("graphql user detail tests", () => {
                     msg
                 }
             }
-        }`)
-        expect(res.statusCode).toBe(200)
+        }`);
+        expect(res.statusCode).toBe(200);
         expect(res.body).toEqual({
-            errors: [{
-                kind: "USER_UNVERIFIED",
-                msg: "User not verified"
-            }],
-        })
+            // ? why are the errors returned in data
+            data: {
+                login: {
+                    errors: [
+                        {
+                            kind: "USER_UNVERIFIED",
+                            msg: "User not verified",
+                        },
+                    ],
+                },
+            },
+        });
     });
 });
