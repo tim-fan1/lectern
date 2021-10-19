@@ -10,5 +10,6 @@ const config: Config.InitialOptions = {
         },
     },
     roots: ["<rootDir>/src"],
+    collectCoverage: true,
 };
 export default config;
