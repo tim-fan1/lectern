@@ -3,11 +3,9 @@
 import { config } from "dotenv";
 config();
 
-import * as priv from "./config.private";
-
 const isTest = process.env.NODE_ENV == "test";
-const company_email_address = isTest ? undefined : priv.company_email_address;
-const company_email_password = isTest ? undefined : priv.company_email_password;
+const company_email_address = isTest ? undefined : process.env.company_email_address;
+const company_email_password = isTest ? undefined : process.env.company_email_password;
 
 export function emailCredentialsSpecified() {
     return (

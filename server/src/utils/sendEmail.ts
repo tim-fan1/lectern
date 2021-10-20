@@ -1,7 +1,7 @@
 import config, { emailCredentialsSpecified } from "../config";
 const nodemailer = require("nodemailer");
 /**
- * Please provide company_email_address and company_email_password in ../config.private.ts.
+ * Please provide company_email_address and company_email_password in the environment variables
  * @param to Email address of receiver.
  * @param subject
  * @param html
