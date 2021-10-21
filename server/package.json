@@ -21,6 +21,7 @@
         "express-graphql": "^0.12.0",
         "graphql": "^15.6.0",
         "nodemailer": "^6.7.0",
+        "subscriptions-transport-ws": "^0.9.19",
         "type-graphql": "^1.1.1",
         "typeorm": "^0.2.38",
         "uuid": "^3.4.0"

@@ -4,6 +4,9 @@ import express from "express";
 import { graphqlHTTP } from "express-graphql";
 import { buildSchema } from "type-graphql";
 import { Connection, createConnection } from "typeorm";
+import { createServer } from "http";
+import { execute, subscribe } from "graphql";
+import { SubscriptionServer } from "subscriptions-transport-ws";
 
 import {
     HelloResolver,
@@ -23,7 +26,12 @@ async function make_app(connection: Connection): Promise<express.Express> {
     });
     const app = express();
 
-    app.use(cors({ origin: config.frontend_url, credentials: true }));
+    app.use(
+        cors({
+            origin: [config.frontend_url, "https://studio.apollographql.com"],
+            credentials: true,
+        })
+    );
 
     app.use(cookieParser());
 
@@ -41,13 +49,30 @@ async function make_app(connection: Connection): Promise<express.Express> {
             };
         })
     );
+
+    const ws = createServer(app);
+    ws.listen(4000, () => {
+        // Set up the WebSocket for handling GraphQL subscriptions.
+        new SubscriptionServer(
+            {
+                execute,
+                subscribe,
+                schema,
+            },
+            {
+                server: ws,
+                path: "/subscriptions",
+            }
+        );
+    });
+
     return app;
 }
+const PORT = 4000;
 
 if (require.main === module) {
     // if run directly, execute the app
     // https://nodejs.org/api/modules.html#modules_accessing_the_main_module
-    const port = 4000;
 
     // ah yes, who doesn't like async code on the top level scope
     (async () => {
@@ -61,9 +86,9 @@ if (require.main === module) {
         // real fudge - will create tables, kinda bad though in production
         await connection.synchronize();
         const app = await make_app(connection);
-        app.listen(port, () => {
-            console.log(`Server listening on port ${port}`);
-        });
+        // app.listen(PORT, () => {
+        //    console.log(`Server listening on port ${PORT}`);
+        //});
     })();
 }
 
