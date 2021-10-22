@@ -1,11 +1,11 @@
-import Link from "next/link";
 import Head from "next/head";
+import Link from "next/link";
 import { useRouter } from "next/router";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useMutation } from "urql";
-import { useAuth } from "../contexts/ContextAuth";
 import Navigation from "../components/Navigation";
-import styles from "../styles/Login.module.css";
+import { useAuth } from "../contexts/ContextAuth";
+import styles from "../styles/login.module.css";
 
 const MutationLogin = `
     mutation ($email: String!, $password: String!) {
@@ -21,6 +21,14 @@ const MutationLogin = `
 export default function Login() {
     const router = useRouter();
     const { isAuthenticated, login, logout } = useAuth();
+
+    useEffect(() => {
+        /* If someone is already authenticated and they arrive at the login route, we
+         * redirect them to the dashboard page. */
+        if (isAuthenticated) {
+            router.push("/instructor/dashboard");
+        }
+    }, [router, router.isReady, isAuthenticated]);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -54,7 +62,7 @@ export default function Login() {
     return (
         <div>
             <Head>
-                <title>lectern - login</title>
+                <title>lectern - Login</title>
             </Head>
             <Navigation />
             <div className="container_center">
@@ -87,7 +95,7 @@ export default function Login() {
                         Log in
                     </button>
                     <div id={styles.helper_links}>
-                        <Link href="/">
+                        <Link href="/resetpassword">
                             <a>Forgot password?</a>
                         </Link>
                         <Link href="/register">

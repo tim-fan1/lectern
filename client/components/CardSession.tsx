@@ -1,18 +1,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useMutation } from "urql";
-import { dashboardDateToString, SessionState } from "../util";
 import styles from "../styles/CardSession.module.css";
+import { sessionDateToString, SessionState } from "../util";
 
-interface Props {
-    timeCreatedUTC: string;
-    name: string;
-    id: number;
-    state: SessionState;
-    code?: string;
-}
-
-// TODO: id should not be a float lol.
 const MutationStartSession = `
     mutation ($id: Float!) {
         startSession(id: $id) {
@@ -27,9 +18,16 @@ const MutationStartSession = `
     }
 `;
 
-export default function CardSession({ timeCreatedUTC, name, id, state, code }: Props) {
-    const timeCreatedString = dashboardDateToString(new Date(timeCreatedUTC));
+interface Props {
+    code?: string;
+    id: number;
+    name: string;
+    state: SessionState;
+    startTime?: string;
+    endTime?: string;
+}
 
+export default function CardSession({ code, id, name, state, startTime, endTime }: Props) {
     const [sessionState, setSessionState] = useState(state);
     const [_, startSession] = useMutation(MutationStartSession);
 
@@ -56,22 +54,27 @@ export default function CardSession({ timeCreatedUTC, name, id, state, code }: P
             <h3 className={styles.name}>
                 <b>{name}</b>
             </h3>
-            <p className={styles.datetime}>{`${timeCreatedString}`}</p>
-            <a
-                className={styles.btn_change_state}
-                onClick={
-                    sessionState == SessionState.draft ? handleStartSession : handleCloseSession
-                }
-            >
-                {sessionState == SessionState.draft && "Start session"}
-                {sessionState == SessionState.open && "Close session (soonTM)"}
-            </a>
-            {/* We have the invariant that if the session state is in open, then we will have a non-null code. */}
-            {sessionState == SessionState.open && (
-                <Link href={`/instructor/present/${code}`}>
-                    <a>Present</a>
-                </Link>
-            )}
+            <div className={styles.datetimes}>
+                {startTime && <p>{`${sessionDateToString(new Date(startTime))}`}</p>}
+                {endTime && <p>{`${sessionDateToString(new Date(endTime))}`}</p>}
+            </div>
+            <div id={styles.container_actions}>
+                <a
+                    className={styles.btn_change_state}
+                    onClick={
+                        sessionState == SessionState.draft ? handleStartSession : handleCloseSession
+                    }
+                >
+                    {sessionState == SessionState.draft && "Start session"}
+                    {sessionState == SessionState.open && "Close session"}
+                </a>
+                {/* We have the invariant that if the session state is in open, then we will have a non-null code. */}
+                {sessionState == SessionState.open && (
+                    <Link href={`/instructor/present/${code}`}>
+                        <a>Present</a>
+                    </Link>
+                )}
+            </div>
         </div>
     );
 }

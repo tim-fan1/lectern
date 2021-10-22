@@ -1,9 +1,9 @@
-import Link from "next/link";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useMutation } from "urql";
+import MessageBox from "../../components/MessageBox";
 import Navigation from "../../components/Navigation";
-import styles from "../../styles/Register.module.css";
 
 const MutationVerifyEmail = `
     mutation ($verification_code: String!) {
@@ -18,35 +18,38 @@ const MutationVerifyEmail = `
 
 export default function VerifyEmail() {
     const router = useRouter();
-    const verification_code = `${router.query.code}`;
-    const [errors, setErrors] = useState([] as string[]);
     const [_, gqlVerifyEmail] = useMutation(MutationVerifyEmail);
-    const [verificationSuccess, setVerificationSuccess] = useState(false);
 
-    const doVerifyEmail = () => {
-        if (!router.isReady) return;
-        setErrors([]);
+    const [verifyFinished, setVerifyFinished] = useState(false);
+    const [verifySuccess, setVerifySuccess] = useState(false);
+
+    useEffect(() => {
         const variables = {
-            verification_code: verification_code,
+            verification_code: `${router.query.code}`,
         };
         gqlVerifyEmail(variables).then((result) => {
+            setVerifyFinished(true);
             if (result.data.verify_email.errors.length == 0) {
-                setVerificationSuccess(true);
+                setVerifySuccess(true);
             } else {
-                router.push("fail");
+                setVerifySuccess(false);
             }
         });
-    };
-    useEffect(doVerifyEmail, [router.isReady]);
+    }, [router, router.isReady, gqlVerifyEmail]);
+
     return (
         <div>
+            <Head>
+                <title>lectern - Verify email</title>
+            </Head>
             <Navigation />
-            <div className="container_center">We are verifying your email...</div>
-            {verificationSuccess && (
-                <div id={styles.container_register_success}>
-                    <h2>You&apos;ve been verified!</h2>
-                </div>
-            )}
+            <MessageBox>
+                <h1>Hi, we are verifying your account now...</h1>
+                {verifyFinished && verifySuccess && <h2>You&apos;ve been verified!</h2>}
+                {verifyFinished && !verifySuccess && (
+                    <h2>Unfortunately, we could not verify your email.</h2>
+                )}
+            </MessageBox>
         </div>
     );
 }

@@ -1,8 +1,8 @@
 #input_session_name {
-    border: 3px solid var(--c-background-tertiary);
-    font-size: 1.5rem;
+    border: 3px solid var(--c-background-secondary);
+    font-size: 2rem;
     color: white;
-    padding: 1.5rem;
+    padding: 1rem 0.5rem;
     background: transparent;
     transition: all 0.2s;
     text-align: center;
@@ -11,6 +11,7 @@
     margin-left: auto;
     margin-right: auto;
     display: block;
+    min-width: 20rem;
 }
 
 #input_session_name:active,
@@ -21,6 +22,8 @@
 
 #input_session_name::placeholder {
     font-size: 1rem;
+    color: var(--c-grey);
+    margin-bottom: 1.5rem;
 }
 
 #container_add_activity {
@@ -29,6 +32,7 @@
 
 #container_create_cards {
     display: flex;
+    margin-top: 1.5rem;
 }
 
 .card_create_activity {
@@ -53,7 +57,6 @@
 }
 
 #container_btn button {
-    width: 10rem;
-    margin: 1rem 1rem;
+    margin: 1rem;
+    min-width: 10rem;
 }
-

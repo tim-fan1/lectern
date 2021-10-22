@@ -1,12 +1,11 @@
 export type SessionStateString = "draft" | "open" | "archived";
-
 export enum SessionState {
     draft,
     open,
     archived,
 }
 
-export function sessionStateStringToEnum(str: SessionStateString): SessionState {
+export function sessionStateFromString(str: SessionStateString): SessionState {
     switch (str) {
         case "draft":
             return SessionState.draft;
@@ -17,7 +16,7 @@ export function sessionStateStringToEnum(str: SessionStateString): SessionState 
     }
 }
 
-export function dashboardDateToString(date: Date): string {
+export function sessionDateToString(date: Date): string {
     /* E.g: 16:30 29th Sept */
     let timeDateString = "";
 

@@ -1,9 +1,10 @@
-import Link from "next/link";
 import Head from "next/head";
+import Link from "next/link";
 import { useQuery } from "urql";
-import Navigation from "../../components/Navigation";
 import CardSession from "../../components/CardSession";
-import { SessionStateString, sessionStateStringToEnum } from "../../util";
+import Navigation from "../../components/Navigation";
+import styles from "../../styles/dashboard.module.css";
+import { sessionStateFromString, SessionStateString } from "../../util";
 
 const QueryGetSessions = `
     query {
@@ -14,23 +15,23 @@ const QueryGetSessions = `
             }
             sessions {
                 code,
-                created,
                 id,
                 name,
-                startTime,
                 state,
+                startTime,
+                endTime,
             }
         }
     }
 `;
 
 type Session = {
-    created: string;
+    code?: string;
     id: number;
     name: string;
-    startedTime: string;
     state: SessionStateString;
-    code?: string;
+    startTime?: string;
+    endTime?: string;
 };
 
 export default function Dashboard() {
@@ -39,28 +40,85 @@ export default function Dashboard() {
     const { data, fetching, error } = result;
     // TODO: error handling, use https://www.npmjs.com/package/next-urql with getServerSideProps
 
+    // TODO: below will maybe be applied for when we add groups and properly order the sessions by their details.
+    // let content = [<p>Getting your sessions...</p>];
+    // if (!fetching) {
+    //     const openSessions: JSX.Element[] = [];
+    //     const otherSessions: JSX.Element[] = [];
+    //     content = [
+    //         <h3 className={styles.header_sessions}>Open sessions</h3>,
+    //         openSessions,
+    //         <h3 className={styles.header_sessions}>Other sessions</h3>,
+    //         otherSessions,
+    //     ];
+    //     data.getSessions.sessions.reverse().map((session: Session) => {
+    //         const sessionState = sessionStateFromString(session.state);
+
+    //         const cardSession = (
+    //             <CardSession
+    //                 key={session.id}
+    //                 code={session.code}
+    //                 id={session.id}
+    //                 name={session.name}
+    //                 state={sessionStateFromString(session.state)}
+    //                 startTime={session.startTime}
+    //                 endTime={session.startTime}
+    //             />
+    //         );
+
+    //         if (sessionState == SessionState.open) {
+    //             openSessions.push(cardSession);
+    //         } else {
+    //             otherSessions.push(cardSession);
+    //         }
+    //     });
+    // }
+
     return (
         <div className="container_center">
             <Head>
-                <title>lectern - instructor dashboard</title>
+                <title>lectern - Instructor dashboard</title>
             </Head>
             <Navigation />
-            <Link href="/instructor/create">
-                <a className="btn btn_primary">Create session</a>
-            </Link>
             <h1>Instructor dashboard</h1>
-            <h3>Sessions</h3>
-            {!fetching &&
-                data.getSessions.sessions.map((session: Session) => (
-                    <CardSession
-                        key={session.id}
-                        timeCreatedUTC={session.created}
-                        name={session.name}
-                        id={session.id}
-                        state={sessionStateStringToEnum(session.state)}
-                        code={session.code}
-                    />
-                ))}
+            <Link href="/instructor/create">
+                <a id={styles.btn_create_session} className="btn btn_primary">
+                    <p>Create session</p>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        height="24px"
+                        viewBox="0 0 24 24"
+                        width="24px"
+                        fill="#000000"
+                    >
+                        <path d="M0 0h24v24H0V0z" fill="none" />
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                    </svg>
+                </a>
+            </Link>
+            <div id={styles.container_sessions} className="container_center">
+                <h2>Sessions</h2>
+                <div id={styles.container_card_session_labels}>
+                    <h3 id={styles.session_label_name}>Name</h3>
+                    <h3 id={styles.session_label_start_time}>Start time</h3>
+                    <h3 id={styles.session_label_end_time}>End time</h3>
+                    <div></div>
+                </div>
+                {!fetching &&
+                    data.getSessions.sessions
+                        .reverse()
+                        .map((session: Session) => (
+                            <CardSession
+                                key={session.id}
+                                code={session.code}
+                                id={session.id}
+                                name={session.name}
+                                state={sessionStateFromString(session.state)}
+                                startTime={session.startTime}
+                                endTime={session.endTime}
+                            />
+                        ))}
+            </div>
         </div>
     );
 }

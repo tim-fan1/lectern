@@ -1,11 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 import { useClient, useMutation } from "urql";
 import { useAuth } from "../contexts/ContextAuth";
-import styles from "../styles/Navigation.module.css";
 import favicon from "../public/favicon.ico";
-import { useEffect } from "react";
+import styles from "../styles/Navigation.module.css";
 
 const QueryAuthCheck = `
     query {
@@ -65,7 +65,7 @@ export default function Navigation() {
             <Link href="/" passHref>
                 <div id={styles.logo}>
                     <Image src={favicon} alt={"lectern favicon"} width={32} height={32} />
-                    <h1>lectern?</h1>
+                    <h1>lectern</h1>
                 </div>
             </Link>
             <div id={styles.links}>
@@ -83,6 +83,9 @@ export default function Navigation() {
                     <div className={styles.container_links_auth}>
                         <Link href="/instructor/dashboard">
                             <a>Dashboard</a>
+                        </Link>
+                        <Link href="/instructor/settings">
+                            <a>Settings</a>
                         </Link>
                         <Link href="/">
                             <a onClick={handleLogout}>Logout</a>

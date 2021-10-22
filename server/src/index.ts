@@ -5,11 +5,7 @@ import { graphqlHTTP } from "express-graphql";
 import { buildSchema } from "type-graphql";
 import { Connection, createConnection } from "typeorm";
 
-import {
-    HelloResolver,
-    UserResolver,
-    SessionResolver,
-} from "./resolvers/resolvers";
+import { HelloResolver, UserResolver, SessionResolver } from "./resolvers/resolvers";
 import { User, LoginSession, Session, VerifyEmail } from "./entities/entities";
 import cookieParser from "cookie-parser";
 import userAuthChecker from "./auth/authChecker";
