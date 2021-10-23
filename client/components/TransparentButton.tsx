@@ -7,7 +7,7 @@ type Props = {
     src: ImageProps["src"];
     alt: string;
     text: string;
-    onClick: () => Promise<any | void> | undefined;
+    onClick: () => Promise<void> | void;
     className: string;
 };
 
@@ -22,8 +22,7 @@ export default function TransparentButton({
 }: Props) {
     return (
         <div className={className}>
-            {/* TODO: cursed code */}
-            <a onClick={() => (onClick ? onClick() : null)}>
+            <a onClick={onClick}>
                 <div className={styles.verticle_container}>
                     <span id={styles.text}>{text}</span>
                     <Image src={src} alt={alt} width={width} height={height} />

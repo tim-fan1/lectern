@@ -1,16 +1,14 @@
-import Link from "next/link";
 import Head from "next/head";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import QRCode from "qrcode.react";
 import React, { useState } from "react";
 import { useQuery } from "urql";
-
-import TransparentButton from "../../../components/TransparentButton";
 import Navigation from "../../../components/Navigation";
+import TransparentButton from "../../../components/TransparentButton";
+import iconExitFullscreen from "../../../public/mdi_exit-to-app.svg";
+import iconEnterFullscreen from "../../../public/mdi_fullscreen.svg";
 import styles from "../../../styles/present.module.css";
-// TODO: mixing casing?
-import full_screen_image from "../../../public/mdi_fullscreen.svg";
-import exit_image from "../../../public/mdi_exit-to-app.svg";
 
 const QuerySessionDetails = `
     query ($code: String!) {
@@ -26,7 +24,6 @@ const QuerySessionDetails = `
     }
 `;
 
-// TODO: "back to dashboard" and "present in fullscreen" should be on same level
 // TODO: fix up these class names
 
 export default function Present() {
@@ -40,34 +37,32 @@ export default function Present() {
     const [result] = useQuery({ query: QuerySessionDetails, variables: { code: code } });
     const { data, fetching, error } = result;
 
-    const handleEnterFullscreen = async () => {
-        setIsFullscreen(true);
-        document.getElementById(styles.fullscreen_box)?.requestFullscreen();
+    const handleEnterFullscreen = () => {
+        document
+            .getElementById(styles.fullscreen_box)
+            ?.requestFullscreen()
+            .then(() => {
+                setIsFullscreen(true);
+            });
     };
 
     const handleExitFullscreen = async () => {
+        document.exitFullscreen();
         setIsFullscreen(false);
-        document.fullscreenElement !== null ? document.exitFullscreen() : undefined;
     };
 
     return (
         <div className={styles.top_level}>
             <Head>
-                <title>lectern - present {code}</title>
+                <title>lectern - Present {code}</title>
             </Head>
             <Navigation />
-            <div className="container_center">
-                <Link href="/instructor/dashboard">
-                    <a>Back to dashboard</a>
-                </Link>
-            </div>
-
             <div className={`container_center ${styles.main_container}`} id={styles.fullscreen_box}>
                 <div className={styles.topfloat_container}>
                     {!isFullscreen && (
                         <TransparentButton
                             className={styles.topfloat_item}
-                            src={full_screen_image}
+                            src={iconEnterFullscreen}
                             width={40}
                             height={40}
                             text={"Present in fullscreen"}
@@ -78,7 +73,7 @@ export default function Present() {
                     {isFullscreen && (
                         <TransparentButton
                             className={styles.topfloat_item}
-                            src={exit_image}
+                            src={iconExitFullscreen}
                             width={40}
                             height={40}
                             text={"Exit from presentation mode"}

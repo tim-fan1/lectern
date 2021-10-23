@@ -73,6 +73,10 @@
     flex-basis: 0;
 }
 
+.bottom_text_container h1 {
+    color: white;
+}
+
 .bottom_qr_container {
     padding: 40px;
     border-left: 4px white solid;
@@ -86,10 +90,10 @@
 }
 
 .bottom_small_text {
-    font-weight: 515;
+    font-weight: 500;
     margin: 0;
-    font-size: 45px;
-    color: gray;
+    font-size: 2.75rem;
+    color: var(--c-grey);
 }
 
 .bottom_large_text {

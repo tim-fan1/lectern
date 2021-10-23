@@ -1,9 +1,9 @@
-import Link from "next/link";
 import Head from "next/head";
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useMutation } from "urql";
 import Navigation from "../components/Navigation";
-import styles from "../styles/Register.module.css";
+import MessageBox from "../components/MessageBox";
 
 const MutationRegister = `
     mutation ($email: String!, $fname: String!, $lname: String!, $password: String!) {
@@ -61,7 +61,7 @@ export default function Register() {
     return (
         <div>
             <Head>
-                <title>lectern - register</title>
+                <title>lectern - Register</title>
             </Head>
             <Navigation />
             <div className="container_center">
@@ -148,17 +148,16 @@ export default function Register() {
                     </form>
                 )}
                 {registerSuccess && (
-                    <div id={styles.container_register_success}>
+                    <MessageBox>
                         <h2>You&apos;ve registered!</h2>
-                        {/* TODO: this login message is simply temporary until email verification is implemented. */}
-                        <Link href="/login">
-                            <a>Click here to login</a>
-                        </Link>
                         <p>
                             Please check the email we sent to <b>{email}</b> to verify your account
                             before logging in.
                         </p>
-                    </div>
+                        <Link href="/login">
+                            <a>Click here to login</a>
+                        </Link>
+                    </MessageBox>
                 )}
             </div>
         </div>

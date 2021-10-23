@@ -1,11 +1,12 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/router";
-import { useClient, useMutation } from "urql";
-import { useAuth } from "../contexts/ContextAuth";
-import styles from "../styles/Navigation.module.css";
-import favicon from "../public/favicon.ico";
 import { useEffect } from "react";
+import { useClient, useMutation } from "urql";
+import favicon from "../public/favicon.ico";
+import { login, logout, selectIsAuthenticated } from "../state/authSlice";
+import { useAppDispatch, useAppSelector } from "../state/hooks";
+import styles from "../styles/Navigation.module.css";
 
 const QueryAuthCheck = `
     query {
@@ -31,7 +32,9 @@ const MutationLogout = `
 
 export default function Navigation() {
     const router = useRouter();
-    const { isAuthenticated, login, logout } = useAuth();
+    const dispatch = useAppDispatch();
+
+    const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
     const [_, gqlLogout] = useMutation(MutationLogout);
 
@@ -43,17 +46,17 @@ export default function Navigation() {
                 .toPromise()
                 .then((result) => {
                     if (result.error === undefined && result.data.userDetails.errors.length === 0) {
-                        login();
+                        dispatch(login());
                     }
                 });
         }
-    }, [client, isAuthenticated, login]);
+    }, [client, isAuthenticated, dispatch]);
 
     const handleLogout = () => {
         gqlLogout({}).then((result) => {
             if (result.data.logout.errors.length == 0) {
                 router.push("/");
-                logout();
+                dispatch(logout());
             } else {
                 console.error("Could not logout.");
             }
@@ -65,7 +68,7 @@ export default function Navigation() {
             <Link href="/" passHref>
                 <div id={styles.logo}>
                     <Image src={favicon} alt={"lectern favicon"} width={32} height={32} />
-                    <h1>lectern?</h1>
+                    <h1>lectern</h1>
                 </div>
             </Link>
             <div id={styles.links}>
@@ -83,6 +86,9 @@ export default function Navigation() {
                     <div className={styles.container_links_auth}>
                         <Link href="/instructor/dashboard">
                             <a>Dashboard</a>
+                        </Link>
+                        <Link href="/instructor/settings">
+                            <a>Settings</a>
                         </Link>
                         <Link href="/">
                             <a onClick={handleLogout}>Logout</a>

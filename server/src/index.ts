@@ -8,11 +8,7 @@ import { WebSocketServer } from "ws";
 import { GraphQLSchema } from "graphql";
 import { useServer } from "graphql-ws/lib/use/ws";
 
-import {
-    HelloResolver,
-    UserResolver,
-    SessionResolver,
-} from "./resolvers/resolvers";
+import { HelloResolver, UserResolver, SessionResolver } from "./resolvers/resolvers";
 import { User, LoginSession, Session, VerifyEmail } from "./entities/entities";
 import cookieParser from "cookie-parser";
 import userAuthChecker from "./auth/authChecker";
