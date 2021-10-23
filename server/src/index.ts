@@ -5,7 +5,7 @@ import { graphqlHTTP } from "express-graphql";
 import { buildSchema } from "type-graphql";
 import { Connection, createConnection } from "typeorm";
 import { WebSocketServer } from "ws";
-import { execute, subscribe } from "graphql";
+import { execute, GraphQLSchema, subscribe } from "graphql";
 import { useServer } from "graphql-ws/lib/use/ws";
 
 import {
@@ -18,12 +18,10 @@ import cookieParser from "cookie-parser";
 import userAuthChecker from "./auth/authChecker";
 import config from "./config";
 
-async function make_app(connection: Connection): Promise<express.Express> {
-    const schema = await buildSchema({
-        resolvers: [HelloResolver, UserResolver, SessionResolver],
-        emitSchemaFile: path.resolve(__dirname, "schema.gql"),
-        authChecker: userAuthChecker,
-    });
+async function make_app(
+    schema: GraphQLSchema,
+    connection: Connection
+): Promise<express.Express> {
     const app = express();
 
     app.use(
@@ -52,22 +50,13 @@ async function make_app(connection: Connection): Promise<express.Express> {
     // NOTE - this only works with npm run dev, as the build does not include the necessary html files
     // this serves all files in the graphiql folder
     if (!config.isProduction) {
+        console.log("Serving graphiql interface on /graphiql");
         app.use(
             express.static("src/graphiql", {
                 extensions: ["html"],
             })
         );
     }
-
-    const server = app.listen(4000, () => {
-        // Set up the WebSocket for handling GraphQL subscriptions.
-        const wsServer = new WebSocketServer({
-            server,
-            path: "/graphql",
-        });
-
-        useServer({ schema }, wsServer);
-    });
 
     return app;
 }
@@ -86,12 +75,27 @@ if (require.main === module) {
             entities: [User, LoginSession, Session, VerifyEmail],
         });
 
+        const schema = await buildSchema({
+            resolvers: [HelloResolver, UserResolver, SessionResolver],
+            emitSchemaFile: path.resolve(__dirname, "schema.gql"),
+            authChecker: userAuthChecker,
+        });
+
         // real fudge - will create tables, kinda bad though in production
         await connection.synchronize();
-        const app = await make_app(connection);
-        // app.listen(PORT, () => {
-        //    console.log(`Server listening on port ${PORT}`);
-        //});
+        const app = await make_app(schema, connection);
+
+        const server = app.listen(4000, () => {
+            // Set up the WebSocket for handling GraphQL subscriptions.
+            console.log(`Server listening on port ${PORT}`);
+            const wsServer = new WebSocketServer({
+                server,
+                path: "/graphql",
+            });
+
+            useServer({ schema }, wsServer);
+            console.log(`Started WebSocketServer on port ${PORT}`);
+        });
     })();
 }
 

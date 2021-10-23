@@ -3,18 +3,28 @@ import supertest from "supertest";
 import { createConnection, getConnection } from "typeorm";
 import http from "http";
 import User from "../entities/User";
+import { buildSchema } from "type-graphql";
+import { HelloResolver, SessionResolver, UserResolver } from "./resolvers";
+import path from "path";
+import userAuthChecker from "../auth/authChecker";
 
 let app: http.Server;
 beforeAll(async () => {
     // setup connection and express app
-    await createConnection({
+    const connection = await createConnection({
         type: "sqlite",
         database: ":memory:",
         entities: ["src/entities/*.ts"],
         synchronize: true,
         dropSchema: true,
     });
-    app = http.createServer(await make_app(getConnection()));
+
+    const schema = await buildSchema({
+        resolvers: [HelloResolver, UserResolver, SessionResolver],
+        authChecker: userAuthChecker,
+    });
+
+    app = http.createServer(await make_app(schema, connection));
 });
 
 beforeEach(async () => {});
