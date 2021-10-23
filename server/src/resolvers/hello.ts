@@ -32,7 +32,7 @@ class BikeSheddingStatus {
     isBikeShedding!: boolean;
 
     @Field()
-    date_changed!: Date;
+    dateChanged!: Date;
 }
 
 // Example of how said object might be stored
@@ -87,8 +87,6 @@ export default class HelloResolver {
     // The function takes in a "payload" in its @Root() argument
     @Subscription((type) => BikeSheddingStatus, {
         topics: "BIKESHED",
-        // some filter here - to filter out events generated
-        // filter: ({payload, args}) => true,
     })
     bikeShedSubscription(
         @Root() notificationPayload: BikeSheddingPayload
@@ -97,7 +95,31 @@ export default class HelloResolver {
         // and add a timestamp for the client
         return {
             ...notificationPayload,
-            date_changed: new Date(),
+            dateChanged: new Date(),
+        };
+    }
+
+    @Subscription((type) => BikeSheddingStatus, {
+        topics: "BIKESHED",
+        // some filter here - to filter out events generated
+        // in this case, only send events to the client if
+        // bikeShedding has been enabled
+        filter: ({
+            payload,
+            args,
+        }: {
+            payload: BikeSheddingPayload;
+            args: [];
+        }) => {
+            return payload.isBikeShedding === true;
+        },
+    })
+    bikeShedEnabledSubscription(
+        @Root() notificationPayload: BikeSheddingPayload
+    ): BikeSheddingStatus {
+        return {
+            ...notificationPayload,
+            dateChanged: new Date(),
         };
     }
 
