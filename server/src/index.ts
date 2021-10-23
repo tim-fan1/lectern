@@ -5,7 +5,7 @@ import { graphqlHTTP } from "express-graphql";
 import { buildSchema } from "type-graphql";
 import { Connection, createConnection } from "typeorm";
 import { WebSocketServer } from "ws";
-import { execute, GraphQLSchema, subscribe } from "graphql";
+import { GraphQLSchema } from "graphql";
 import { useServer } from "graphql-ws/lib/use/ws";
 
 import {
@@ -24,9 +24,13 @@ async function make_app(
 ): Promise<express.Express> {
     const app = express();
 
+    // add apollo studio when not in production mode
+    const corsOrigins = config.isProduction
+        ? config.frontend_url
+        : [config.frontend_url, "https://studio.apollographql.com"];
     app.use(
         cors({
-            origin: [config.frontend_url, "https://studio.apollographql.com"],
+            origin: corsOrigins,
             credentials: true,
         })
     );
