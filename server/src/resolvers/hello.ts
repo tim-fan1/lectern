@@ -73,7 +73,6 @@ export default class HelloResolver {
         @PubSub("BIKESHED") publish: Publisher<BikeSheddingPayload>,
         @Arg("isBikeShedding") isBikeShedding: boolean
     ) {
-        console.log(isBikeShedding);
         globalBike.isBikeShedding = isBikeShedding;
         console.log({
             id: globalBike.id,

@@ -4,9 +4,9 @@ import express from "express";
 import { graphqlHTTP } from "express-graphql";
 import { buildSchema } from "type-graphql";
 import { Connection, createConnection } from "typeorm";
-import { createServer } from "http";
+import { WebSocketServer } from "ws";
 import { execute, subscribe } from "graphql";
-import { SubscriptionServer } from "subscriptions-transport-ws";
+import { useServer } from "graphql-ws/lib/use/ws";
 
 import {
     HelloResolver,
@@ -50,20 +50,22 @@ async function make_app(connection: Connection): Promise<express.Express> {
         })
     );
 
-    const ws = createServer(app);
-    ws.listen(4000, () => {
+    // NOTE - this only works with npm run dev, as the build does not include the necessary html files
+    // this serves all files in the graphiql folder
+    app.use(
+        express.static("src/graphiql", {
+            extensions: ["html"],
+        })
+    );
+
+    const server = app.listen(4000, () => {
         // Set up the WebSocket for handling GraphQL subscriptions.
-        new SubscriptionServer(
-            {
-                execute,
-                subscribe,
-                schema,
-            },
-            {
-                server: ws,
-                path: "/subscriptions",
-            }
-        );
+        const wsServer = new WebSocketServer({
+            server,
+            path: "/graphql",
+        });
+
+        useServer({ schema }, wsServer);
     });
 
     return app;
