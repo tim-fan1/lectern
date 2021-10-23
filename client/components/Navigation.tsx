@@ -1,10 +1,11 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useClient, useMutation } from "urql";
-import { useAuth } from "../contexts/ContextAuth";
 import favicon from "../public/favicon.ico";
+import { login, logout, selectIsAuthenticated } from "../state/authSlice";
+import { useAppDispatch, useAppSelector } from "../state/hooks";
 import styles from "../styles/Navigation.module.css";
 
 const QueryAuthCheck = `
@@ -31,7 +32,9 @@ const MutationLogout = `
 
 export default function Navigation() {
     const router = useRouter();
-    const { isAuthenticated, login, logout } = useAuth();
+    const dispatch = useAppDispatch();
+
+    const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
     const [_, gqlLogout] = useMutation(MutationLogout);
 
@@ -43,17 +46,17 @@ export default function Navigation() {
                 .toPromise()
                 .then((result) => {
                     if (result.error === undefined && result.data.userDetails.errors.length === 0) {
-                        login();
+                        dispatch(login());
                     }
                 });
         }
-    }, [client, isAuthenticated, login]);
+    }, [client, isAuthenticated, dispatch]);
 
     const handleLogout = () => {
         gqlLogout({}).then((result) => {
             if (result.data.logout.errors.length == 0) {
                 router.push("/");
-                logout();
+                dispatch(logout());
             } else {
                 console.error("Could not logout.");
             }
