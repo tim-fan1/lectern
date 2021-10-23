@@ -4,7 +4,8 @@ import { useRouter } from "next/router";
 import { FormEvent, useEffect, useState } from "react";
 import { useMutation } from "urql";
 import Navigation from "../components/Navigation";
-import { useAuth } from "../contexts/ContextAuth";
+import { login, selectIsAuthenticated } from "../state/authSlice";
+import { useAppDispatch, useAppSelector } from "../state/hooks";
 import styles from "../styles/login.module.css";
 
 const MutationLogin = `
@@ -20,7 +21,9 @@ const MutationLogin = `
 
 export default function Login() {
     const router = useRouter();
-    const { isAuthenticated, login, logout } = useAuth();
+    const dispatch = useAppDispatch();
+
+    const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
     useEffect(() => {
         /* If someone is already authenticated and they arrive at the login route, we
@@ -49,7 +52,7 @@ export default function Login() {
             // TODO: check if the network request actually succeeded.
             if (result.data.login.errors.length == 0) {
                 router.push("/instructor/dashboard");
-                login();
+                dispatch(login());
             } else {
                 const errorMessages = result.data.login.errors.map(
                     (error: { msg: string }) => error.msg
