@@ -40,7 +40,6 @@ async function make_app(connection: Connection): Promise<express.Express> {
         graphqlHTTP((req, res) => {
             return {
                 schema: schema,
-                graphiql: !config.isProduction,
                 context: {
                     req: req,
                     res: res,
@@ -52,11 +51,13 @@ async function make_app(connection: Connection): Promise<express.Express> {
 
     // NOTE - this only works with npm run dev, as the build does not include the necessary html files
     // this serves all files in the graphiql folder
-    app.use(
-        express.static("src/graphiql", {
-            extensions: ["html"],
-        })
-    );
+    if (!config.isProduction) {
+        app.use(
+            express.static("src/graphiql", {
+                extensions: ["html"],
+            })
+        );
+    }
 
     const server = app.listen(4000, () => {
         // Set up the WebSocket for handling GraphQL subscriptions.
