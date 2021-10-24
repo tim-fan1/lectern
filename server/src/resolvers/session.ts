@@ -38,9 +38,13 @@ enum SessionErrors {
 export default class SessionResolver {
     @Authorized()
     @Query(() => SessionArrResponse)
-    async getSessions(@Ctx() { conn, res }: Context): Promise<SessionArrResponse> {
+    async getSessions(
+        @Ctx() { conn, res }: Context
+    ): Promise<SessionArrResponse> {
         try {
-            const user = await conn.getRepository(User).findOne(res.locals.userId);
+            const user = await conn
+                .getRepository(User)
+                .findOne(res.locals.userId);
 
             if (user === undefined)
                 return SessionResponse.withErrors({
@@ -153,7 +157,10 @@ export default class SessionResolver {
                 relations: ["author"],
             });
 
-            if (targetSession === undefined || targetSession.author.id !== res.locals.userId)
+            if (
+                targetSession === undefined ||
+                targetSession.author.id !== res.locals.userId
+            )
                 // I don't think we should reveal that this session exists if
                 // this user isn't allowed to access it
                 return EndpointResponse.withErrors({
@@ -188,7 +195,10 @@ export default class SessionResolver {
             const session = await sessionRepo.findOne(id, {
                 relations: ["author"],
             });
-            if (session === undefined || session.author.id !== res.locals.userId)
+            if (
+                session === undefined ||
+                session.author.id !== res.locals.userId
+            )
                 return SessionResponse.withErrors({
                     kind: SessionErrors.SESSION_NOT_EXIST,
                 });
@@ -200,7 +210,10 @@ export default class SessionResolver {
             /* In-memory session logic goes here. */
 
             const thisCode = generateAlphanumCode(6);
-            if ((await sessionRepo.findOne({ where: { code: thisCode } })) !== undefined)
+            if (
+                (await sessionRepo.findOne({ where: { code: thisCode } })) !==
+                undefined
+            )
                 // code already exists, somewhat unlikely (unlike session token)
                 return SessionResponse.withErrors({
                     kind: SessionErrors.SESSION_CODE_EXIST,
@@ -242,7 +255,10 @@ export default class SessionResolver {
             const session = await sessionRepo.findOne(id, {
                 relations: ["author"],
             });
-            if (session === undefined || session.author.id !== res.locals.userId)
+            if (
+                session === undefined ||
+                session.author.id !== res.locals.userId
+            )
                 return SessionResponse.withErrors({
                     kind: SessionErrors.SESSION_NOT_EXIST,
                 });
