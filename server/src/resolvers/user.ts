@@ -48,6 +48,7 @@ enum UserError {
     USED_TOKEN = "USED_TOKEN",
     USER_NOT_EXIST = "USER_NOT_EXIST",
     INVALID_VERIFICATION_CODE = "INVALID_VERIFICATION_CODE",
+    PASSWORD_SAME_AS_NEW_PASSWORD = "PASSWORD_SAME_AS_NEW_PASSWORD",
 }
 
 export default class UserResolver {
@@ -363,6 +364,65 @@ export default class UserResolver {
         }
 
         /* User should be verified now. Success! */
+        return {
+            errors: [],
+        };
+    }
+
+    @Authorized()
+    @Mutation(() => EndpointResponse)
+    async changePassword(
+        @Arg("password") password: string,
+        @Arg("newPassword") newPassword: string,
+        @Ctx() { res, conn }: Context
+    ): Promise<EndpointResponse> {
+        try {
+            /* First check if the newPassword is even valid. */
+            if (!validatePassword(newPassword)) {
+                return EndpointResponse.withErrors({
+                    kind: UserError.BAD_PASSWORD,
+                    msg: "Invalid password given",
+                });
+            }
+
+            const repo = conn.getRepository(User);
+            const user = await repo.findOne(res.locals.userId);
+            if (user === undefined) {
+                return EndpointResponse.withErrors({
+                    kind: UserError.USER_NOT_EXIST,
+                });
+            }
+
+            /* Check that they have given the correct current password. */
+            const passwordValid = await argon2.verify(user.password, password);
+            if (!passwordValid) {
+                return EndpointResponse.withErrors({
+                    kind: UserError.INCORRECT_PASSWORD,
+                    msg: "Current password given is incorrect",
+                });
+            }
+
+            /* Shouldn't let the user make the password the same as the current one. */
+            const newPasswordValid = !(await argon2.verify(
+                user.password,
+                newPassword
+            ));
+            if (!newPasswordValid) {
+                return EndpointResponse.withErrors({
+                    kind: UserError.PASSWORD_SAME_AS_NEW_PASSWORD,
+                    msg: "New password given is the same as current password",
+                });
+            }
+
+            user.password = await argon2.hash(newPassword);
+            await repo.save(user);
+        } catch (e: Error | any) {
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
+        }
+
         return {
             errors: [],
         };

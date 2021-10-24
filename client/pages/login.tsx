@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { FormEvent, useEffect, useState } from "react";
 import { useMutation } from "urql";
+import InputPassword from "../components/InputPassword";
 import Navigation from "../components/Navigation";
 import { login, selectIsAuthenticated } from "../state/authSlice";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
@@ -87,12 +88,7 @@ export default function Login() {
                     </div>
                     <div className="container_input_label">
                         <label className="label">Password</label>
-                        <input
-                            className="input"
-                            type="password"
-                            onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
-                            required
-                        />
+                        <InputPassword setValue={setPassword} />
                     </div>
                     <button className="btn btn_primary" type="submit">
                         Log in

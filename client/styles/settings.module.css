@@ -1,0 +1,11 @@
+#header_security {
+    align-self: flex-start;
+}
+
+#form_change_password {
+    margin-top: 1.5rem;
+}
+
+#form_change_password h3 {
+    font-weight: 500;
+}
