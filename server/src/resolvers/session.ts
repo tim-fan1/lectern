@@ -224,7 +224,7 @@ export default class SessionResolver {
             session.code = thisCode;
             session.state = "open";
             // TODO: make this configurable; default for now is 6 hours
-            session.startTime = new Date(Date.now());
+            session.startTime = new Date();
             session.endTime = df.add(session.startTime, { hours: 6 });
             await sessionRepo.save(session);
 
@@ -268,7 +268,7 @@ export default class SessionResolver {
                 });
 
             session.state = "archived";
-            session.endTime = new Date(Date.now());
+            session.endTime = new Date();
             await sessionRepo.save(session);
 
             return { errors: [], session: session };
