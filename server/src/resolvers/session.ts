@@ -30,7 +30,7 @@ enum SessionErrors {
     DB_ERROR = "DB_ERROR",
     USER_NOT_EXIST = "USER_NOT_EXIST", // shouldn't be possible but ts complains
     SESSION_NOT_EXIST = "SESSION_NOT_EXIST",
-    SESSION_ALREADY_STARTED = "SESSION_ALREADY_STARTED",
+    SESSION_INVALID_STATE = "SESSION_INVALID_STATE",
     SESSION_CODE_EXIST = "SESSION_CODE_EXIST",
 }
 
@@ -38,13 +38,9 @@ enum SessionErrors {
 export default class SessionResolver {
     @Authorized()
     @Query(() => SessionArrResponse)
-    async getSessions(
-        @Ctx() { conn, res }: Context
-    ): Promise<SessionArrResponse> {
+    async getSessions(@Ctx() { conn, res }: Context): Promise<SessionArrResponse> {
         try {
-            const user = await conn
-                .getRepository(User)
-                .findOne(res.locals.userId);
+            const user = await conn.getRepository(User).findOne(res.locals.userId);
 
             if (user === undefined)
                 return SessionResponse.withErrors({
@@ -157,10 +153,7 @@ export default class SessionResolver {
                 relations: ["author"],
             });
 
-            if (
-                targetSession === undefined ||
-                targetSession.author.id !== res.locals.userId
-            )
+            if (targetSession === undefined || targetSession.author.id !== res.locals.userId)
                 // I don't think we should reveal that this session exists if
                 // this user isn't allowed to access it
                 return EndpointResponse.withErrors({
@@ -195,25 +188,19 @@ export default class SessionResolver {
             const session = await sessionRepo.findOne(id, {
                 relations: ["author"],
             });
-            if (
-                session === undefined ||
-                session.author.id !== res.locals.userId
-            )
+            if (session === undefined || session.author.id !== res.locals.userId)
                 return SessionResponse.withErrors({
                     kind: SessionErrors.SESSION_NOT_EXIST,
                 });
-            if (session.state != "draft")
+            if (session.state !== "draft")
                 return SessionResponse.withErrors({
-                    kind: SessionErrors.SESSION_ALREADY_STARTED,
+                    kind: SessionErrors.SESSION_INVALID_STATE,
                 });
 
             /* In-memory session logic goes here. */
 
             const thisCode = generateAlphanumCode(6);
-            if (
-                (await sessionRepo.findOne({ where: { code: thisCode } })) !==
-                undefined
-            )
+            if ((await sessionRepo.findOne({ where: { code: thisCode } })) !== undefined)
                 // code already exists, somewhat unlikely (unlike session token)
                 return SessionResponse.withErrors({
                     kind: SessionErrors.SESSION_CODE_EXIST,
@@ -226,6 +213,46 @@ export default class SessionResolver {
             // TODO: make this configurable; default for now is 6 hours
             session.startTime = new Date(Date.now());
             session.endTime = df.add(session.startTime, { hours: 6 });
+            await sessionRepo.save(session);
+
+            return { errors: [], session: session };
+        } catch (e: Error | any) {
+            return SessionResponse.withErrors({
+                kind: SessionErrors.DB_ERROR,
+                msg: e.message,
+            });
+        }
+    }
+
+    @Authorized()
+    @Mutation(() => SessionResponse)
+    async closeSession(
+        @Arg("id") id: number,
+        @Ctx() { res, conn }: Context
+    ): Promise<SessionResponse> {
+        try {
+            const userRepo = conn.getRepository(User);
+            const user = await userRepo.findOne(res.locals.userId);
+            if (user === undefined)
+                return SessionResponse.withErrors({
+                    kind: SessionErrors.USER_NOT_EXIST,
+                });
+
+            const sessionRepo = conn.getRepository(Session);
+            const session = await sessionRepo.findOne(id, {
+                relations: ["author"],
+            });
+            if (session === undefined || session.author.id !== res.locals.userId)
+                return SessionResponse.withErrors({
+                    kind: SessionErrors.SESSION_NOT_EXIST,
+                });
+            if (session.state !== "open")
+                return SessionResponse.withErrors({
+                    kind: SessionErrors.SESSION_INVALID_STATE,
+                });
+
+            session.state = "archived";
+            session.endTime = new Date(Date.now());
             await sessionRepo.save(session);
 
             return { errors: [], session: session };
