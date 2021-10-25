@@ -82,7 +82,7 @@ export default function Login() {
                         <input
                             className="input"
                             type="email"
-                            onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
                         />
                     </div>

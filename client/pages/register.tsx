@@ -83,7 +83,7 @@ export default function Register() {
                                 type="text"
                                 minLength={2}
                                 maxLength={26}
-                                onChange={(e) => setFirstName((e.target as HTMLInputElement).value)}
+                                onChange={(e) => setFirstName(e.target.value)}
                                 required
                             />
                         </div>
@@ -96,7 +96,7 @@ export default function Register() {
                                 type="text"
                                 minLength={2}
                                 maxLength={26}
-                                onChange={(e) => setLastName((e.target as HTMLInputElement).value)}
+                                onChange={(e) => setLastName(e.target.value)}
                                 required
                             />
                         </div>
@@ -108,7 +108,7 @@ export default function Register() {
                                 className="input"
                                 id="email"
                                 type="email"
-                                onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                         </div>

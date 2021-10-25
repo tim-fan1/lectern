@@ -11,7 +11,7 @@ export default function InputPassword({ setValue }: Props) {
             type="password"
             minLength={8}
             maxLength={30}
-            onChange={(e) => setValue((e.target as HTMLInputElement).value)}
+            onChange={(e) => setValue(e.target.value)}
             required
         />
     );
