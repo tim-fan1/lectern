@@ -22,7 +22,6 @@
         "graphql": "^15.6.0",
         "graphql-ws": "^5.5.3",
         "nodemailer": "^6.7.0",
-        "subscriptions-transport-ws": "^0.9.19",
         "type-graphql": "^1.1.1",
         "typeorm": "^0.2.38",
         "uuid": "^3.4.0",
