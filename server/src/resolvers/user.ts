@@ -238,9 +238,8 @@ export default class UserResolver {
         res.cookie("token", newToken, {
             httpOnly: true,
             secure: true,
+            sameSite: config.isProduction ? "strict" : "none", // none to send them to apollo studio
         });
-
-        /* TODO: work out how to fix this: https://stackoverflow.com/questions/34558264/fetch-api-with-cookie */
 
         /* Success! */
         return {
