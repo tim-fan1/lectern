@@ -29,7 +29,7 @@ export default function VerifyEmail() {
         };
         gqlVerifyEmail(variables).then((result) => {
             setVerifyFinished(true);
-            if (result.data.verify_email.errors.length == 0) {
+            if (result.data.verify_email.errors.length === 0) {
                 setVerifySuccess(true);
             } else {
                 setVerifySuccess(false);

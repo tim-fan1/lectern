@@ -33,7 +33,7 @@ export default function Register() {
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        if (password != passwordConfirm) {
+        if (password !== passwordConfirm) {
             setErrors(["Passwords are not equal!"]);
             return;
         } else {
@@ -47,7 +47,7 @@ export default function Register() {
             password: password,
         };
         register(variables).then((result) => {
-            if (result.data.register.errors.length == 0) {
+            if (result.data.register.errors.length === 0) {
                 /* a register success prompt will pop up when this is set to true. */
                 setRegisterSuccess(true);
             } else {

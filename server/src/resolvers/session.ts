@@ -202,7 +202,7 @@ export default class SessionResolver {
                 return SessionResponse.withErrors({
                     kind: SessionErrors.SESSION_NOT_EXIST,
                 });
-            if (session.state != "draft")
+            if (session.state !== "draft")
                 return SessionResponse.withErrors({
                     kind: SessionErrors.SESSION_ALREADY_STARTED,
                 });

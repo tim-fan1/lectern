@@ -36,7 +36,7 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
             id: id,
         };
         startSession(variables).then((result) => {
-            if (result.data.startSession.errors.length == 0) {
+            if (result.data.startSession.errors.length === 0) {
                 setSessionState(SessionState.open);
                 /* Since we have now started the session, the server has generated a code, therefore we must update
                  * the prop as at this point it will be null since the session was previously in an open state. */
@@ -62,14 +62,16 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
                 <a
                     className={styles.btn_change_state}
                     onClick={
-                        sessionState == SessionState.draft ? handleStartSession : handleCloseSession
+                        sessionState === SessionState.draft
+                            ? handleStartSession
+                            : handleCloseSession
                     }
                 >
-                    {sessionState == SessionState.draft && "Start session"}
-                    {sessionState == SessionState.open && "Close session"}
+                    {sessionState === SessionState.draft && "Start session"}
+                    {sessionState === SessionState.open && "Close session"}
                 </a>
                 {/* We have the invariant that if the session state is in open, then we will have a non-null code. */}
-                {sessionState == SessionState.open && (
+                {sessionState === SessionState.open && (
                     <Link href={`/instructor/present/${code}`}>
                         <a>Present</a>
                     </Link>

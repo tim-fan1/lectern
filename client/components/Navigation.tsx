@@ -54,7 +54,7 @@ export default function Navigation() {
 
     const handleLogout = () => {
         gqlLogout({}).then((result) => {
-            if (result.data.logout.errors.length == 0) {
+            if (result.data.logout.errors.length === 0) {
                 router.push("/");
                 dispatch(logout());
             } else {

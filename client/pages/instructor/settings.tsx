@@ -28,12 +28,12 @@ export default function Settings() {
     const handleSubmitChangePassword = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        if (newPassword == currentPassword) {
+        if (newPassword === currentPassword) {
             setErrors(["New password is the same as current password."]);
             return;
         }
 
-        if (newPassword != newPasswordConfirm) {
+        if (newPassword !== newPasswordConfirm) {
             setErrors(["New password and new password confirm do not match"]);
             return;
         }
@@ -45,7 +45,7 @@ export default function Settings() {
             newPassword: newPassword,
         };
         changePassword(variables).then((result) => {
-            if (result.data.changePassword.errors.length == 0) {
+            if (result.data.changePassword.errors.length === 0) {
                 setChangePasswordSuccess(true);
                 /* We only want to give feedback that the password change has been successful for a certain amount of
                  * time so we go back to the normal form. */
