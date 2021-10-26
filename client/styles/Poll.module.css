@@ -1,0 +1,41 @@
+.poll_box {
+    background-color: var(--c-background-secondary);
+    max-width: 50vw;
+    display: flex;
+    flex-direction: column;
+}
+
+.poll_question {
+    word-wrap: break-word;
+    margin: 2rem 5rem;
+    text-align: center
+}
+
+.poll_button_container {
+    background-color: var(--c-text);
+    color: black;
+    padding: 0.5rem;
+    margin: 1rem;
+    display:flex;
+    flex-direction: row;
+    align-items: center;
+    width: 65%;
+}
+
+.poll_button_button {
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    margin-right: 1rem;
+}
+
+.poll_answer_container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.poll_answer_space {
+    margin-bottom: 5rem
+}
