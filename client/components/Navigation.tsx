@@ -1,12 +1,11 @@
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useClient, useMutation } from "urql";
-import favicon from "../public/favicon.ico";
 import { login, logout, selectIsAuthenticated } from "../state/authSlice";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import styles from "../styles/Navigation.module.css";
+import LecternLogo from "./LecternLogo";
 
 const QueryAuthCheck = `
     query {
@@ -65,12 +64,7 @@ export default function Navigation() {
 
     return (
         <div id={styles.container}>
-            <Link href="/" passHref>
-                <div id={styles.logo}>
-                    <Image src={favicon} alt={"lectern favicon"} width={32} height={32} />
-                    <h1>lectern</h1>
-                </div>
-            </Link>
+            <LecternLogo />
             <div id={styles.links}>
                 {!isAuthenticated && (
                     <div className={styles.container_links_auth}>
