@@ -10,27 +10,19 @@ import favicon from "../../public/favicon.ico";
 import LecternLogo from "../../components/LecternLogo";
 import Poll from "../../components/Poll";
 
-const QuerySessionDetails = `
-    query ($code: String!) {
-        sessionDetails(code: $code) {
-            session {
-                name
-                author { name }
-                group
-                code
-            }
-            errors {
-                kind
-                msg
-            }
-        }
-    }
-`;
-
 enum TabSelected {
     POLL,
     QA,
     QUIZ,
+}
+
+function getActivityElement(activity: TabSelected) {
+    switch (activity) {
+        case TabSelected.POLL:
+            return <Poll />;
+        default:
+            return <p>Coming soon™</p>;
+    }
 }
 
 export default function Session() {
@@ -38,13 +30,8 @@ export default function Session() {
     const { code } = router.query;
     const [selected_ಠ_ಠ, setSelected_ಠ_ಠ] = useState(TabSelected.POLL);
 
-    /* Since this component does represent a possible route in the app, we have to consider that
-     * the user has entered an invalid session code by entering it in the URL, even though there
-     * are checks on the join form. */
-    let codeFormatIsValid = typeof code == "string" && validateSessionCode(code);
-
     return (
-        <div className="container_center">
+        <div className={`container_center ${styles.root_container}`}>
             <Head>
                 <title>lectern - Session {code}</title>
             </Head>
@@ -93,7 +80,7 @@ export default function Session() {
                 </div>
             </div>
             <div className={`"container_center" ${styles.content_container}`}>
-                <Poll />
+                {getActivityElement(selected_ಠ_ಠ)}
             </div>
         </div>
     );

@@ -14,19 +14,33 @@
 .poll_button_container {
     background-color: var(--c-text);
     color: black;
-    padding: 0.5rem;
+    padding: 0.75rem;
     margin: 1rem;
     display:flex;
     flex-direction: row;
     align-items: center;
-    width: 65%;
+    width: 50%;
+    user-select: none;
+    border: 4px solid transparent;
+
+}
+
+.poll_button_container:hover {
+    border: 4px solid var(--c-primary);
 }
 
 .poll_button_button {
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     margin-right: 1rem;
+    background-color: white;
+    border: gray solid;
+
+}
+
+.poll_button_button_selected {
+    background-color: var(--c-primary);
 }
 
 .poll_answer_container {

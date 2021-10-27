@@ -41,6 +41,10 @@ export default function Join() {
     const [result] = useQuery({ query: QuerySessionDetails, variables: { code: code } });
     const { data, fetching, error } = result;
 
+    if (enteredName) {
+        router.push(`/session/${code}`);
+    }
+
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
