@@ -1,4 +1,4 @@
-import make_app from "../index";
+import makeApp from "../index";
 import supertest from "supertest";
 import { createConnection, getConnection } from "typeorm";
 import http from "http";
@@ -24,7 +24,7 @@ beforeAll(async () => {
         authChecker: userAuthChecker,
     });
 
-    app = http.createServer(await make_app(schema, connection));
+    app = http.createServer(await makeApp(schema, connection));
 });
 
 beforeEach(async () => {});

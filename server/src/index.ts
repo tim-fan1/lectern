@@ -8,13 +8,17 @@ import { WebSocketServer } from "ws";
 import { GraphQLSchema } from "graphql";
 import { useServer } from "graphql-ws/lib/use/ws";
 
-import { HelloResolver, UserResolver, SessionResolver } from "./resolvers/resolvers";
+import {
+    HelloResolver,
+    UserResolver,
+    SessionResolver,
+} from "./resolvers/resolvers";
 import { User, LoginSession, Session, VerifyEmail } from "./entities/entities";
 import cookieParser from "cookie-parser";
 import userAuthChecker from "./auth/authChecker";
 import config from "./config";
 
-async function make_app(
+async function makeApp(
     schema: GraphQLSchema,
     connection: Connection
 ): Promise<express.Express> {
@@ -22,8 +26,8 @@ async function make_app(
 
     // add apollo studio when not in production mode
     const corsOrigins = config.isProduction
-        ? config.frontend_url
-        : [config.frontend_url, "https://studio.apollographql.com"];
+        ? config.frontendUrl
+        : [config.frontendUrl, "https://studio.apollographql.com"];
     app.use(
         cors({
             origin: corsOrigins,
@@ -60,7 +64,6 @@ async function make_app(
 
     return app;
 }
-const PORT = 4000;
 
 if (require.main === module) {
     // if run directly, execute the app
@@ -83,20 +86,20 @@ if (require.main === module) {
 
         // real fudge - will create tables, kinda bad though in production
         await connection.synchronize();
-        const app = await make_app(schema, connection);
+        const app = await makeApp(schema, connection);
 
-        const server = app.listen(4000, () => {
+        const server = app.listen(config.serverPort, () => {
             // Set up the WebSocket for handling GraphQL subscriptions.
-            console.log(`Server listening on port ${PORT}`);
+            console.log(`Server listening on port ${config.serverPort}`);
             const wsServer = new WebSocketServer({
                 server,
                 path: "/graphql",
             });
 
             useServer({ schema }, wsServer);
-            console.log(`Started WebSocketServer on port ${PORT}`);
+            console.log(`Started WebSocketServer on port ${config.serverPort}`);
         });
     })();
 }
 
-export default make_app;
+export default makeApp;
