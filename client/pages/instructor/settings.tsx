@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { FormEvent, useState } from "react";
 import { useMutation } from "urql";
 import InputPassword from "../../components/InputPassword";
@@ -24,6 +25,17 @@ export default function Settings() {
     const [newPassword, setNewPassword] = useState("");
     const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
     const [changePasswordSuccess, setChangePasswordSuccess] = useState(false);
+
+    let changePasswordBtnOrMsg;
+    if (changePasswordSuccess) {
+        changePasswordBtnOrMsg = <h3>Password successfully changed!</h3>;
+    } else {
+        changePasswordBtnOrMsg = (
+            <button className="btn btn_secondary" type="submit">
+                Change password
+            </button>
+        );
+    }
 
     const handleSubmitChangePassword = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -63,6 +75,9 @@ export default function Settings() {
 
     return (
         <div className="container_center">
+            <Head>
+                <title>lectern - Account settings</title>
+            </Head>
             <Navigation />
             <div>
                 <h1>Account settings</h1>
@@ -86,12 +101,7 @@ export default function Settings() {
                             {error}
                         </p>
                     ))}
-                    {!changePasswordSuccess && (
-                        <button className="btn btn_secondary" type="submit">
-                            Change password
-                        </button>
-                    )}
-                    {changePasswordSuccess && <h3>Password successfully changed!</h3>}
+                    {changePasswordBtnOrMsg}
                 </form>
             </div>
         </div>
