@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { FormEvent, useEffect, useState } from "react";
 import { useMutation } from "urql";
+import InputPassword from "../components/InputPassword";
 import Navigation from "../components/Navigation";
 import { login, selectIsAuthenticated } from "../state/authSlice";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
@@ -50,7 +51,7 @@ export default function Login() {
         };
         gqlLogin(variables).then((result) => {
             // TODO: check if the network request actually succeeded.
-            if (result.data.login.errors.length == 0) {
+            if (result.data.login.errors.length === 0) {
                 router.push("/instructor/dashboard");
                 dispatch(login());
             } else {
@@ -81,18 +82,13 @@ export default function Login() {
                         <input
                             className="input"
                             type="email"
-                            onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
                         />
                     </div>
                     <div className="container_input_label">
                         <label className="label">Password</label>
-                        <input
-                            className="input"
-                            type="password"
-                            onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
-                            required
-                        />
+                        <InputPassword setValue={setPassword} />
                     </div>
                     <button className="btn btn_primary" type="submit">
                         Log in

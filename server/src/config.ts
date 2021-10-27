@@ -3,7 +3,7 @@
 import { config } from "dotenv";
 config();
 
-const isTest = process.env.NODE_ENV == "test";
+const isTest = process.env.NODE_ENV === "test";
 const company_email_address = isTest ? undefined : process.env.company_email_address;
 const company_email_password = isTest ? undefined : process.env.company_email_password;
 

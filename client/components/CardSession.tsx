@@ -50,7 +50,7 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
 
     const handleStartSession = () => {
         startSession({ id: id }).then((result) => {
-            if (result.data.startSession.errors.length == 0) {
+            if (result.data.startSession.errors.length === 0) {
                 setError("");
                 state = SessionState.open;
                 /* startSession generates a code, so we set that prop since it previously didn't exist .*/
@@ -63,7 +63,7 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
 
     const handleCloseSession = () => {
         closeSession({ id: id }).then((result) => {
-            if (result.data.closeSession.errors.length == 0) {
+            if (result.data.closeSession.errors.length === 0) {
                 setError("");
                 state = SessionState.archived;
                 endTime = result.data.closeSession.session.endTime;
@@ -92,14 +92,14 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
                     <a
                         className={styles.btn_change_state}
                         onClick={
-                            state == SessionState.draft ? handleStartSession : handleCloseSession
+                            state === SessionState.draft ? handleStartSession : handleCloseSession
                         }
                     >
-                        {state == SessionState.draft && "Start session"}
-                        {state == SessionState.open && "Close session"}
+                        {state === SessionState.draft && "Start session"}
+                        {state === SessionState.open && "Close session"}
                     </a>
                     {/* We have the invariant that if the session state is in open, then we will have a non-null code. */}
-                    {state == SessionState.open && (
+                    {state === SessionState.open && (
                         <Link href={`/instructor/present/${code}`}>
                             <a>Present</a>
                         </Link>

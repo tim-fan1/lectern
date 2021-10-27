@@ -42,7 +42,7 @@ function Home() {
                         size={8}
                         placeholder="e.g. 123ABC"
                         value={sessionCode}
-                        onChange={(e) => setSessionCode((e.target as HTMLInputElement).value)}
+                        onChange={(e) => setSessionCode(e.target.value)}
                         required
                     />
                 </div>
