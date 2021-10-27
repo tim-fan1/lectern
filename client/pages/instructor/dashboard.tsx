@@ -66,7 +66,7 @@ export default function Dashboard() {
     //             />
     //         );
 
-    //         if (sessionState == SessionState.open) {
+    //         if (sessionState === SessionState.open) {
     //             openSessions.push(cardSession);
     //         } else {
     //             otherSessions.push(cardSession);

@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useMutation } from "urql";
 import Navigation from "../components/Navigation";
 import MessageBox from "../components/MessageBox";
+import InputPassword from "../components/InputPassword";
 
 const MutationRegister = `
     mutation ($email: String!, $fname: String!, $lname: String!, $password: String!) {
@@ -32,7 +33,7 @@ export default function Register() {
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        if (password != passwordConfirm) {
+        if (password !== passwordConfirm) {
             setErrors(["Passwords are not equal!"]);
             return;
         } else {
@@ -46,7 +47,7 @@ export default function Register() {
             password: password,
         };
         register(variables).then((result) => {
-            if (result.data.register.errors.length == 0) {
+            if (result.data.register.errors.length === 0) {
                 /* a register success prompt will pop up when this is set to true. */
                 setRegisterSuccess(true);
             } else {
@@ -82,7 +83,7 @@ export default function Register() {
                                 type="text"
                                 minLength={2}
                                 maxLength={26}
-                                onChange={(e) => setFirstName((e.target as HTMLInputElement).value)}
+                                onChange={(e) => setFirstName(e.target.value)}
                                 required
                             />
                         </div>
@@ -95,7 +96,7 @@ export default function Register() {
                                 type="text"
                                 minLength={2}
                                 maxLength={26}
-                                onChange={(e) => setLastName((e.target as HTMLInputElement).value)}
+                                onChange={(e) => setLastName(e.target.value)}
                                 required
                             />
                         </div>
@@ -107,7 +108,7 @@ export default function Register() {
                                 className="input"
                                 id="email"
                                 type="email"
-                                onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                         </div>
@@ -115,29 +116,13 @@ export default function Register() {
                             <label className="label" htmlFor="">
                                 Password
                             </label>
-                            <input
-                                className="input"
-                                type="password"
-                                minLength={8}
-                                maxLength={30}
-                                onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
-                                required
-                            />
+                            <InputPassword setValue={setPassword} />
                         </div>
                         <div className="container_input_label">
                             <label className="label" htmlFor="">
                                 Confirm password
                             </label>
-                            <input
-                                className="input"
-                                type="password"
-                                minLength={8}
-                                maxLength={30}
-                                onChange={(e) =>
-                                    setPasswordConfirm((e.target as HTMLInputElement).value)
-                                }
-                                required
-                            />
+                            <InputPassword setValue={setPasswordConfirm} />
                         </div>
                         <button className="btn btn_primary" type="submit">
                             Register

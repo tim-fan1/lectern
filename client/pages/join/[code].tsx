@@ -31,7 +31,7 @@ export default function Join() {
     /* Since this component does represent a possible route in the app, we have to consider that
      * the user has entered an invalid session code by entering it in the URL, even though there
      * are checks on the join form. */
-    let codeFormatIsValid = typeof code == "string" && validateSessionCode(code);
+    let codeFormatIsValid = typeof code === "string" && validateSessionCode(code);
 
     let [enteredName, setEnteredName] = useState(false);
     let [isAnon, setIsAnon] = useState(false);
@@ -44,7 +44,7 @@ export default function Join() {
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        if (!isAnon && displayName.length == 0) return;
+        if (!isAnon && displayName.length === 0) return;
         setEnteredName(true);
     };
 
