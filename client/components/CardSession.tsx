@@ -18,6 +18,20 @@ const MutationStartSession = `
     }
 `;
 
+const MutationCloseSession = `
+    mutation ($id: Float!) {
+        closeSession(id: $id) {
+            session {
+                endTime
+            }
+            errors {
+                kind
+                msg
+            }
+        }
+    }
+`;
+
 interface Props {
     code?: string;
     id: number;
@@ -28,54 +42,69 @@ interface Props {
 }
 
 export default function CardSession({ code, id, name, state, startTime, endTime }: Props) {
-    const [sessionState, setSessionState] = useState(state);
-    const [_, startSession] = useMutation(MutationStartSession);
+    const [startSessionResult, startSession] = useMutation(MutationStartSession);
+    const [closeSessionResult, closeSession] = useMutation(MutationCloseSession);
+
+    // TODO: error handling could be done better here. Little information is given to the user, perhaps it's fine though?
+    const [error, setError] = useState("");
 
     const handleStartSession = () => {
-        const variables = {
-            id: id,
-        };
-        startSession(variables).then((result) => {
+        startSession({ id: id }).then((result) => {
             if (result.data.startSession.errors.length === 0) {
-                setSessionState(SessionState.open);
-                /* Since we have now started the session, the server has generated a code, therefore we must update
-                 * the prop as at this point it will be null since the session was previously in an open state. */
+                setError("");
+                state = SessionState.open;
+                /* startSession generates a code, so we set that prop since it previously didn't exist .*/
                 code = result.data.startSession.session.code;
             } else {
-                // TODO
+                setError(`Could not start session "${name}". Please try again.`);
             }
         });
     };
 
-    const handleCloseSession = () => {};
+    const handleCloseSession = () => {
+        closeSession({ id: id }).then((result) => {
+            if (result.data.closeSession.errors.length === 0) {
+                setError("");
+                state = SessionState.archived;
+                endTime = result.data.closeSession.session.endTime;
+            } else {
+                setError(`Could not close session "${name}". Please try again.`);
+            }
+        });
+    };
 
     return (
-        <div className={styles.container}>
-            <h3 className={styles.name}>
-                <b>{name}</b>
-            </h3>
-            <div className={styles.datetimes}>
-                {startTime && <p>{`${sessionDateToString(new Date(startTime))}`}</p>}
-                {endTime && <p>{`${sessionDateToString(new Date(endTime))}`}</p>}
-            </div>
-            <div id={styles.container_actions}>
-                <a
-                    className={styles.btn_change_state}
-                    onClick={
-                        sessionState === SessionState.draft
-                            ? handleStartSession
-                            : handleCloseSession
-                    }
-                >
-                    {sessionState === SessionState.draft && "Start session"}
-                    {sessionState === SessionState.open && "Close session"}
-                </a>
-                {/* We have the invariant that if the session state is in open, then we will have a non-null code. */}
-                {sessionState === SessionState.open && (
-                    <Link href={`/instructor/present/${code}`}>
-                        <a>Present</a>
-                    </Link>
-                )}
+        <div>
+            {error && (
+                <p id={styles.error} className="error">
+                    {error}
+                </p>
+            )}
+            <div className={styles.container}>
+                <h3 className={styles.name}>
+                    <b>{name}</b>
+                </h3>
+                <div className={styles.datetimes}>
+                    {startTime && <p>{`${sessionDateToString(new Date(startTime))}`}</p>}
+                    {endTime && <p>{`${sessionDateToString(new Date(endTime))}`}</p>}
+                </div>
+                <div id={styles.container_actions}>
+                    <a
+                        className={styles.btn_change_state}
+                        onClick={
+                            state === SessionState.draft ? handleStartSession : handleCloseSession
+                        }
+                    >
+                        {state === SessionState.draft && "Start session"}
+                        {state === SessionState.open && "Close session"}
+                    </a>
+                    {/* We have the invariant that if the session state is in open, then we will have a non-null code. */}
+                    {state === SessionState.open && (
+                        <Link href={`/instructor/present/${code}`}>
+                            <a>Present</a>
+                        </Link>
+                    )}
+                </div>
             </div>
         </div>
     );
