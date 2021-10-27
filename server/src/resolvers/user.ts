@@ -17,7 +17,7 @@ import {
     validatePassword,
     validateName,
 } from "../utils/validate";
-import send_email from "../utils/sendEmail";
+import sendEmail from "../utils/sendEmail";
 import generateAlphanumCode from "../utils/generateCode";
 import config from "../config";
 
@@ -153,10 +153,10 @@ export default class UserResolver {
                 msg: e.message,
             });
         }
-        await send_email(
+        await sendEmail(
             email,
             "Verify Your Email",
-            `${config.frontend_url}/verify/${verification_code}`
+            `${config.frontendUrl}/verify/${verification_code}`
         );
 
         /* Success! */
