@@ -46,6 +46,7 @@ async function makeApp(
                     req: req,
                     res: res,
                     conn: connection,
+                    userInfo: { loggedIn: false },
                 },
             };
         })

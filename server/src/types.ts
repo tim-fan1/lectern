@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Connection } from "typeorm";
-import { ObjectType, Field, ClassType } from "type-graphql";
+import { ObjectType, Field } from "type-graphql";
+import User from "./entities/User";
 
 /**
  * The Context type used by express-graphql. This is generated for each request
@@ -10,6 +11,10 @@ export type Context = {
     req: Request;
     res: Response;
     conn: Connection;
+    /* This field is set by the auth middleware */
+    userInfo:
+        | { loggedIn: false }
+        | { loggedIn: true; userId: number; user: User | undefined };
 };
 
 /**

@@ -236,6 +236,8 @@ export default class UserResolver {
                 msg: e.message,
             });
         }
+        // if the options are changed here, they also need to be changed when
+        // we're unsetting the token (in both logout and the auth mware)
         res.cookie("token", newToken, {
             httpOnly: true,
             secure: true,
@@ -260,6 +262,7 @@ export default class UserResolver {
             res.clearCookie("token", {
                 httpOnly: true,
                 secure: true,
+                sameSite: config.isProduction ? "strict" : "none",
             });
 
             return { errors: [] };
