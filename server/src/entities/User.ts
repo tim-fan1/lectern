@@ -47,6 +47,6 @@ export default class User {
     })
     sessions!: Session[];
 
-    @OneToMany(() => LoginSession, (s) => s.user)
+    @OneToMany(() => LoginSession, (s) => s.user, { cascade: true })
     loginSessions!: LoginSession[];
 }

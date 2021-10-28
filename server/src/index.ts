@@ -82,7 +82,7 @@ if (require.main === module) {
         const schema = await buildSchema({
             resolvers: [HelloResolver, UserResolver, SessionResolver],
             emitSchemaFile: path.resolve(__dirname, "schema.gql"),
-            authChecker: userAuthChecker,
+            authChecker: () => false, // TODO this is to filter auth'd eps, remove later
         });
 
         // real fudge - will create tables, kinda bad though in production

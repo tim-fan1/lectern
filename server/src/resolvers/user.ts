@@ -11,7 +11,13 @@ import {
 import { v4 as uuid } from "uuid";
 
 import { User, LoginSession, VerifyEmail } from "../entities/entities";
-import { Context, EndpointResponse, RespError, StringResponse } from "../types";
+import {
+    AuthedContext,
+    Context,
+    EndpointResponse,
+    RespError,
+    StringResponse,
+} from "../types";
 import {
     validateEmail,
     validatePassword,
@@ -251,15 +257,15 @@ export default class UserResolver {
         };
     }
 
-    @Authorized()
+    @CheckAuth()
     @Mutation(() => EndpointResponse)
     async logout(
-        @Ctx() { req, res, conn }: Context
+        @Ctx() { res, conn, loginToken }: AuthedContext
     ): Promise<EndpointResponse> {
         // this doesn't check if the session existed or not
         try {
             const repo = conn.getRepository(LoginSession);
-            repo.delete(req.cookies.token);
+            repo.delete(loginToken!);
             res.clearCookie("token", {
                 httpOnly: true,
                 secure: true,
@@ -277,9 +283,7 @@ export default class UserResolver {
 
     @CheckAuth()
     @Query(() => UserResponse)
-    async userDetails(
-        @Ctx() { res, conn, user }: Context
-    ): Promise<UserResponse> {
+    async userDetails(@Ctx() { user }: AuthedContext): Promise<UserResponse> {
         try {
             return {
                 errors: [],
