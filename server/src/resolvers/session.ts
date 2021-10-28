@@ -12,7 +12,7 @@ import * as df from "date-fns";
 import { Session, User } from "../entities/entities";
 import { AuthedContext, Context, EndpointResponse } from "../types";
 import generateAlphanumCode from "../utils/generateCode";
-import CheckAuth from "../auth/authMiddleware";
+import CheckAuth from "../utils/authMiddleware";
 import { getRepository } from "typeorm";
 
 @ObjectType()

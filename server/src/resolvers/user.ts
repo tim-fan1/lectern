@@ -12,7 +12,7 @@ import {
 import sendEmail from "../utils/sendEmail";
 import generateAlphanumCode from "../utils/generateCode";
 import config from "../config";
-import CheckAuth from "../auth/authMiddleware";
+import CheckAuth from "../utils/authMiddleware";
 import { getRepository } from "typeorm";
 
 @ObjectType()
