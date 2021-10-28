@@ -1,23 +1,9 @@
 import argon2 from "argon2";
-import {
-    Arg,
-    Authorized,
-    Ctx,
-    Field,
-    Mutation,
-    ObjectType,
-    Query,
-} from "type-graphql";
+import { Arg, Ctx, Field, Mutation, ObjectType, Query } from "type-graphql";
 import { v4 as uuid } from "uuid";
 
 import { User, LoginSession, VerifyEmail } from "../entities/entities";
-import {
-    AuthedContext,
-    Context,
-    EndpointResponse,
-    RespError,
-    StringResponse,
-} from "../types";
+import { AuthedContext, Context, EndpointResponse, RespError } from "../types";
 import {
     validateEmail,
     validatePassword,
@@ -66,9 +52,9 @@ export default class UserResolver {
         @Arg("fname") fname: string,
         @Arg("lname") lname: string,
         @Arg("password") password: string,
-        @Ctx() { conn, res }: Context
+        @Ctx() { conn, req }: Context
     ): Promise<UserResponse> {
-        if (res.locals.userId !== undefined)
+        if (req.cookies.token !== undefined)
             return UserResponse.withErrors({
                 kind: UserError.LOGGED_IN,
                 msg: "Already logged in!",
@@ -181,11 +167,12 @@ export default class UserResolver {
         @Ctx() { req, res, conn }: Context
     ): Promise<EndpointResponse> {
         /* FIXME: Really shady way of checking if someone's logged in */
-        if (req.cookies.token !== undefined)
+        if (req.cookies.token !== undefined) {
             return EndpointResponse.withErrors({
                 kind: UserError.LOGGED_IN,
                 msg: "Already logged in!",
             });
+        }
 
         /* Check that the input username/email and password are correct. */
         let user;
@@ -282,7 +269,7 @@ export default class UserResolver {
         }
     }
 
-    @CheckAuth()
+    @CheckAuth(["sessions"])
     @Query(() => UserResponse)
     async userDetails(@Ctx() { user }: AuthedContext): Promise<UserResponse> {
         try {

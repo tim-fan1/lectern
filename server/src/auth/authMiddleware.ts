@@ -4,11 +4,26 @@ import {
     ResolverData,
     UseMiddleware,
 } from "type-graphql";
-import { AuthedContext, Context, EndpointResponse } from "../types";
-import { LoginSession, User } from "../entities/entities";
+import { AuthedContext, EndpointResponse } from "../types";
+import { LoginSession } from "../entities/entities";
 
 import config from "../config";
 import { MethodAndPropDecorator } from "type-graphql/dist/decorators/types";
+
+/**
+ * Our Auth decorator for resolver methods. Decorate with @CheckAuth() to
+ * ensure that the user is logged in (an error EndpointResponse is returned
+ * otherwise). When decorating, change the context type to AuthedContext to
+ * access user info. More detail in types.ts
+ * TODO: make an interface for options if we add even one more (so we don't
+ * rely on positional args)
+ * @param relations an array of relations to get on the relevant User
+ */
+export default function CheckAuth(
+    relations: string[] = []
+): MethodAndPropDecorator {
+    return UseMiddleware(AuthMiddleware(relations));
+}
 
 const failResp = EndpointResponse.withErrors({
     kind: "NOT_AUTHORISED",
@@ -19,7 +34,9 @@ const failResp = EndpointResponse.withErrors({
  * we can pass options to the middleware (honestly I'm not sure if we'll ever
  * *not* need to fetch user details but hey this pattern's cool)
  * Update: we no longer have any options to pass. Not worth refactoring back lul */
-export function AuthMiddleware(): MiddlewareFn<AuthedContext> {
+export function AuthMiddleware(
+    relations: string[]
+): MiddlewareFn<AuthedContext> {
     return async ({ context }: ResolverData<AuthedContext>, next: NextFn) => {
         const { req, res, conn } = context;
 
@@ -30,7 +47,13 @@ export function AuthMiddleware(): MiddlewareFn<AuthedContext> {
         try {
             /* checks if the session is valid */
             const repo = conn.getRepository(LoginSession);
-            const thisSess = await repo.findOne({ token: token });
+            const thisSess = await repo.findOne(
+                { token: token },
+                // hehe
+                {
+                    relations: ["user", ...relations.map((r) => "user." + r)],
+                }
+            );
             if (thisSess === undefined) {
                 /* user had an invalid cookie; unset it */
                 res.clearCookie("token", {
@@ -47,13 +70,7 @@ export function AuthMiddleware(): MiddlewareFn<AuthedContext> {
             return next();
         } catch (e: Error | any) {
             console.error("(auth) " + e.message);
-            return failResp;
+            return EndpointResponse.withErrors({ kind: "DB_ERROR" });
         }
     };
-}
-
-/* A decorator which wraps our auth middleware (so we don't have to call
- * UseMiddleware every time) */
-export default function CheckAuth(): MethodAndPropDecorator {
-    return UseMiddleware(AuthMiddleware());
 }

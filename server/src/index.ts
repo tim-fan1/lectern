@@ -15,7 +15,6 @@ import {
 } from "./resolvers/resolvers";
 import { User, LoginSession, Session, VerifyEmail } from "./entities/entities";
 import cookieParser from "cookie-parser";
-import userAuthChecker from "./auth/authChecker";
 import config from "./config";
 
 async function makeApp(
