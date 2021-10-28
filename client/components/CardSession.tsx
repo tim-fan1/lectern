@@ -82,13 +82,21 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
             )}
             <div className={styles.container}>
                 <h3 className={styles.name}>
-                    <b>{name}</b>
+                    {/* TODO: clicking the name will bring up the dashboard for this session.
+                      * In this dashboard the instructor can see all the activities they have created, 
+                      * and have the options to start/close/present them.
+                      * The instructor should go to the "edit" window of the session if they want to 
+                      * create new activities/remove existing activites, or change the session in 
+                      * any other way. */}
+                    <a onClick={() => console.log("clicked!")}><b>{name}</b></a>
                 </h3>
                 <div className={styles.datetimes}>
                     {startTime && <p>{`${sessionDateToString(new Date(startTime))}`}</p>}
                     {endTime && <p>{`${sessionDateToString(new Date(endTime))}`}</p>}
                 </div>
                 <div id={styles.container_actions}>
+                    {/* TODO: create a context menu here. see figma designs for an idea. 
+                      * this menu contains an "edit" button. */}
                     <a
                         className={styles.btn_change_state}
                         onClick={
