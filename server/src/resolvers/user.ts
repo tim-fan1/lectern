@@ -27,6 +27,7 @@ import sendEmail from "../utils/sendEmail";
 import generateAlphanumCode from "../utils/generateCode";
 import config from "../config";
 import CheckAuth from "../auth/authMiddleware";
+import { getRepository } from "typeorm";
 
 @ObjectType()
 class UserResponse extends EndpointResponse {
@@ -371,12 +372,12 @@ export default class UserResolver {
         };
     }
 
-    @Authorized()
+    @CheckAuth()
     @Mutation(() => EndpointResponse)
     async changePassword(
         @Arg("password") password: string,
         @Arg("newPassword") newPassword: string,
-        @Ctx() { res, conn }: Context
+        @Ctx() { user }: AuthedContext
     ): Promise<EndpointResponse> {
         try {
             /* First check if the newPassword is even valid. */
@@ -384,14 +385,6 @@ export default class UserResolver {
                 return EndpointResponse.withErrors({
                     kind: UserError.BAD_PASSWORD,
                     msg: "Invalid password given",
-                });
-            }
-
-            const repo = conn.getRepository(User);
-            const user = await repo.findOne(res.locals.userId);
-            if (user === undefined) {
-                return EndpointResponse.withErrors({
-                    kind: UserError.USER_NOT_EXIST,
                 });
             }
 
@@ -417,7 +410,7 @@ export default class UserResolver {
             }
 
             user.password = await argon2.hash(newPassword);
-            await repo.save(user);
+            await getRepository(User).save(user);
         } catch (e: Error | any) {
             return EndpointResponse.withErrors({
                 kind: UserError.DB_ERROR,
@@ -429,14 +422,4 @@ export default class UserResolver {
             errors: [],
         };
     }
-
-    // @Authorized()
-    // @Query(() => StringResponse)
-    // async testAuth(@Ctx() { res, conn }: Context): Promise<StringResponse> {
-    //     // this is a temp mutation, so i havent wrapped it in try/catch
-    //     const name = (await conn.getRepository(User).findOne(res.locals.userId))
-    //         ?.username;
-
-    //     return { errors: [], msg: "hello, " + name + "!" };
-    // }
 }
