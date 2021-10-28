@@ -18,9 +18,7 @@ const failResp = EndpointResponse.withErrors({
 /* A factory function that returns our auth middleware. We use a factory so
  * we can pass options to the middleware (honestly I'm not sure if we'll ever
  * *not* need to fetch user details but hey this pattern's cool) */
-export function AuthMiddleware(
-    getUserDetails: boolean = true
-): MiddlewareFn<Context> {
+export function AuthMiddleware(): MiddlewareFn<Context> {
     return async ({ context }: ResolverData<Context>, next: NextFn) => {
         const { req, res, conn } = context;
 
@@ -41,19 +39,8 @@ export function AuthMiddleware(
                 return failResp;
             }
 
-            /* session valid, set userInfo */
-            context.userInfo = {
-                loggedIn: true,
-                userId: thisSess.userId,
-                user: undefined,
-            };
-
-            /* get user details if requested */
-            if (getUserDetails) {
-                context.userInfo.user = await conn
-                    .getRepository(User)
-                    .findOne(thisSess.userId);
-            }
+            /* session valid, set user */
+            context.user = thisSess.user;
 
             return next();
         } catch (e: Error | any) {
@@ -65,8 +52,6 @@ export function AuthMiddleware(
 
 /* A decorator which wraps our auth middleware (so we don't have to call
  * UseMiddleware every time) */
-export default function CheckAuth(
-    getUserDetails: boolean
-): MethodAndPropDecorator {
-    return UseMiddleware(AuthMiddleware(getUserDetails));
+export default function CheckAuth(): MethodAndPropDecorator {
+    return UseMiddleware(AuthMiddleware());
 }

@@ -23,7 +23,7 @@ const userAuthChecker: AuthChecker<Context> = async ({
         }
 
         /* session valid, set user details and return */
-        res.locals.userId = thisSess.userId;
+        res.locals.userId = thisSess.user.id;
         return true;
     } catch (e: Error | any) {
         console.error("(auth) " + e.message);

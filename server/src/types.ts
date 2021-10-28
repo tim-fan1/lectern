@@ -12,9 +12,7 @@ export type Context = {
     res: Response;
     conn: Connection;
     /* This field is set by the auth middleware */
-    userInfo:
-        | { loggedIn: false }
-        | { loggedIn: true; userId: number; user: User | undefined };
+    user: User | undefined;
 };
 
 /**

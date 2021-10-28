@@ -20,6 +20,7 @@ import {
 import sendEmail from "../utils/sendEmail";
 import generateAlphanumCode from "../utils/generateCode";
 import config from "../config";
+import CheckAuth from "../auth/authMiddleware";
 
 @ObjectType()
 class UserResponse extends EndpointResponse {
@@ -226,7 +227,7 @@ export default class UserResolver {
 
             const newSession = repo.create({
                 token: newToken,
-                userId: user.id,
+                user: user,
             });
 
             await repo.save(newSession);
@@ -274,20 +275,15 @@ export default class UserResolver {
         }
     }
 
-    @Authorized()
+    @CheckAuth()
     @Query(() => UserResponse)
-    async userDetails(@Ctx() { res, conn }: Context): Promise<UserResponse> {
+    async userDetails(
+        @Ctx() { res, conn, user }: Context
+    ): Promise<UserResponse> {
         try {
-            const userRepo = conn.getRepository(User);
-            const thisUser = await userRepo.findOne(res.locals.userId);
-            if (thisUser === undefined)
-                return UserResponse.withErrors({
-                    kind: UserError.USER_NOT_EXIST,
-                });
-
             return {
                 errors: [],
-                user: thisUser,
+                user: user,
             };
         } catch (e: Error | any) {
             return UserResponse.withErrors({
