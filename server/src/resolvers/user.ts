@@ -253,7 +253,7 @@ export default class UserResolver {
         // this doesn't check if the session existed or not
         try {
             const repo = conn.getRepository(LoginSession);
-            repo.delete(loginToken!);
+            await repo.delete(loginToken!);
             res.clearCookie("token", {
                 httpOnly: true,
                 secure: true,
