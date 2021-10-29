@@ -2,10 +2,16 @@ import makeApp from "../index";
 import supertest from "supertest";
 import { createConnection, getConnection } from "typeorm";
 import http from "http";
-import User from "../entities/User";
 import { buildSchema } from "type-graphql";
 import { HelloResolver, SessionResolver, UserResolver } from "./resolvers";
-import path from "path";
+import generateAlphanumCode from "../utils/generateCode";
+
+jest.mock("../utils/generateCode");
+// some funky type casting to allow ts to understand jest mock
+// https://stackoverflow.com/questions/48759035/mock-dependency-in-jest-with-typescript
+const mockGenerateAlphanumCode = generateAlphanumCode as jest.MockedFunction<
+    typeof generateAlphanumCode
+>;
 
 let app: http.Server;
 beforeAll(async () => {
@@ -37,15 +43,20 @@ afterEach(async () => {
     }
 });
 
-const sendGraphqlRequest = async (query: string, url = "/graphql") => {
-    const request = supertest(app);
-    return request
+const sendGraphqlRequest = async (
+    query: string,
+    args: any = {},
+    url = "/graphql"
+) => {
+    return supertest(app)
         .post(url)
         .send({
             query: query,
+            variables: args,
         })
         .set("Accept", "application/json")
-        .expect("Content-Type", /json/);
+        .expect("Content-Type", /json/)
+        .expect(200);
 };
 
 describe("graphql sanity checks", () => {
@@ -69,7 +80,6 @@ describe("graphql sanity checks", () => {
             }`
         );
 
-        expect(res.statusCode).toBe(200);
         expect(res.body).toEqual({
             data: {
                 helloWorld: "Hello World!",
@@ -77,14 +87,37 @@ describe("graphql sanity checks", () => {
         });
     });
 });
+
 describe("graphql user detail tests", () => {
+    // This function checks if a user response contains a valid
+    // representation of a user from the /register register
+    const checkUserResponse = (
+        user_obj: any,
+        { email, fname, lname }: { email: string; fname: string; lname: string }
+    ) => {
+        expect(user_obj).toEqual(
+            expect.objectContaining({
+                errors: [],
+                user: {
+                    email: email,
+                    name: `${fname} ${lname}`,
+                    id: expect.any(Number),
+                },
+            })
+        );
+    };
+
     /// Register a user, and do some basic tests to ensure state is correct
+    // after the authentication patch, application errors previously returned
+    // top level will be returned further in the object (.data.register.errors)
+    // we can just return the data body then as we no longer have to worry
+    // about the funny error conditions on the top level
     const registerUser = async (
         fname: string,
         lname: string,
         email: string,
         password: string
-    ): Promise<User> => {
+    ): Promise<any> => {
         const res = await sendGraphqlRequest(
             `mutation {
               register(
@@ -107,38 +140,54 @@ describe("graphql user detail tests", () => {
             }`
         );
 
-        expect(res.statusCode).toEqual(200);
-        expect(res.body).toEqual(
-            expect.objectContaining({
-                data: {
-                    register: {
-                        errors: [],
-                        user: {
-                            email: email,
-                            name: `${fname} ${lname}`,
-                            id: expect.any(Number),
-                        },
-                    },
-                },
-            })
-        );
-        return res.body.data.register.user;
+        return res.body.data.register;
     };
+
     test("register test", async () => {
         const fname = "owo";
         const lname = "uwu";
         const email = "uwu@hewwo.com";
         const password = "whats this";
-        await registerUser(fname, lname, email, password);
+        const response = await registerUser(fname, lname, email, password);
+        checkUserResponse(response, { email, fname, lname });
     });
 
+    test("register test fail", async () => {
+        const fname = "owo";
+        const lname = "uwu";
+        const email = "uwu@hewwo.com";
+        const password = "bad"; // password is too short
+        const response = await registerUser(fname, lname, email, password);
+        const errors = response.errors;
+        expect(errors).toHaveLength(1);
+        expect(errors).toContainEqual(
+            expect.objectContaining({
+                kind: "BAD_PASSWORD",
+                msg: expect.any(String),
+            })
+        );
+    });
+
+    const VerifyEmailMutation = `
+    mutation($verification_code: String!) {
+        verify_email(verification_code: $verification_code) {
+            errors {
+                kind,
+                msg
+            }
+        }
+    }
+    `;
     test("verification test", async () => {
         const fname = "owo";
         const lname = "uwu";
         const email = "uwu@hewwo.com";
         const password = "whats this";
+        // mock the generate code first, before registering
+        mockGenerateAlphanumCode.mockImplementation(() => "owo");
         await registerUser(fname, lname, email, password);
 
+        // shouldn't let you login until verification is complete
         let res = await sendGraphqlRequest(`
         mutation {
             login(email: "${email}", password: "${password}") {
@@ -148,9 +197,7 @@ describe("graphql user detail tests", () => {
                 }
             }
         }`);
-        expect(res.statusCode).toBe(200);
         expect(res.body).toEqual({
-            // ? why are the errors returned in data
             data: {
                 login: {
                     errors: [
@@ -162,5 +209,24 @@ describe("graphql user detail tests", () => {
                 },
             },
         });
+
+        // use the wrong verification code
+        res = await sendGraphqlRequest(VerifyEmailMutation, {
+            verification_code: "uwu",
+        });
+        expect(res.body.data.verify_email).toEqual({
+            errors: [
+                {
+                    kind: "INVALID_VERIFICATION_CODE",
+                    msg: "Invalid verification code",
+                },
+            ],
+        });
+
+        // now test with actual verification code (that we have mocked)
+        res = await sendGraphqlRequest(VerifyEmailMutation, {
+            verification_code: "owo",
+        });
+        expect(res.body.data.verify_email.errors).toHaveLength(0);
     });
 });
