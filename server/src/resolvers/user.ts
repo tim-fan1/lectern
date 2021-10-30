@@ -147,7 +147,7 @@ export default class UserResolver {
                 msg: e.message,
             });
         }
-        await sendEmail(
+        sendEmail(
             email,
             "Verify Your Email",
             `${config.frontendUrl}/verify/${verification_code}`
