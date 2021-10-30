@@ -10,5 +10,5 @@ export default {
     serverPort: parseInt(process.env.PORT || "4000"),
     /* email config */
     companyEmailAddress: process.env.COMPANY_EMAIL_ADDRESS,
-    companyEmailPassword: process.env.COMPANY_EMAIL_ADDRESS,
+    companyEmailPassword: process.env.COMPANY_EMAIL_PASSWORD,
 };
