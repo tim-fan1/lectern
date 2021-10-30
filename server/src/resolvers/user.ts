@@ -298,7 +298,7 @@ export default class UserResolver {
         user.verified = true;
         try {
             user.verified = true;
-            user.verifyResetCode = undefined;
+            user.verifyResetCode = null;
             await userRepo.save(user);
         } catch (e: Error | any) {
             return UserResponse.withErrors({
