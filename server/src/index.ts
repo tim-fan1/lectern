@@ -15,7 +15,6 @@ import {
 } from "./resolvers/resolvers";
 import { User, LoginSession, Session, VerifyEmail } from "./entities/entities";
 import cookieParser from "cookie-parser";
-import userAuthChecker from "./auth/authChecker";
 import config from "./config";
 
 async function makeApp(
@@ -46,6 +45,7 @@ async function makeApp(
                     req: req,
                     res: res,
                     conn: connection,
+                    userInfo: { loggedIn: false },
                 },
             };
         })
@@ -81,7 +81,7 @@ if (require.main === module) {
         const schema = await buildSchema({
             resolvers: [HelloResolver, UserResolver, SessionResolver],
             emitSchemaFile: path.resolve(__dirname, "schema.gql"),
-            authChecker: userAuthChecker,
+            authChecker: () => false, // TODO this is to filter auth'd eps, remove later
         });
 
         // real fudge - will create tables, kinda bad though in production

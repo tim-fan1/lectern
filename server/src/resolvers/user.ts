@@ -1,17 +1,9 @@
 import argon2 from "argon2";
-import {
-    Arg,
-    Authorized,
-    Ctx,
-    Field,
-    Mutation,
-    ObjectType,
-    Query,
-} from "type-graphql";
+import { Arg, Ctx, Field, Mutation, ObjectType, Query } from "type-graphql";
 import { v4 as uuid } from "uuid";
 
 import { User, LoginSession, VerifyEmail } from "../entities/entities";
-import { Context, EndpointResponse, RespError, StringResponse } from "../types";
+import { AuthedContext, Context, EndpointResponse, RespError } from "../types";
 import {
     validateEmail,
     validatePassword,
@@ -20,6 +12,8 @@ import {
 import sendEmail from "../utils/sendEmail";
 import generateAlphanumCode from "../utils/generateCode";
 import config from "../config";
+import CheckAuth from "../utils/authMiddleware";
+import { getRepository } from "typeorm";
 
 @ObjectType()
 class UserResponse extends EndpointResponse {
@@ -58,9 +52,9 @@ export default class UserResolver {
         @Arg("fname") fname: string,
         @Arg("lname") lname: string,
         @Arg("password") password: string,
-        @Ctx() { conn, res }: Context
+        @Ctx() { conn, req }: Context
     ): Promise<UserResponse> {
-        if (res.locals.userId !== undefined)
+        if (req.cookies.token !== undefined)
             return UserResponse.withErrors({
                 kind: UserError.LOGGED_IN,
                 msg: "Already logged in!",
@@ -173,11 +167,12 @@ export default class UserResolver {
         @Ctx() { req, res, conn }: Context
     ): Promise<EndpointResponse> {
         /* FIXME: Really shady way of checking if someone's logged in */
-        if (req.cookies.token !== undefined)
+        if (req.cookies.token !== undefined) {
             return EndpointResponse.withErrors({
                 kind: UserError.LOGGED_IN,
                 msg: "Already logged in!",
             });
+        }
 
         /* Check that the input username/email and password are correct. */
         let user;
@@ -226,7 +221,7 @@ export default class UserResolver {
 
             const newSession = repo.create({
                 token: newToken,
-                userId: user.id,
+                user: user,
             });
 
             await repo.save(newSession);
@@ -236,6 +231,8 @@ export default class UserResolver {
                 msg: e.message,
             });
         }
+        // if the options are changed here, they also need to be changed when
+        // we're unsetting the token (in both logout and the auth mware)
         res.cookie("token", newToken, {
             httpOnly: true,
             secure: true,
@@ -248,18 +245,19 @@ export default class UserResolver {
         };
     }
 
-    @Authorized()
+    @CheckAuth()
     @Mutation(() => EndpointResponse)
     async logout(
-        @Ctx() { req, res, conn }: Context
+        @Ctx() { res, conn, loginToken }: AuthedContext
     ): Promise<EndpointResponse> {
         // this doesn't check if the session existed or not
         try {
             const repo = conn.getRepository(LoginSession);
-            repo.delete(req.cookies.token);
+            repo.delete(loginToken!);
             res.clearCookie("token", {
                 httpOnly: true,
                 secure: true,
+                sameSite: config.isProduction ? "strict" : "none",
             });
 
             return { errors: [] };
@@ -271,20 +269,13 @@ export default class UserResolver {
         }
     }
 
-    @Authorized()
+    @CheckAuth(["sessions"])
     @Query(() => UserResponse)
-    async userDetails(@Ctx() { res, conn }: Context): Promise<UserResponse> {
+    async userDetails(@Ctx() { user }: AuthedContext): Promise<UserResponse> {
         try {
-            const userRepo = conn.getRepository(User);
-            const thisUser = await userRepo.findOne(res.locals.userId);
-            if (thisUser === undefined)
-                return UserResponse.withErrors({
-                    kind: UserError.USER_NOT_EXIST,
-                });
-
             return {
                 errors: [],
-                user: thisUser,
+                user: user,
             };
         } catch (e: Error | any) {
             return UserResponse.withErrors({
@@ -368,12 +359,12 @@ export default class UserResolver {
         };
     }
 
-    @Authorized()
+    @CheckAuth()
     @Mutation(() => EndpointResponse)
     async changePassword(
         @Arg("password") password: string,
         @Arg("newPassword") newPassword: string,
-        @Ctx() { res, conn }: Context
+        @Ctx() { user }: AuthedContext
     ): Promise<EndpointResponse> {
         try {
             /* First check if the newPassword is even valid. */
@@ -381,14 +372,6 @@ export default class UserResolver {
                 return EndpointResponse.withErrors({
                     kind: UserError.BAD_PASSWORD,
                     msg: "Invalid password given",
-                });
-            }
-
-            const repo = conn.getRepository(User);
-            const user = await repo.findOne(res.locals.userId);
-            if (user === undefined) {
-                return EndpointResponse.withErrors({
-                    kind: UserError.USER_NOT_EXIST,
                 });
             }
 
@@ -414,7 +397,7 @@ export default class UserResolver {
             }
 
             user.password = await argon2.hash(newPassword);
-            await repo.save(user);
+            await getRepository(User).save(user);
         } catch (e: Error | any) {
             return EndpointResponse.withErrors({
                 kind: UserError.DB_ERROR,
@@ -426,14 +409,4 @@ export default class UserResolver {
             errors: [],
         };
     }
-
-    // @Authorized()
-    // @Query(() => StringResponse)
-    // async testAuth(@Ctx() { res, conn }: Context): Promise<StringResponse> {
-    //     // this is a temp mutation, so i havent wrapped it in try/catch
-    //     const name = (await conn.getRepository(User).findOne(res.locals.userId))
-    //         ?.username;
-
-    //     return { errors: [], msg: "hello, " + name + "!" };
-    // }
 }

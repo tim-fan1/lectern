@@ -8,6 +8,7 @@ import {
     UpdateDateColumn,
 } from "typeorm";
 import { Session } from "./entities";
+import LoginSession from "./LoginSession";
 
 @ObjectType()
 @Entity()
@@ -40,10 +41,12 @@ export default class User {
     verified!: boolean;
 
     @OneToMany(() => Session, (session) => session.author, {
-        eager: true,
         orphanedRowAction: "delete",
         cascade: true,
         nullable: false,
     })
     sessions!: Session[];
+
+    @OneToMany(() => LoginSession, (s) => s.user, { cascade: true })
+    loginSessions!: LoginSession[];
 }

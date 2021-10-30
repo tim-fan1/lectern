@@ -1,16 +1,42 @@
 import { Request, Response } from "express";
 import { Connection } from "typeorm";
-import { ObjectType, Field, ClassType } from "type-graphql";
+import { ObjectType, Field } from "type-graphql";
+import User from "./entities/User";
 
 /**
  * The Context type used by express-graphql. This is generated for each request
  * and passed through to any resolver method that's called along the way.
  */
-export type Context = {
+export interface Context {
     req: Request;
     res: Response;
     conn: Connection;
-};
+}
+
+/**
+ * Ramble:
+ * This AuthedContext interface is the context type in authorised methods,
+ * where the additional fields are set by the auth mware. This is slightly
+ * fudge-y as we're relying on the fact that tgql doesn't strict check the
+ * ctx type - we're basically narrowing the context type as control passes
+ * through the middleware.
+ * There's nothing stopping us from declaring that the context type for an
+ * endpoint which doesn't use the middleware is still AuthedContext; since
+ * typechecking is static, but we narrow the type at runtime, tsc won't be
+ * able to determine a typing violation, and at runtime the values will be
+ * undefined when this shouldn't be allowed.
+ *
+ * Practical usage:
+ * For resolver methods that use CheckAuth(), make the type of the ctx arg
+ * AuthedContext instead; you'll be able to access these additional fields
+ * in that method. Don't declare AuthedContext as the context type for non
+ * decorated ones - no typechecker alarm bells will ring, but these values
+ * may be undefined despite that being disallowed by the type.
+ */
+export interface AuthedContext extends Context {
+    loginToken: string;
+    user: User;
+}
 
 /**
  * This is a basic response type that only includes the errors array. It should
