@@ -2,7 +2,7 @@ import argon2 from "argon2";
 import { Arg, Ctx, Field, Mutation, ObjectType, Query } from "type-graphql";
 import { v4 as uuid } from "uuid";
 
-import { User, LoginSession, VerifyEmail } from "../entities/entities";
+import { User, LoginSession } from "../entities/entities";
 import { AuthedContext, Context, EndpointResponse, RespError } from "../types";
 import {
     validateEmail,
@@ -13,7 +13,6 @@ import sendEmail from "../utils/sendEmail";
 import generateAlphanumCode from "../utils/generateCode";
 import config from "../config";
 import CheckAuth from "../utils/authMiddleware";
-import { getRepository } from "typeorm";
 
 @ObjectType()
 class UserResponse extends EndpointResponse {
@@ -86,10 +85,10 @@ export default class UserResolver {
             return UserResponse.withErrors(...validationErrors);
 
         /* Check that account with given email doesn't already exist. */
-        let user;
+        let user, userRepo;
         try {
-            const repo = conn.getRepository(User);
-            user = await repo.findOne({ where: { email: email } });
+            userRepo = conn.getRepository(User);
+            user = await userRepo.findOne({ where: { email: email } });
         } catch (e: Error | any) {
             return EndpointResponse.withErrors({
                 kind: UserError.DB_ERROR,
@@ -103,17 +102,28 @@ export default class UserResolver {
             });
         }
 
-        /* Insert entry for this user into the db (storing the hashed pw). */
+        /* Insert entry for this user into the db (storing the hashed pw and
+         * generating a verification code). */
         const hashedPassword = await argon2.hash(password);
+        const verificationCode = generateAlphanumCode(12);
         try {
-            const repo = conn.getRepository(User);
-            let meme = repo.create({
+            const exist = await userRepo.findOne({
+                where: { verifyResetCode: verificationCode },
+            });
+            if (exist)
+                return EndpointResponse.withErrors({
+                    kind: UserError.USED_TOKEN,
+                    msg: "Token already exists; go buy a lottery ticket",
+                });
+
+            let newUser = userRepo.create({
                 name: fname + " " + lname,
                 password: hashedPassword,
                 email: email,
                 verified: false,
+                verifyResetCode: verificationCode,
             });
-            user = await repo.save(meme);
+            user = await userRepo.save(newUser);
         } catch (e: Error | any) {
             return UserResponse.withErrors({
                 kind: UserError.DB_ERROR,
@@ -121,36 +131,11 @@ export default class UserResolver {
             });
         }
 
-        /* Send verification email. TODO: this uses a new table VerifyEmail,
-         * even though LoginSession already exists and does the same thing.
-         * Decided to make a new table anyway because I don't want to
-         * and don't know if I should mess with the LoginSession table. */
-        const verification_code = generateAlphanumCode();
-        try {
-            const repo = conn.getRepository(VerifyEmail);
-            const exist = await repo.findOne(verification_code);
-            if (exist)
-                return EndpointResponse.withErrors({
-                    kind: UserError.USED_TOKEN,
-                    msg: "Token already exists; go buy a lottery ticket",
-                });
-
-            const newVerificationToken = repo.create({
-                token: verification_code,
-                userId: user.id,
-            });
-
-            await repo.save(newVerificationToken);
-        } catch (e: Error | any) {
-            return EndpointResponse.withErrors({
-                kind: UserError.DB_ERROR,
-                msg: e.message,
-            });
-        }
+        /* Send verification email. */
         sendEmail(
             email,
             "Verify Your Email",
-            `${config.frontendUrl}/verify/${verification_code}`
+            `${config.frontendUrl}/verify/${verificationCode}`
         );
 
         /* Success! */
@@ -286,66 +271,35 @@ export default class UserResolver {
     }
 
     @Mutation(() => EndpointResponse)
-    async verify_email(
-        @Arg("verification_code") verification_code: string,
-        @Ctx() { req, res, conn }: Context
+    async verifyEmail(
+        @Arg("verificationCode") verificationCode: string,
+        @Ctx() { conn }: Context
     ): Promise<EndpointResponse> {
-        /* Check if verification code is valid. */
-        let VerifyEmailItem;
-        try {
-            const repo = conn.getRepository(VerifyEmail);
-            VerifyEmailItem = await repo.findOne({
-                where: { token: verification_code },
-            });
-        } catch (e: Error | any) {
-            return EndpointResponse.withErrors({
-                kind: UserError.DB_ERROR,
-                msg: e.message,
-            });
-        }
-        if (!VerifyEmailItem) {
-            return EndpointResponse.withErrors({
-                kind: UserError.INVALID_VERIFICATION_CODE,
-                msg: `Invalid verification code`,
-            });
-        }
-
-        /* Valid verification code. Find user pointed by valid code. */
+        /* Check if there exists a user with this verification code. */
+        const userRepo = conn.getRepository(User);
         let user;
         try {
-            const repo = conn.getRepository(User);
-            user = await repo.findOne({
-                where: { id: VerifyEmailItem.userId },
+            user = await userRepo.findOne({
+                where: { verifyResetCode: verificationCode },
             });
+            if (user === undefined)
+                return EndpointResponse.withErrors({
+                    kind: UserError.INVALID_VERIFICATION_CODE,
+                    msg: "Invalid verification code",
+                });
         } catch (e: Error | any) {
             return EndpointResponse.withErrors({
                 kind: UserError.DB_ERROR,
                 msg: e.message,
             });
         }
-        if (!user) {
-            return EndpointResponse.withErrors({
-                kind: UserError.USER_NOT_EXIST,
-                msg: `User doesn't exist... Something went really wrong on our end`,
-            });
-        }
 
-        /* Found user. Now verify them. */
+        /* Found user. Now verify them, and set the verify code to null. */
         user.verified = true;
         try {
-            const repo = conn.getRepository(User);
-            await repo.save(user);
-        } catch (e: Error | any) {
-            return UserResponse.withErrors({
-                kind: UserError.DB_ERROR,
-                msg: e.message,
-            });
-        }
-
-        /* Remove VerifyEmailItem from VerifyEmail. Free up that code. */
-        try {
-            const repo = conn.getRepository(VerifyEmail);
-            await repo.remove(VerifyEmailItem);
+            user.verified = true;
+            user.verifyResetCode = undefined;
+            await userRepo.save(user);
         } catch (e: Error | any) {
             return UserResponse.withErrors({
                 kind: UserError.DB_ERROR,
@@ -364,7 +318,7 @@ export default class UserResolver {
     async changePassword(
         @Arg("password") password: string,
         @Arg("newPassword") newPassword: string,
-        @Ctx() { user }: AuthedContext
+        @Ctx() { user, conn }: AuthedContext
     ): Promise<EndpointResponse> {
         try {
             /* First check if the newPassword is even valid. */
@@ -397,7 +351,7 @@ export default class UserResolver {
             }
 
             user.password = await argon2.hash(newPassword);
-            await getRepository(User).save(user);
+            await conn.getRepository(User).save(user);
         } catch (e: Error | any) {
             return EndpointResponse.withErrors({
                 kind: UserError.DB_ERROR,
@@ -409,4 +363,15 @@ export default class UserResolver {
             errors: [],
         };
     }
+
+    // @Mutation(() => EndpointResponse)
+    // async resetPassword(
+    //     @Arg("email") email: string,
+    // ): Promise<EndpointResponse> {
+    //     try {
+
+    //     } catch (e: Error | any) {
+
+    //     }
+    // }
 }

@@ -13,7 +13,7 @@ import {
     UserResolver,
     SessionResolver,
 } from "./resolvers/resolvers";
-import { User, LoginSession, Session, VerifyEmail } from "./entities/entities";
+import { User, LoginSession, Session } from "./entities/entities";
 import cookieParser from "cookie-parser";
 import config from "./config";
 
@@ -75,7 +75,7 @@ if (require.main === module) {
             // replace this with ormconfig.json later (tm)
             type: "sqlite",
             database: "owo.db",
-            entities: [User, LoginSession, Session, VerifyEmail],
+            entities: [User, LoginSession, Session],
         });
 
         const schema = await buildSchema({
