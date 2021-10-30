@@ -7,8 +7,13 @@ import {
     registerUser,
     resetDatabase,
     sendGraphqlRequest,
+    TEST_HOST,
+    testGetAppSingleton,
     VerifyEmailMutation,
 } from "./test/helpers";
+import supertest from "supertest";
+import superagent from "superagent";
+import { CookieAccessInfo } from "cookiejar";
 
 afterEach(async () => {
     await resetDatabase();
@@ -106,8 +111,28 @@ describe("graphql user detail tests", () => {
         const email = "owo@uwu.com";
         const password = "password";
         const user = await createUser(email, "john", "smith", password);
-        // try to login again
-        let res = await sendGraphqlRequest(LoginMutation, { email, password });
+
+        // we need the actual supertest object to access the cookies afterwards
+        const supertest_obj = supertest.agent(await testGetAppSingleton());
+
+        // try to login
+        let res = await sendGraphqlRequest(
+            LoginMutation,
+            { email, password },
+            undefined,
+            undefined,
+            supertest_obj
+        );
+
         expect(res.body.data.login.errors).toHaveLength(0);
+        const access_info = new CookieAccessInfo(TEST_HOST, "/", true);
+        expect(supertest_obj.jar.getCookie("token", access_info)).toEqual(
+            expect.objectContaining({
+                name: "token",
+                value: expect.any(String),
+                expiration_date: expect.any(Number),
+                path: "/",
+            })
+        );
     });
 });

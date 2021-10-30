@@ -42,21 +42,32 @@ export const testGetAppSingleton = async () => {
     return app;
 };
 
+export const TEST_HOST = "https://test.com";
+
 export const sendGraphqlRequest = async (
     query: string,
     args: any = {},
-    url = "/graphql",
-    app?: http.Server
+    url?: string,
+    app?: http.Server,
+    supertest_obj?: supertest.SuperTest<supertest.Test>
 ) => {
+    if (url === undefined) {
+        url = "/graphql";
+    }
     if (app === undefined) {
         app = await testGetAppSingleton();
     }
-    return supertest(app)
+    if (supertest_obj === undefined) {
+        supertest_obj = supertest(app);
+    }
+
+    return supertest_obj
         .post(url)
         .send({
             query: query,
             variables: args,
         })
+        .set("Host", TEST_HOST)
         .set("Accept", "application/json")
         .expect("Content-Type", /json/)
         .expect(200);
