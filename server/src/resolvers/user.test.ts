@@ -63,40 +63,8 @@ mutation($email: String!, $password: String!) {
     }
 }`;
 
-beforeEach(async () => {});
-
-// typescript is cryn rn.
 afterEach(async () => {
     await resetDatabase();
-});
-
-describe("graphql sanity checks", () => {
-    test("GET /graphql", async () => {
-        const request = supertest(await testGetAppSingleton());
-        const res = await request.get("/graphql");
-        expect(res.statusCode).toBe(400);
-        expect(res.body).toEqual({
-            errors: [
-                {
-                    message: "Must provide query string.",
-                },
-            ],
-        });
-    });
-
-    test("graphql hello world", async () => {
-        let res = await sendGraphqlRequest(
-            `query {
-              helloWorld
-            }`
-        );
-
-        expect(res.body).toEqual({
-            data: {
-                helloWorld: "Hello World!",
-            },
-        });
-    });
 });
 
 describe("graphql user detail tests", () => {
@@ -164,7 +132,7 @@ describe("graphql user detail tests", () => {
         );
     });
 
-    test("verification test", async () => {
+    test("verification + login test", async () => {
         const fname = "owo";
         const lname = "uwu";
         const email = "uwu@hewwo.com";
