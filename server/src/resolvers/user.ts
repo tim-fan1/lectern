@@ -364,14 +364,48 @@ export default class UserResolver {
         };
     }
 
-    // @Mutation(() => EndpointResponse)
-    // async resetPassword(
-    //     @Arg("email") email: string,
-    // ): Promise<EndpointResponse> {
-    //     try {
+    @Mutation(() => EndpointResponse)
+    async requestReset(
+        @Arg("email") email: string,
+        @Ctx() { conn }: Context
+    ): Promise<EndpointResponse> {
+        const userRepo = conn.getRepository(User);
+        let user;
+        try {
+            user = await userRepo.findOne({ where: { email: email } });
+        } catch (e: Error | any) {
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
+        }
 
-    //     } catch (e: Error | any) {
+        /* No matter what, send an empty success response (unless db error) so
+         * that bad actors can't get information from the reset password form */
+        const ret = EndpointResponse.withErrors();
 
-    //     }
-    // }
+        /* Check if user does not exist, or there is an ongoing verify/reset */
+        if (user === undefined || user.verifyResetCode !== null) return ret;
+
+        /* Check for code collision */
+        const resetCode = generateAlphanumCode(12);
+        if (
+            await userRepo.findOne({
+                where: { verifyResetCode: resetCode },
+            })
+        )
+            return ret;
+
+        user.verifyResetCode = resetCode;
+        await userRepo.save(user);
+
+        /* send the email asynchronously */
+        sendEmail(
+            user.email,
+            "Reset Your Password",
+            `${config.frontendUrl}/reset/${resetCode}`
+        );
+
+        return ret;
+    }
 }

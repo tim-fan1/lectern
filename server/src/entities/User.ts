@@ -58,5 +58,5 @@ export default class User {
      * fun stuff:
      * https://stackoverflow.com/questions/64635617/how-to-set-a-nullable-database-field-to-null-with-typeorm */
     @Column({ type: "text", nullable: true })
-    verifyResetCode?: string | null;
+    verifyResetCode!: string | null;
 }
