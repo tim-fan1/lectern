@@ -119,9 +119,7 @@ describe("graphql user detail tests", () => {
         let res = await sendGraphqlRequest(
             LoginMutation,
             { email, password },
-            undefined,
-            undefined,
-            supertest_obj
+            { supertest_obj }
         );
 
         expect(res.body.data.login.errors).toHaveLength(0);
