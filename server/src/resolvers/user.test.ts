@@ -1,10 +1,10 @@
-import makeApp from "../index";
 import supertest from "supertest";
-import { createConnection, getConnection } from "typeorm";
-import http from "http";
-import { buildSchema } from "type-graphql";
-import { HelloResolver, SessionResolver, UserResolver } from "./resolvers";
 import generateAlphanumCode from "../utils/generateCode";
+import {
+    resetDatabase,
+    sendGraphqlRequest,
+    testGetAppSingleton,
+} from "./test/helpers";
 
 // mock the generate code first, before registering
 // this needs to be done in top level scope (as jest will actually hoist
@@ -22,57 +22,57 @@ mockGenerateAlphanumCode.mockImplementation(
     jest.requireActual("../utils/generateCode")
         .default as typeof generateAlphanumCode
 );
-let app: http.Server;
-beforeAll(async () => {
-    // setup connection and express app
-    const connection = await createConnection({
-        type: "sqlite",
-        database: ":memory:",
-        entities: ["src/entities/*.ts"],
-        synchronize: true,
-        dropSchema: true,
-    });
 
-    const schema = await buildSchema({
-        resolvers: [HelloResolver, UserResolver, SessionResolver],
-    });
+const RegisterMutation = `
+mutation($password: String!, $fname: String!, $lname: String!, $email: String!) {
+  register(
+    password: $password,
+    fname: $fname,
+    lname: $lname,
+    email: $email
+  ) {
+    errors {
+        msg,
+        kind
+    },
+    user {
+      email
+      id
+      name
+    }
+  }
+}`;
 
-    app = http.createServer(await makeApp(schema, connection));
-});
+const VerifyEmailMutation = `
+mutation($verification_code: String!) {
+    verify_email(verification_code: $verification_code) {
+        errors {
+            kind,
+            msg
+        }
+    }
+}`;
+
+const LoginMutation = `
+mutation($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+        errors {    
+            kind,
+            msg
+        }
+    }
+}`;
 
 beforeEach(async () => {});
 
 // typescript is cryn rn.
 afterEach(async () => {
-    // clear all entities https://stackoverflow.com/questions/58779347/jest-typeorm-purge-database-after-all-tests
-    const entities = getConnection().entityMetadatas;
-
-    for (const entity of entities) {
-        const repository = getConnection().getRepository(entity.name); // Get repository
-        await repository.clear(); // Clear each entity table's content
-    }
-    //jest.restoreAllMocks().resetAllMocks();
+    await resetDatabase();
 });
-
-const sendGraphqlRequest = async (
-    query: string,
-    args: any = {},
-    url = "/graphql"
-) => {
-    return supertest(app)
-        .post(url)
-        .send({
-            query: query,
-            variables: args,
-        })
-        .set("Accept", "application/json")
-        .expect("Content-Type", /json/)
-        .expect(200);
-};
 
 describe("graphql sanity checks", () => {
     test("GET /graphql", async () => {
-        const request = supertest(app);
+        const request = supertest(await testGetAppSingleton());
         const res = await request.get("/graphql");
         expect(res.statusCode).toBe(400);
         expect(res.body).toEqual({
@@ -98,47 +98,6 @@ describe("graphql sanity checks", () => {
         });
     });
 });
-
-const RegisterMutation = `
-mutation($password: String!, $fname: String!, $lname: String!, $email: String!) {
-  register(
-    password: $password,
-    fname: $fname,
-    lname: $lname,
-    email: $email
-  ) {
-    errors {
-        msg,
-        kind
-    },
-    user {
-      email
-      id
-      name
-    }
-  }
-}`;
-
-const VerifyEmailMutation = `
-    mutation($verification_code: String!) {
-        verify_email(verification_code: $verification_code) {
-            errors {
-                kind,
-                msg
-            }
-        }
-    }
-    `;
-
-const LoginMutation = `
-    mutation($email: String!, $password: String!) {
-        login(email: $email, password: $password) {
-            errors {    
-                kind,
-                msg
-            }
-        }
-    }`;
 
 describe("graphql user detail tests", () => {
     // This function checks if a user response contains a valid
@@ -215,7 +174,10 @@ describe("graphql user detail tests", () => {
         await registerUser(fname, lname, email, password);
 
         // shouldn't let you login until verification is complete
-        let res = await sendGraphqlRequest(LoginMutation, { email, password });
+        let res = await sendGraphqlRequest(LoginMutation, {
+            email,
+            password,
+        });
         expect(res.body.data.login).toEqual({
             errors: [
                 {
@@ -247,5 +209,17 @@ describe("graphql user detail tests", () => {
         // try to login again
         res = await sendGraphqlRequest(LoginMutation, { email, password });
         expect(res.body.data.login.errors).toHaveLength(0);
+
+        // try to login again with a wrong password
+        res = await sendGraphqlRequest(LoginMutation, {
+            email,
+            password: "this is wronger",
+        });
+        expect(res.body.data.login.errors).toEqual([
+            expect.objectContaining({
+                kind: "INCORRECT_PASSWORD",
+                msg: "Incorrect password",
+            }),
+        ]);
     });
 });
