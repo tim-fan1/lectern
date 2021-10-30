@@ -408,4 +408,48 @@ export default class UserResolver {
 
         return ret;
     }
+
+    /* TODO: not sure if we need a "check valid code" endpoint; probs not */
+    @Mutation(() => EndpointResponse)
+    async passwordReset(
+        @Arg("code") code: string,
+        @Arg("newPassword") newPassword: string,
+        @Ctx() { conn }: Context
+    ): Promise<EndpointResponse> {
+        const userRepo = conn.getRepository(User);
+        let user;
+        try {
+            user = await userRepo.findOne({ where: { verifyResetCode: code } });
+        } catch (e: Error | any) {
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
+        }
+
+        if (user === undefined || !user.verified)
+            return EndpointResponse.withErrors({
+                kind: UserError.INVALID_VERIFICATION_CODE,
+            });
+
+        if (!validatePassword(newPassword)) {
+            return EndpointResponse.withErrors({
+                kind: UserError.BAD_PASSWORD,
+                msg: "Invalid password given",
+            });
+        }
+
+        try {
+            user.password = await argon2.hash(newPassword);
+            user.verifyResetCode = null;
+            await userRepo.save(user);
+        } catch (e: Error | any) {
+            return EndpointResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
+        }
+
+        return EndpointResponse.withErrors();
+    }
 }
