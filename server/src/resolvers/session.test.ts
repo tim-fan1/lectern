@@ -30,13 +30,13 @@ query {
         },
         sessions {
             id,
-            author {
-                id,
-                created,
-                updated,
-                name,
-                email
-            }
+            #author {
+            #    id,
+            #    created,
+            #    updated,
+            #    name,
+            #    email
+            #}
             created,
             updated,
             state,
@@ -195,15 +195,6 @@ describe("graphql session tests", () => {
         expect(res.body.data.getSessions.sessions).toEqual([
             expect.objectContaining({
                 id: expect.any(Number),
-                author: {
-                    id: expect.any(Number),
-                    created: expect.toBeDateString("DUMB TYPING HACK"),
-                    updated: expect.toBeDateString(
-                        "This function is declared to need a string"
-                    ),
-                    name: userFullName,
-                    email: email,
-                },
                 created: expect.toBeDateString(
                     "But it actually takes the string from"
                 ),
