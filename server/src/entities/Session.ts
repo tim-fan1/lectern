@@ -19,6 +19,7 @@ export default class Session {
     @PrimaryGeneratedColumn()
     id!: number;
 
+    /* Many sessions belong to one user. */
     @Field(() => User)
     @ManyToOne(() => User, (user) => user.sessions)
     author!: User;
@@ -43,8 +44,9 @@ export default class Session {
     @Column({ nullable: true })
     endTime?: Date;
 
-    // TODO: do this...
-    @OneToMany(() => Activity, (Activity) => Activity.session, {
+    /* One session contains many activities. */
+    @OneToMany(() => Activity, (activity) => activity.session, {
+        eager: true,
         orphanedRowAction: "delete",
         cascade: true,
         nullable: false,

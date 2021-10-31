@@ -8,7 +8,7 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from "typeorm";
-import { Session } from "./entities";
+import { Session, Choice } from "./entities";
 
 @ObjectType()
 @Entity()
@@ -21,7 +21,18 @@ export default class Activity {
     @Column()
     name!: string;
 
+    /* Many activities belong to one session. */
     @Field(() => Session)
     @ManyToOne(() => Session, (session) => session.activities)
     session!: Session;
+
+    /* One activity contains many choices. */
+    @Field(() => [Choice])
+    @OneToMany(() => Choice, (choice) => choice.activity, {
+        eager: true,
+        orphanedRowAction: "delete",
+        cascade: true,
+        nullable: false,
+    })
+    choices!: Choice[];
 }
