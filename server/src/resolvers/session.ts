@@ -39,21 +39,33 @@ export default class SessionResolver {
     @Authorized()
     @Query(() => SessionArrResponse)
     async getSessions(
-        @Ctx() { conn, res }: Context
+        @Ctx() { conn, res }: Context,
+        @Arg("id", { nullable: true }) id: string
     ): Promise<SessionArrResponse> {
         try {
             const user = await conn
                 .getRepository(User)
                 .findOne(res.locals.userId);
 
-            if (user === undefined)
+            if (user === undefined) {
                 return SessionResponse.withErrors({
                     kind: SessionErrors.USER_NOT_EXIST,
                 });
-
+            }
+            let sessions = user.sessions;
+            if (id !== undefined) {
+                /* Client specified they want to know about the session of a given id.
+                 * Return an array of length 1 containing that session. */
+                for (const session of sessions) {
+                    if (session.id === parseInt(id, 10)) {
+                        sessions = [session];
+                        break;
+                    }
+                }
+            }
             return {
                 errors: [],
-                sessions: user.sessions,
+                sessions: sessions,
             };
         } catch (e: Error | any) {
             return SessionArrResponse.withErrors({
