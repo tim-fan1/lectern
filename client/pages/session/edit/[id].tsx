@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { useQuery } from "urql";
 import { FormEvent, useState } from "react";
 import Navigation from "../../../components/Navigation";
-import styles from "../../../styles/edit.module.css";
 
 const QueryGetSessionById = `
     query ($id: String!) {
