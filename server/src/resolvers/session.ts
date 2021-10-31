@@ -61,7 +61,6 @@ export default class SessionResolver {
         @Ctx() { conn, user }: AuthedContext,
         @Arg("name") name: string,
         @Arg("group", { nullable: true }) group?: string
-        // @Arg("activities", () => [Activity], { nullable: true }) activities?: Activity[]
     ): Promise<SessionResponse> {
         try {
             const sessionRepo = conn.getRepository(Session);
@@ -69,7 +68,6 @@ export default class SessionResolver {
                 name: name,
                 group: group,
                 author: user,
-                // savedActivities: activities,
             });
             await sessionRepo.save(newSession);
 
@@ -93,7 +91,6 @@ export default class SessionResolver {
         @Arg("id", () => Int) id: number,
         @Arg("name", { nullable: true }) name?: string,
         @Arg("group", { nullable: true }) group?: string
-        /// @Arg("activities", () => [Activity], { nullable: true }) activities?: Activity[]
     ): Promise<EndpointResponse> {
         try {
             const sessionRepo = conn.getRepository(Session);
@@ -269,5 +266,16 @@ export default class SessionResolver {
                 msg: e.message,
             });
         }
+    }
+
+    @CheckAuth()
+    @Mutation(() => SessionResponse)
+    async addActivity(
+        @Ctx() { conn, user }: AuthedContext,
+        @Arg("name") name: string
+    ): Promise<SessionResponse> {
+        return {
+            errors: [],
+        };
     }
 }

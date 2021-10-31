@@ -3,10 +3,12 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from "typeorm";
+import { Session } from "./entities";
 
 @ObjectType()
 @Entity()
@@ -18,4 +20,8 @@ export default class Activity {
     @Field()
     @Column()
     name!: string;
+
+    @Field(() => Session)
+    @ManyToOne(() => Session, (session) => session.activities)
+    session!: Session;
 }
