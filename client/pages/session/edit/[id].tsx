@@ -1,13 +1,36 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useQuery } from "urql";
 import { FormEvent, useState } from "react";
 import Navigation from "../../../components/Navigation";
 import styles from "../../../styles/edit.module.css";
+
+const QueryGetSessionById = `
+    query ($id: String!) {
+        getSessions (id: $id) {
+            errors {
+                kind,
+                msg
+            }
+            sessions {
+                name,
+            }
+        }
+    }
+`;
+
 export default function SessionEdit() {
     const router = useRouter();
     /* The id of the session we are editing. */
     const { id } = router.query;
+    const [result] = useQuery({
+        query: QueryGetSessionById,
+        variables: {
+            id: id,
+        },
+    });
+    const { data, fetching, error } = result;
     const [errors, setErrors] = useState([] as string[]);
     const [name, setName] = useState("");
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -17,15 +40,17 @@ export default function SessionEdit() {
     };
     return (
         <div>
-            <Head>
-                <title>lectern - Editing Session #{id}</title>
-            </Head>
+            {!fetching && (
+                <Head>
+                    <title>lectern - Editing {data.getSessions.sessions[0].name}</title>
+                </Head>
+            )}
             <Navigation />
             <div className="container_center">
                 <Link href="/instructor/dashboard">
                     <a className="btn btn_primary">Return to dashboard</a>
                 </Link>
-                <h2>Editing session #{id}</h2>
+                {!fetching && <p>Editing {data.getSessions.sessions[0].name}</p>}
                 {errors.map((error, i) => (
                     <p className="error" key={i}>
                         {error}

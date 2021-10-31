@@ -7,7 +7,7 @@ export default function SessionManage() {
     return (
         <div>
             <Head>
-                <title>lectern - Managing Session Code #{code}</title>
+                <title>lectern - Managing #{code}</title>
             </Head>
             <Navigation />
             <div className="container_center">
