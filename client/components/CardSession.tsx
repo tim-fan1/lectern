@@ -82,34 +82,36 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
             )}
             <div className={styles.container}>
                 <h3 className={styles.name}>
-                    <Link href={`/session/edit/${id}`}>
-                        <a>
-                            <b>{name}</b>
-                        </a>
-                    </Link>
+                    {state !== SessionState.open && <p>{name}</p>}
+                    {/* We accent this button to make it extra clear that it is now clickable. */}
+                    {state === SessionState.open && (
+                        <Link href={`/session/manage/${code}`}>
+                            <a className={styles.accent_anchor}>{name}</a>
+                        </Link>
+                    )}
                 </h3>
                 <div className={styles.datetimes}>
                     {startTime && <p>{`${sessionDateToString(new Date(startTime))}`}</p>}
                     {endTime && <p>{`${sessionDateToString(new Date(endTime))}`}</p>}
                 </div>
                 <div id={styles.container_actions}>
-                    {/* TODO: create a context menu here. see figma designs for an idea.
-                     * this menu contains an "edit" button. */}
                     <a
-                        className={styles.btn_change_state}
                         onClick={
                             state === SessionState.draft ? handleStartSession : handleCloseSession
                         }
                     >
-                        {state === SessionState.draft && "Start session"}
-                        {state === SessionState.open && "Close session"}
+                        {state === SessionState.draft && "Start"}
+                        {state === SessionState.open && "Close"}
                     </a>
                     {/* We have the invariant that if the session state is in open, then we will have a non-null code. */}
                     {state === SessionState.open && (
                         <Link href={`/instructor/present/${code}`}>
-                            <a>Present</a>
+                            <a className={styles.accent_anchor}>Present</a>
                         </Link>
                     )}
+                    <Link href={`/session/edit/${id}`}>
+                        <a>Edit</a>
+                    </Link>
                 </div>
             </div>
         </div>
