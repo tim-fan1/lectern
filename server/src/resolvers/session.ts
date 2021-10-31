@@ -40,12 +40,18 @@ export default class SessionResolver {
     @CheckAuth(["sessions"])
     @Query(() => SessionArrResponse)
     async getSessions(
-        @Ctx() { user }: AuthedContext
+        @Ctx() { user }: AuthedContext,
+        @Arg("id", { nullable: true }) id: string
     ): Promise<SessionArrResponse> {
-        console.log(user.sessions);
+        /* Hopefully i understood authedcontext correctly when i did this merge main kek. */
         return {
             errors: [],
-            sessions: user.sessions,
+            sessions:
+                id === undefined
+                    ? user.sessions
+                    : user.sessions.filter(
+                          (session) => session.id === parseInt(id, 10)
+                      ),
         };
     }
 
