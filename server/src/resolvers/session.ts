@@ -1,6 +1,5 @@
 import {
     Arg,
-    Authorized,
     Ctx,
     Field,
     Int,
@@ -11,8 +10,10 @@ import {
 } from "type-graphql";
 import * as df from "date-fns";
 import { Session, User } from "../entities/entities";
-import { Context, EndpointResponse } from "../types";
+import { AuthedContext, Context, EndpointResponse } from "../types";
 import generateAlphanumCode from "../utils/generateCode";
+import CheckAuth from "../utils/authMiddleware";
+import { getRepository } from "typeorm";
 
 @ObjectType()
 class SessionResponse extends EndpointResponse {
@@ -36,61 +37,33 @@ enum SessionErrors {
 
 @Resolver()
 export default class SessionResolver {
-    @Authorized()
+    @CheckAuth(["sessions"])
     @Query(() => SessionArrResponse)
     async getSessions(
-        @Ctx() { conn, res }: Context,
+        @Ctx() { user }: AuthedContext,
         @Arg("id", { nullable: true }) id: string
     ): Promise<SessionArrResponse> {
-        try {
-            const user = await conn
-                .getRepository(User)
-                .findOne(res.locals.userId);
-
-            if (user === undefined) {
-                return SessionResponse.withErrors({
-                    kind: SessionErrors.USER_NOT_EXIST,
-                });
-            }
-            let sessions = user.sessions;
-            if (id !== undefined) {
-                /* Client specified they want to know about the session of a given id.
-                 * Return an array of length 1 containing that session. */
-                for (const session of sessions) {
-                    if (session.id === parseInt(id, 10)) {
-                        sessions = [session];
-                        break;
-                    }
-                }
-            }
-            return {
-                errors: [],
-                sessions: sessions,
-            };
-        } catch (e: Error | any) {
-            return SessionArrResponse.withErrors({
-                kind: SessionErrors.DB_ERROR,
-                msg: e.message,
-            });
-        }
+        /* Hopefully i understood authedcontext correctly when i did this merge main kek. */
+        return {
+            errors: [],
+            sessions:
+                id === undefined
+                    ? user.sessions
+                    : user.sessions.filter(
+                          (session) => session.id === parseInt(id, 10)
+                      ),
+        };
     }
 
-    @Authorized()
+    @CheckAuth(["sessions"])
     @Mutation(() => SessionResponse)
     async createSession(
-        @Ctx() { res, conn }: Context,
+        @Ctx() { conn, user }: AuthedContext,
         @Arg("name") name: string,
         @Arg("group", { nullable: true }) group?: string
         // @Arg("activities", () => [Activity], { nullable: true }) activities?: Activity[]
     ): Promise<SessionResponse> {
         try {
-            const userRepo = conn.getRepository(User);
-            const user = await userRepo.findOne(res.locals.userId);
-            if (user === undefined)
-                return SessionResponse.withErrors({
-                    kind: SessionErrors.USER_NOT_EXIST,
-                });
-
             const sessionRepo = conn.getRepository(Session);
             const newSession = sessionRepo.create({
                 name: name,
@@ -101,7 +74,7 @@ export default class SessionResolver {
             await sessionRepo.save(newSession);
 
             user.sessions.push(newSession);
-            await userRepo.save(user);
+            await getRepository(User).save(user);
 
             return { errors: [], session: newSession };
         } catch (e: Error | any) {
@@ -113,10 +86,10 @@ export default class SessionResolver {
     }
 
     /* TODO add more edit fields? and define entity type properly */
-    @Authorized()
+    @CheckAuth()
     @Mutation(() => EndpointResponse)
     async editSession(
-        @Ctx() { res, conn }: Context,
+        @Ctx() { conn, user }: AuthedContext,
         @Arg("id", () => Int) id: number,
         @Arg("name", { nullable: true }) name?: string,
         @Arg("group", { nullable: true }) group?: string
@@ -132,7 +105,7 @@ export default class SessionResolver {
                 return EndpointResponse.withErrors({
                     kind: SessionErrors.SESSION_NOT_EXIST,
                 });
-            if (targetSession.author.id !== res.locals.userId)
+            if (targetSession.author.id !== user.id)
                 // I don't think we should reveal that this session exists if
                 // this author isn't allowed to access it
                 return EndpointResponse.withErrors({
@@ -157,10 +130,10 @@ export default class SessionResolver {
         }
     }
 
-    @Authorized()
+    @CheckAuth()
     @Mutation(() => EndpointResponse)
     async deleteSession(
-        @Ctx() { res, conn }: Context,
+        @Ctx() { conn, user }: AuthedContext,
         @Arg("id", () => Int) id: number
     ): Promise<EndpointResponse> {
         try {
@@ -171,7 +144,7 @@ export default class SessionResolver {
 
             if (
                 targetSession === undefined ||
-                targetSession.author.id !== res.locals.userId
+                targetSession.author.id !== user.id
             )
                 // I don't think we should reveal that this session exists if
                 // this user isn't allowed to access it
@@ -189,28 +162,18 @@ export default class SessionResolver {
         }
     }
 
-    @Authorized()
+    @CheckAuth()
     @Mutation(() => SessionResponse)
     async startSession(
         @Arg("id") id: number,
-        @Ctx() { res, conn }: Context
+        @Ctx() { conn, user }: AuthedContext
     ): Promise<SessionResponse> {
         try {
-            const userRepo = conn.getRepository(User);
-            const user = await userRepo.findOne(res.locals.userId);
-            if (user === undefined)
-                return SessionResponse.withErrors({
-                    kind: SessionErrors.USER_NOT_EXIST,
-                });
-
             const sessionRepo = conn.getRepository(Session);
             const session = await sessionRepo.findOne(id, {
                 relations: ["author"],
             });
-            if (
-                session === undefined ||
-                session.author.id !== res.locals.userId
-            )
+            if (session === undefined || session.author.id !== user.id)
                 return SessionResponse.withErrors({
                     kind: SessionErrors.SESSION_NOT_EXIST,
                 });
@@ -249,28 +212,18 @@ export default class SessionResolver {
         }
     }
 
-    @Authorized()
+    @CheckAuth()
     @Mutation(() => SessionResponse)
     async closeSession(
         @Arg("id") id: number,
-        @Ctx() { res, conn }: Context
+        @Ctx() { conn, user }: AuthedContext
     ): Promise<SessionResponse> {
         try {
-            const userRepo = conn.getRepository(User);
-            const user = await userRepo.findOne(res.locals.userId);
-            if (user === undefined)
-                return SessionResponse.withErrors({
-                    kind: SessionErrors.USER_NOT_EXIST,
-                });
-
             const sessionRepo = conn.getRepository(Session);
             const session = await sessionRepo.findOne(id, {
                 relations: ["author"],
             });
-            if (
-                session === undefined ||
-                session.author.id !== res.locals.userId
-            )
+            if (session === undefined || session.author.id !== user.id)
                 return SessionResponse.withErrors({
                     kind: SessionErrors.SESSION_NOT_EXIST,
                 });

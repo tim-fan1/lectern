@@ -6,7 +6,6 @@ import User from "../entities/User";
 import { buildSchema } from "type-graphql";
 import { HelloResolver, SessionResolver, UserResolver } from "./resolvers";
 import path from "path";
-import userAuthChecker from "../auth/authChecker";
 
 let app: http.Server;
 beforeAll(async () => {
@@ -21,7 +20,6 @@ beforeAll(async () => {
 
     const schema = await buildSchema({
         resolvers: [HelloResolver, UserResolver, SessionResolver],
-        authChecker: userAuthChecker,
     });
 
     app = http.createServer(await makeApp(schema, connection));

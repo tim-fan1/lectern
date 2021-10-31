@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryColumn } from "typeorm";
+import { CreateDateColumn, Entity, ManyToOne, PrimaryColumn } from "typeorm";
+import User from "./User";
 
 @Entity()
 export default class LoginSession {
@@ -8,7 +9,6 @@ export default class LoginSession {
     @CreateDateColumn()
     created!: Date;
 
-    /* TODO use a relation here */
-    @Column()
-    userId!: number;
+    @ManyToOne(() => User, (user) => user.sessions, { eager: true })
+    user!: User;
 }
