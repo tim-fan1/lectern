@@ -139,6 +139,7 @@ describe("graphql session tests", () => {
         expect(res.body.data.getSessions.sessions).toEqual([]);
     });
 
+    // skip this until get sessions is implemented
     test("get session 1", async () => {
         const access_info = new CookieAccessInfo(TEST_HOST, "/", true);
         const name = "my cool session";
@@ -158,13 +159,20 @@ describe("graphql session tests", () => {
                 id: expect.any(Number),
                 author: {
                     id: expect.any(Number),
-                    created: expect.toBeString(),
-                    updated: expect.toBeString(),
+                    created: expect.toBeDateString("DUMB TYPING HACK"),
+                    updated: expect.toBeDateString(
+                        "This function is declared to need a string"
+                    ),
                     name: userFullName,
                     email: email,
                 },
-                created: expect.toBeString(),
-                updated: expect.toBeString(),
+                created: expect.toBeDateString(
+                    "But it actually takes the string from"
+                ),
+                updated: expect.toBeDateString(
+                    "the object being compared. So this string does " +
+                        "nothing, but is required for typing purposes"
+                ),
                 state: "draft",
                 startTime: null,
                 endTime: null,
@@ -183,5 +191,33 @@ describe("graphql session tests", () => {
                 .getCookie("token", access_info)!
                 .toString()
         );
+        expect(res.body.data.getSessions.errors).toHaveLength(0);
+        expect(res.body.data.getSessions.sessions).toEqual([
+            expect.objectContaining({
+                id: expect.any(Number),
+                author: {
+                    id: expect.any(Number),
+                    created: expect.toBeDateString("DUMB TYPING HACK"),
+                    updated: expect.toBeDateString(
+                        "This function is declared to need a string"
+                    ),
+                    name: userFullName,
+                    email: email,
+                },
+                created: expect.toBeDateString(
+                    "But it actually takes the string from"
+                ),
+                updated: expect.toBeDateString(
+                    "the object being compared. So this string does " +
+                        "nothing, but is required for typing purposes"
+                ),
+                state: "draft",
+                startTime: null,
+                endTime: null,
+                group: group,
+                name: name,
+                code: null,
+            }),
+        ]);
     });
 });

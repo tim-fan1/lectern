@@ -42,6 +42,7 @@ export default class SessionResolver {
     async getSessions(
         @Ctx() { user }: AuthedContext
     ): Promise<SessionArrResponse> {
+        console.log(user.sessions);
         return {
             errors: [],
             sessions: user.sessions,

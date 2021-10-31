@@ -79,19 +79,11 @@ export const sendGraphqlRequest = (
         .expect("Content-Type", /json/)
         .expect(200);
 };
+
 export const resetDatabase = async () => {
-    // clear all entities https://stackoverflow.com/questions/58779347/jest-typeorm-purge-database-after-all-tests
-    const entities = getConnection().entityMetadatas;
-    await getConnection().transaction(
-        async (asynctransactionalEntityManager) => {
-            for (const entity of entities) {
-                const repository =
-                    asynctransactionalEntityManager.getRepository(entity.name); // Get repository
-                await repository.delete(""); // Clear each entity table's content
-            }
-        }
-    );
+    await getConnection().synchronize(true);
 };
+
 export const RegisterMutation = `
 mutation($password: String!, $fname: String!, $lname: String!, $email: String!) {
   register(
