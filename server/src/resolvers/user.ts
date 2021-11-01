@@ -418,6 +418,7 @@ export default class UserResolver {
     ): Promise<EndpointResponse> {
         const userRepo = conn.getRepository(User);
         let user;
+
         try {
             user = await userRepo.findOne({ where: { verifyResetCode: code } });
         } catch (e: Error | any) {
@@ -430,6 +431,7 @@ export default class UserResolver {
         if (user === undefined || !user.verified)
             return EndpointResponse.withErrors({
                 kind: UserError.INVALID_VERIFICATION_CODE,
+                msg: "Invalid verification link",
             });
 
         if (!validatePassword(newPassword)) {

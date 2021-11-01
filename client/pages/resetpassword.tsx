@@ -49,14 +49,14 @@ export default function ResetPassword() {
                 setResetSuccess(true);
             }
 
-            //request reset by design does not return any errors
+            // request reset by design does not return any errors
         });
     };
 
     return (
         <div className="container_center">
             <Head>
-                <title>lectern - Reset password</title>
+                <title>lectern - Request password reset</title>
             </Head>
             <Navigation />
             {!resetSuccess ? (
