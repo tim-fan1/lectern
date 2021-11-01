@@ -68,6 +68,7 @@ export default class SessionResolver {
                 name: name,
                 group: group,
                 author: user,
+                activities: [],
             });
             await sessionRepo.save(newSession);
 
@@ -266,16 +267,5 @@ export default class SessionResolver {
                 msg: e.message,
             });
         }
-    }
-
-    @CheckAuth()
-    @Mutation(() => SessionResponse)
-    async addActivity(
-        @Ctx() { conn, user }: AuthedContext,
-        @Arg("name") name: string
-    ): Promise<SessionResponse> {
-        return {
-            errors: [],
-        };
     }
 }

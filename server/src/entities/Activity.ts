@@ -17,6 +17,12 @@ export default class Activity {
     @PrimaryGeneratedColumn()
     id!: number;
 
+    /* TODO: probably change how this works if there is a better way.
+     * can be "POLL", "MCQUIZ", etc. */
+    @Field()
+    @Column()
+    kind!: string;
+
     @Field()
     @Column()
     name!: string;

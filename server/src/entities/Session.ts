@@ -52,7 +52,7 @@ export default class Session {
         cascade: true,
         nullable: false,
     })
-    activities?: Activity[];
+    activities!: Activity[];
 
     @Field({ nullable: true })
     @Column({ nullable: true })
