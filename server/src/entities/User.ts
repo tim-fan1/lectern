@@ -58,4 +58,8 @@ export default class User {
      * https://stackoverflow.com/questions/64635617/how-to-set-a-nullable-database-field-to-null-with-typeorm */
     @Column({ type: "text", nullable: true })
     verifyResetCode!: string | null;
+
+    @Field({ nullable: true })
+    @Column()
+    bio?: string;
 }
