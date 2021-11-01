@@ -62,4 +62,8 @@ export default class User {
     @Field({ nullable: true })
     @Column()
     bio?: string;
+
+    @Field({ nullable: true })
+    @Column()
+    pic?: string;
 }
