@@ -94,7 +94,12 @@ if (require.main === module) {
         });
 
         const schema = await buildSchema({
-            resolvers: [HelloResolver, UserResolver, SessionResolver],
+            resolvers: [
+                HelloResolver,
+                UserResolver,
+                SessionResolver,
+                ActivityResolver,
+            ],
             emitSchemaFile: path.resolve(__dirname, "schema.gql"),
             authChecker: () => false, // TODO: this is to filter auth'd eps, remove later
         });
