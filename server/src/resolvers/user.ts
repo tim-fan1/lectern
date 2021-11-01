@@ -439,6 +439,17 @@ export default class UserResolver {
             });
         }
 
+        const newPasswordValid = !(await argon2.verify(
+            user.password,
+            newPassword
+        ));
+        if (!newPasswordValid) {
+            return EndpointResponse.withErrors({
+                kind: UserError.PASSWORD_SAME_AS_NEW_PASSWORD,
+                msg: "New password given is the same as current password",
+            });
+        }
+
         try {
             user.password = await argon2.hash(newPassword);
             user.verifyResetCode = null;
