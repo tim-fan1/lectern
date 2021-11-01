@@ -8,8 +8,7 @@ import {
     Query,
     Resolver,
 } from "type-graphql";
-import { getRepository } from "typeorm";
-import { Activity, Session } from "../entities/entities";
+import { Activity, Session, Choice } from "../entities/entities";
 import { EndpointResponse, Context } from "../types";
 
 @ObjectType()
@@ -114,13 +113,64 @@ export default class ActivityResolver {
     }
 
     @Mutation(() => ActivityResponse)
-    async addToPoll(
-        @Arg("session_id") session_id: String,
-        @Arg("activity_id") activity_id: String,
-        @Arg("name") name: String
+    async addChoice(
+        @Arg("session_id") session_id: string,
+        @Arg("activity_id") activity_id: string,
+        @Arg("name") name: string,
+        @Ctx() { conn }: Context
     ): Promise<ActivityResponse> {
-        return {
-            errors: [],
-        };
+        try {
+            /* Find the session where the activity the user wants to add to. */
+            const sessionRepo = conn.getRepository(Session);
+            const session = await sessionRepo.findOne({
+                where: { id: session_id },
+            });
+            if (session === undefined)
+                return ActivityResponse.withErrors({
+                    kind: ActivityErrors.SESSION_NOT_EXIST,
+                    msg: "Session does not exist",
+                });
+            /* Find the activity the user wants to add to. */
+            const activityRepo = conn.getRepository(Activity);
+            const activity = await activityRepo.findOne({
+                where: { id: activity_id },
+            });
+            if (activity === undefined)
+                return ActivityResponse.withErrors({
+                    kind: ActivityErrors.ACTIVITY_NOT_EXIST,
+                    msg: "Activity does not exist",
+                });
+            /* Make sure that this activity belongs to the session; that activity is in session.activities. */
+            const activities = session.activities.filter(
+                (activity) => activity.id === parseInt(activity_id, 10)
+            );
+            if (activities.length !== 1) {
+                return ActivityResponse.withErrors({
+                    kind: ActivityErrors.ACTIVITY_NOT_EXIST,
+                    msg: "Activity does not exist in this session",
+                });
+            }
+            /* Create choice. */
+            const choiceRepo = conn.getRepository(Choice);
+            const choice = choiceRepo.create({
+                name: name,
+                votes: 0,
+                activity: activity,
+            });
+            await choiceRepo.save(choice);
+            /* Insert that choice into activity.choices. */
+            activity.choices.push(choice);
+            await activityRepo.save(activity);
+            /* Success! */
+            return {
+                errors: [],
+                activity: activity,
+            };
+        } catch (e: Error | any) {
+            return ActivityResponse.withErrors({
+                kind: ActivityErrors.DB_ERROR,
+                msg: e.message,
+            });
+        }
     }
 }
