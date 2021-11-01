@@ -30,10 +30,14 @@ export default async function sendEmail(
         },
     });
     // send mail with defined transport object
-    await transporter.sendMail({
-        from: config.companyEmailAddress,
-        to: to,
-        subject: subject,
-        html: html,
-    });
+    try {
+        await transporter.sendMail({
+            from: config.companyEmailAddress,
+            to: to,
+            subject: subject,
+            html: html,
+        });
+    } catch (e: Error | any) {
+        console.log("(sendEmail) " + e.message);
+    }
 }
