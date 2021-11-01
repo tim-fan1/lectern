@@ -13,7 +13,7 @@ import sendEmail from "../utils/sendEmail";
 import generateAlphanumCode from "../utils/generateCode";
 import config from "../config";
 import CheckAuth from "../utils/authMiddleware";
-import { getRepository } from "typeorm";
+import { Connection, getRepository } from "typeorm";
 
 @ObjectType()
 class UserResponse extends EndpointResponse {
@@ -44,7 +44,13 @@ enum UserError {
     INVALID_VERIFICATION_CODE = "INVALID_VERIFICATION_CODE",
     PASSWORD_SAME_AS_NEW_PASSWORD = "PASSWORD_SAME_AS_NEW_PASSWORD",
 }
-
+async function isLoggedIn(conn: Connection, token: string): Promise<boolean> {
+    const loginSessionRepo = conn.getRepository(LoginSession);
+    const loginSessionItem = await loginSessionRepo.findOne({
+        where: { token: token },
+    });
+    return loginSessionItem !== undefined;
+}
 export default class UserResolver {
     @Mutation(() => UserResponse)
     async register(
@@ -54,11 +60,12 @@ export default class UserResolver {
         @Arg("password") password: string,
         @Ctx() { conn, req }: Context
     ): Promise<UserResponse> {
-        if (req.cookies.token !== undefined)
+        if (await isLoggedIn(conn, req.cookies.token)) {
             return UserResponse.withErrors({
                 kind: UserError.LOGGED_IN,
                 msg: "Already logged in!",
             });
+        }
 
         /* Validate username, password, email. */
         const validationErrors: RespError[] = [];
@@ -166,9 +173,8 @@ export default class UserResolver {
         @Arg("password") password: string,
         @Ctx() { req, res, conn }: Context
     ): Promise<EndpointResponse> {
-        /* FIXME: Really shady way of checking if someone's logged in */
-        if (req.cookies.token !== undefined) {
-            return EndpointResponse.withErrors({
+        if (await isLoggedIn(conn, req.cookies.token)) {
+            return UserResponse.withErrors({
                 kind: UserError.LOGGED_IN,
                 msg: "Already logged in!",
             });
