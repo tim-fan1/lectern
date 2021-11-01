@@ -7,7 +7,7 @@ import Navigation from "../../components/Navigation";
 import styles from "../../styles/create.module.css";
 
 const MutationSession = `
-    mutation ($group: String!, $name: String!) {
+    mutation ($group: String, $name: String!) {
         createSession(group: $group, name: $name) {
             errors {
                 kind,
@@ -42,26 +42,30 @@ export default function Dashboard() {
     const [name, setName] = useState("");
 
     const [errors, setErrors] = useState([] as string[]);
-    const [selectedButton, setSelectedButton] = useState(undefined as string | undefined)
+    const [selectedButton, setSelectedButton] = useState(undefined as string | undefined);
 
-    const [result] = useQuery({query: QueryGroups})
+    const [result] = useQuery({ query: QueryGroups });
     const { data, fetching, error } = result;
-    let groups = [] as string[]
+    let groups = [] as string[];
     if (!fetching) {
-        if (data.getGroups.errors.length !== 0) {
-            groups = ["error while fetching groups"] // bodge haha
+        if (data.getGroups.errors.length !== 0 || error) {
+            groups = ["error while fetching groups"]; // bodge haha
         } else {
-            groups = data.getGroups.groups
+            groups = data.getGroups.groups;
+            if (groups === null) {
+                groups = [];
+                debugger;
+            }
         }
     }
     const addNewGroupInput = useRef<HTMLInputElement>(null);
-
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         const variables = {
-            group: "owo",
+            // dont specify group if empty string is specified
+            group: selectedButton !== "" ? selectedButton : undefined,
             name: name,
         };
         createSession(variables).then((result) => {
@@ -110,35 +114,48 @@ export default function Dashboard() {
                     <p>Add this session to a group</p>
                     <div className={styles.container_add_group}>
                         {groups.map((groupName, i) => {
-                            let className = `btn btn_secondary ${styles.group_button}`
+                            let className = `btn btn_secondary ${styles.group_button}`;
                             if (groupName === selectedButton) {
-                               className += ` ${styles.group_selected_button}`
+                                className += ` ${styles.group_selected_button}`;
                             }
-                            return <input className={className} type="button" key={i} value={groupName}
-                                onClick={() => {
-                                    if (selectedButton === groupName) {
-                                        // unset it
-                                        setSelectedButton(undefined)
-                                    } else {
-                                        setSelectedButton(groupName);
-                                        // input element shouldn't be null
-                                        // kludge - this doesnt trigger onChange
-                                        // so we need to manually set it
-                                        addNewGroupInput.current!.value = ""
-                                        addNewGroupInput.current!.className = "btn btn_secondary"
-                                    }
-                                }}/>
+                            return (
+                                <input
+                                    className={className}
+                                    type="button"
+                                    key={i}
+                                    value={groupName}
+                                    onClick={() => {
+                                        if (selectedButton === groupName) {
+                                            // unset it
+                                            setSelectedButton(undefined);
+                                        } else {
+                                            setSelectedButton(groupName);
+                                            // input element shouldn't be null
+                                            // kludge - this doesnt trigger onChange
+                                            // so we need to manually set it
+                                            addNewGroupInput.current!.value = "";
+                                            addNewGroupInput.current!.className =
+                                                "btn btn_secondary";
+                                        }
+                                    }}
+                                />
+                            );
                         })}
                         <div>
-                            <input ref={addNewGroupInput} className="btn btn_secondary" placeholder="Create a new group +"
-                            onChange={(e) => {
-                                if (e.target.value === "") {
-                                    e.target.className = "btn btn_secondary"
-                                } else {
-                                    e.target.className = `btn btn_secondary ${styles.group_selected_button}`
-                                    setSelectedButton(e.target.value);
-                                }
-                            }}/>
+                            <input
+                                id={styles.add_new_group_input}
+                                ref={addNewGroupInput}
+                                className="btn btn_secondary"
+                                placeholder="Create a new group +"
+                                onChange={(e) => {
+                                    if (e.target.value === "") {
+                                        e.target.className = `btn btn_secondary`;
+                                    } else {
+                                        e.target.className = `btn btn_secondary ${styles.group_selected_button}`;
+                                        setSelectedButton(e.target.value);
+                                    }
+                                }}
+                            />
                         </div>
                     </div>
                 </div>
