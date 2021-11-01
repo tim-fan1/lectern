@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useQuery } from "urql";
 import { FormEvent, useState } from "react";
 import Navigation from "../../../components/Navigation";
+import styles from "../../../styles/edit.module.css";
 
 const QueryGetSessionById = `
     query ($id: String!) {
@@ -67,6 +68,20 @@ export default function SessionEdit() {
                         />
                     </div>
                 </form>
+                <div id={styles.container_add_activity} className="container_center">
+                    <h2>Prepare session activities to activate during the session</h2>
+                    <div id={styles.container_create_cards}>
+                        <Link href="/instructor/create/poll">
+                            <a className={styles.card_create_activity}>Create a Poll</a>
+                        </Link>
+                        <Link href="">
+                            <a className={styles.card_create_activity}>Create a Quiz (soon™)</a>
+                        </Link>
+                        <Link href="">
+                            <a className={styles.card_create_activity}>Create a Q&A (soon™)</a>
+                        </Link>
+                    </div>
+                </div>
             </div>
         </div>
     );

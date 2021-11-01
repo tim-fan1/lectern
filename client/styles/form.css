@@ -102,3 +102,15 @@ p.error {
     color: var(--c-red);
     text-align: center;
 }
+
+.form_container_btn {
+    margin-top: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form_container_btn button {
+    margin: 1rem;
+    min-width: 10rem;
+}
