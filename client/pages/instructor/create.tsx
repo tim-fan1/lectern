@@ -1,8 +1,8 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { FormEvent, useState } from "react";
-import { useMutation } from "urql";
+import { FormEvent, useRef, useState } from "react";
+import { useMutation, useQuery } from "urql";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/create.module.css";
 
@@ -23,6 +23,18 @@ const MutationSession = `
     }
 `;
 
+const QueryGroups = `
+query {
+    getGroups {
+        errors {
+            kind,
+            msg
+        }
+        groups
+    }
+}
+`;
+
 export default function Dashboard() {
     const router = useRouter();
     const [_, createSession] = useMutation(MutationSession);
@@ -30,6 +42,20 @@ export default function Dashboard() {
     const [name, setName] = useState("");
 
     const [errors, setErrors] = useState([] as string[]);
+    const [selectedButton, setSelectedButton] = useState(undefined as string | undefined)
+
+    const [result] = useQuery({query: QueryGroups})
+    const { data, fetching, error } = result;
+    let groups = [] as string[]
+    if (!fetching) {
+        if (data.getGroups.errors.length !== 0) {
+            groups = ["error while fetching groups"] // bodge haha
+        } else {
+            groups = data.getGroups.groups
+        }
+    }
+    const addNewGroupInput = useRef<HTMLInputElement>(null);
+
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -78,6 +104,42 @@ export default function Dashboard() {
                         <Link href="/instructor/create">
                             <a className={styles.card_create_activity}>Create a Q&A (soon™)</a>
                         </Link>
+                    </div>
+                </div>
+                <div className="container_center">
+                    <p>Add this session to a group</p>
+                    <div className={styles.container_add_group}>
+                        {groups.map((groupName, i) => {
+                            let className = `btn btn_secondary ${styles.group_button}`
+                            if (groupName === selectedButton) {
+                               className += ` ${styles.group_selected_button}`
+                            }
+                            return <input className={className} type="button" key={i} value={groupName}
+                                onClick={() => {
+                                    if (selectedButton === groupName) {
+                                        // unset it
+                                        setSelectedButton(undefined)
+                                    } else {
+                                        setSelectedButton(groupName);
+                                        // input element shouldn't be null
+                                        // kludge - this doesnt trigger onChange
+                                        // so we need to manually set it
+                                        addNewGroupInput.current!.value = ""
+                                        addNewGroupInput.current!.className = "btn btn_secondary"
+                                    }
+                                }}/>
+                        })}
+                        <div>
+                            <input ref={addNewGroupInput} className="btn btn_secondary" placeholder="Create a new group +"
+                            onChange={(e) => {
+                                if (e.target.value === "") {
+                                    e.target.className = "btn btn_secondary"
+                                } else {
+                                    e.target.className = `btn btn_secondary ${styles.group_selected_button}`
+                                    setSelectedButton(e.target.value);
+                                }
+                            }}/>
+                        </div>
                     </div>
                 </div>
                 <div id={styles.container_btn}>
