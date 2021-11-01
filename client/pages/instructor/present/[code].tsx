@@ -24,8 +24,6 @@ const QuerySessionDetails = `
     }
 `;
 
-// TODO: fix up these class names
-
 export default function Present() {
     const router = useRouter();
     const { code } = router.query;
