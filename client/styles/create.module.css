@@ -82,3 +82,6 @@
 #add_new_group_input:hover.group_selected_button {
     color: black;
 }
+.group_button:hover.group_selected_button {
+    color: black;
+}
