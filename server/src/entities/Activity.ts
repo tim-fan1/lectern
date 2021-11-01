@@ -29,6 +29,7 @@ export default class Activity {
     /* One activity contains many choices. */
     @Field(() => [Choice])
     @OneToMany(() => Choice, (choice) => choice.activity, {
+        /* Always grab the choices relation; activity.choices is never null. */
         eager: true,
         orphanedRowAction: "delete",
         cascade: true,

@@ -83,7 +83,7 @@ export default class SessionResolver {
         }
     }
 
-    /* TODO add more edit fields? and define entity type properly */
+    /* TODO: add more edit fields? and define entity type properly */
     @CheckAuth()
     @Mutation(() => EndpointResponse)
     async editSession(
