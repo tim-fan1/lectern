@@ -173,4 +173,53 @@ export default class ActivityResolver {
             });
         }
     }
+
+    @CheckAuth(["sessions"])
+    @Mutation(() => ActivityResponse)
+    async startActivity(
+        @Arg("session_id") session_id: string,
+        @Arg("activity_id") activity_id: string,
+        @Ctx() { conn, user }: AuthedContext
+    ): Promise<ActivityResponse> {
+        try {
+            /* Does the session pointed by id belong to user? */
+            const sessions = user.sessions.filter(
+                (session) => session.id === parseInt(session_id, 10)
+            );
+            if (sessions.length !== 1) {
+                return ActivityResponse.withErrors({
+                    kind: ActivityErrors.SESSION_NOT_EXIST,
+                    msg: "Session does not exist",
+                });
+            }
+            const session = sessions[0];
+            /* Does the activity pointed by id belong to session (that we know belongs to user)? */
+            const activities = session.activities.filter(
+                (activity) => activity.id === parseInt(activity_id, 10)
+            );
+            if (activities.length !== 1) {
+                return ActivityResponse.withErrors({
+                    kind: ActivityErrors.ACTIVITY_NOT_EXIST,
+                    msg: "Activity does not exist",
+                });
+            }
+            const activity = activities[0];
+            /* Update activity repo */
+            const activityRepo = conn.getRepository(Activity);
+            activity.state = "open";
+            await activityRepo.save(activity);
+            /* The activity is now started.
+             * TODO: How is this event published to the subscribers? */
+            /* Success! */
+            return {
+                errors: [],
+                activity: activity,
+            };
+        } catch (e: Error | any) {
+            return ActivityResponse.withErrors({
+                kind: ActivityErrors.DB_ERROR,
+                msg: e.message,
+            });
+        }
+    }
 }
