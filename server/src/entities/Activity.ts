@@ -33,7 +33,7 @@ export default class Activity {
     session!: Session;
 
     /* One activity contains many choices. */
-    @Field(() => [Choice])
+    @Field(() => [Choice], { defaultValue: [] })
     @OneToMany(() => Choice, (choice) => choice.activity, {
         /* Always grab the choices relation; activity.choices is never null. */
         eager: true,

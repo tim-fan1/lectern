@@ -15,8 +15,10 @@ import generateAlphanumCode from "../utils/generateCode";
 import CheckAuth from "../utils/authMiddleware";
 import { getRepository } from "typeorm";
 
+// TODO: this is exported for use in sessionSubscription; should it be somewhere
+// else like types.ts?
 @ObjectType()
-class SessionResponse extends EndpointResponse {
+export class SessionResponse extends EndpointResponse {
     @Field({ nullable: true })
     session?: Session;
 }
