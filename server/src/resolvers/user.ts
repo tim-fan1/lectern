@@ -418,27 +418,30 @@ export default class UserResolver {
     ): Promise<EndpointResponse> {
         const userRepo = conn.getRepository(User);
         let user;
+        let errors: RespError[] = [];
+
+        if (!validatePassword(newPassword)) {
+            errors.push({
+                kind: UserError.BAD_PASSWORD,
+                msg: "Invalid password given",
+            });
+        }
 
         try {
             user = await userRepo.findOne({ where: { verifyResetCode: code } });
         } catch (e: Error | any) {
-            return EndpointResponse.withErrors({
+            errors.push({
                 kind: UserError.DB_ERROR,
                 msg: e.message,
             });
         }
 
-        if (user === undefined || !user.verified)
-            return EndpointResponse.withErrors({
+        if (user === undefined || !user.verified) {
+            errors.push({
                 kind: UserError.INVALID_VERIFICATION_CODE,
                 msg: "Invalid verification link",
             });
-
-        if (!validatePassword(newPassword)) {
-            return EndpointResponse.withErrors({
-                kind: UserError.BAD_PASSWORD,
-                msg: "Invalid password given",
-            });
+            return EndpointResponse.withErrors(...errors);
         }
 
         const newPasswordValid = !(await argon2.verify(

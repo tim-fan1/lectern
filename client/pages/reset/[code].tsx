@@ -29,6 +29,7 @@ export default function VerifyEmail() {
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        setErrors([]);
 
         const variables = {
             code: code,
