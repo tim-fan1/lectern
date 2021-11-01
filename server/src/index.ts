@@ -12,16 +12,8 @@ import {
     HelloResolver,
     UserResolver,
     SessionResolver,
-    ActivityResolver,
 } from "./resolvers/resolvers";
-import {
-    User,
-    LoginSession,
-    Session,
-    VerifyEmail,
-    Activity,
-    Choice,
-} from "./entities/entities";
+import { User, LoginSession, Session, VerifyEmail } from "./entities/entities";
 import cookieParser from "cookie-parser";
 import config from "./config";
 
@@ -83,25 +75,13 @@ if (require.main === module) {
             // replace this with ormconfig.json later (tm)
             type: "sqlite",
             database: "owo.db",
-            entities: [
-                User,
-                LoginSession,
-                Session,
-                VerifyEmail,
-                Activity,
-                Choice,
-            ],
+            entities: [User, LoginSession, Session, VerifyEmail],
         });
 
         const schema = await buildSchema({
-            resolvers: [
-                HelloResolver,
-                UserResolver,
-                SessionResolver,
-                ActivityResolver,
-            ],
+            resolvers: [HelloResolver, UserResolver, SessionResolver],
             emitSchemaFile: path.resolve(__dirname, "schema.gql"),
-            authChecker: () => false, // TODO: this is to filter auth'd eps, remove later
+            authChecker: () => false, // TODO this is to filter auth'd eps, remove later
         });
 
         // real fudge - will create tables, kinda bad though in production

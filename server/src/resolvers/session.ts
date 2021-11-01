@@ -61,6 +61,7 @@ export default class SessionResolver {
         @Ctx() { conn, user }: AuthedContext,
         @Arg("name") name: string,
         @Arg("group", { nullable: true }) group?: string
+        // @Arg("activities", () => [Activity], { nullable: true }) activities?: Activity[]
     ): Promise<SessionResponse> {
         try {
             const sessionRepo = conn.getRepository(Session);
@@ -68,7 +69,7 @@ export default class SessionResolver {
                 name: name,
                 group: group,
                 author: user,
-                activities: [],
+                // savedActivities: activities,
             });
             await sessionRepo.save(newSession);
 
@@ -84,7 +85,7 @@ export default class SessionResolver {
         }
     }
 
-    /* TODO: add more edit fields? and define entity type properly */
+    /* TODO add more edit fields? and define entity type properly */
     @CheckAuth()
     @Mutation(() => EndpointResponse)
     async editSession(
@@ -92,6 +93,7 @@ export default class SessionResolver {
         @Arg("id", () => Int) id: number,
         @Arg("name", { nullable: true }) name?: string,
         @Arg("group", { nullable: true }) group?: string
+        /// @Arg("activities", () => [Activity], { nullable: true }) activities?: Activity[]
     ): Promise<EndpointResponse> {
         try {
             const sessionRepo = conn.getRepository(Session);

@@ -4,7 +4,6 @@ import {
     CreateDateColumn,
     Entity,
     ManyToOne,
-    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from "typeorm";
@@ -19,7 +18,6 @@ export default class Session {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    /* Many sessions belong to one user. */
     @Field(() => User)
     @ManyToOne(() => User, (user) => user.sessions)
     author!: User;
@@ -44,15 +42,13 @@ export default class Session {
     @Column({ nullable: true })
     endTime?: Date;
 
-    /* One session contains many activities. */
-    @OneToMany(() => Activity, (activity) => activity.session, {
-        /* Always grab the activities relation; session.activities is never null. */
-        eager: true,
-        orphanedRowAction: "delete",
-        cascade: true,
-        nullable: false,
-    })
-    activities!: Activity[];
+    // @Field(() => [Activity])
+    // @Column({ default: [] })
+    savedActivities?: Activity[];
+
+    // @Field(() => [Activity])
+    // @Column({ default: [] })
+    activeActivities!: Activity[];
 
     @Field({ nullable: true })
     @Column({ nullable: true })
