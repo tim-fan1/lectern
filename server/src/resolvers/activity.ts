@@ -9,7 +9,8 @@ import {
     Resolver,
 } from "type-graphql";
 import { Activity, Session, Choice } from "../entities/entities";
-import { EndpointResponse, Context } from "../types";
+import { EndpointResponse, AuthedContext } from "../types";
+import CheckAuth from "../utils/authMiddleware";
 
 @ObjectType()
 class ActivityResponse extends EndpointResponse {
@@ -37,22 +38,24 @@ enum ActivityKinds {
 
 @Resolver()
 export default class ActivityResolver {
+    @CheckAuth(["sessions"])
     @Query(() => ActivityArrResponse)
     async getActivities(
         @Arg("session_id") session_id: string,
-        @Ctx() { conn }: Context
+        @Ctx() { user }: AuthedContext
     ): Promise<ActivityArrResponse> {
         try {
-            const sessionRepo = conn.getRepository(Session);
-            const session = await sessionRepo.findOne({
-                where: { id: session_id },
-            });
-            if (session === undefined)
+            /* Does the session pointed by id belong to user? */
+            const sessions = user.sessions.filter(
+                (session) => session.id === parseInt(session_id, 10)
+            );
+            if (sessions.length !== 1) {
                 return ActivityResponse.withErrors({
                     kind: ActivityErrors.SESSION_NOT_EXIST,
                     msg: "Session does not exist",
                 });
-            return { errors: [], activities: session.activities };
+            }
+            return { errors: [], activities: sessions[0].activities };
         } catch (e: Error | any) {
             return ActivityResponse.withErrors({
                 kind: ActivityErrors.DB_ERROR,
@@ -61,12 +64,13 @@ export default class ActivityResolver {
         }
     }
 
+    @CheckAuth(["sessions"])
     @Mutation(() => ActivityResponse)
     async createActivity(
         @Arg("session_id") session_id: string,
         @Arg("name") name: string,
         @Arg("kind") kind: string,
-        @Ctx() { conn }: Context
+        @Ctx() { conn, user }: AuthedContext
     ): Promise<ActivityResponse> {
         try {
             /* Validate kind. */
@@ -77,17 +81,18 @@ export default class ActivityResolver {
                     msg: "An activity of that kind can not be created",
                 });
             }
-            /* Find the session the user wants to add an activity to. */
-            const sessionRepo = conn.getRepository(Session);
-            const session = await sessionRepo.findOne({
-                where: { id: session_id },
-            });
-            if (session === undefined)
+            /* Does the session pointed by id belong to user? */
+            const sessions = user.sessions.filter(
+                (session) => session.id === parseInt(session_id, 10)
+            );
+            if (sessions.length !== 1) {
                 return ActivityResponse.withErrors({
                     kind: ActivityErrors.SESSION_NOT_EXIST,
                     msg: "Session does not exist",
                 });
-            /* Create empty activity of kind. */
+            }
+            const session = sessions[0];
+            /* Update activity repo. */
             const activityRepo = conn.getRepository(Activity);
             const activity = activityRepo.create({
                 kind: kind,
@@ -96,7 +101,8 @@ export default class ActivityResolver {
                 choices: [],
             });
             await activityRepo.save(activity);
-            /* Insert that activity into session.activities. */
+            /* Update session repo. */
+            const sessionRepo = conn.getRepository(Session);
             session.activities.push(activity);
             await sessionRepo.save(session);
             /* Success! */
@@ -112,45 +118,38 @@ export default class ActivityResolver {
         }
     }
 
+    @CheckAuth(["sessions"])
     @Mutation(() => ActivityResponse)
     async addChoice(
         @Arg("session_id") session_id: string,
         @Arg("activity_id") activity_id: string,
         @Arg("name") name: string,
-        @Ctx() { conn }: Context
+        @Ctx() { conn, user }: AuthedContext
     ): Promise<ActivityResponse> {
         try {
-            /* Find the session where the activity the user wants to add to. */
-            const sessionRepo = conn.getRepository(Session);
-            const session = await sessionRepo.findOne({
-                where: { id: session_id },
-            });
-            if (session === undefined)
+            /* Does the session pointed by id belong to user? */
+            const sessions = user.sessions.filter(
+                (session) => session.id === parseInt(session_id, 10)
+            );
+            if (sessions.length !== 1) {
                 return ActivityResponse.withErrors({
                     kind: ActivityErrors.SESSION_NOT_EXIST,
                     msg: "Session does not exist",
                 });
-            /* Find the activity the user wants to add to. */
-            const activityRepo = conn.getRepository(Activity);
-            const activity = await activityRepo.findOne({
-                where: { id: activity_id },
-            });
-            if (activity === undefined)
-                return ActivityResponse.withErrors({
-                    kind: ActivityErrors.ACTIVITY_NOT_EXIST,
-                    msg: "Activity does not exist",
-                });
-            /* Make sure that this activity belongs to the session; that activity is in session.activities. */
+            }
+            const session = sessions[0];
+            /* Does the activity pointed by id belong to session (that we know belongs to user)? */
             const activities = session.activities.filter(
                 (activity) => activity.id === parseInt(activity_id, 10)
             );
             if (activities.length !== 1) {
                 return ActivityResponse.withErrors({
                     kind: ActivityErrors.ACTIVITY_NOT_EXIST,
-                    msg: "Activity does not exist in this session",
+                    msg: "Activity does not exist",
                 });
             }
-            /* Create choice. */
+            const activity = activities[0];
+            /* Update choice repo. */
             const choiceRepo = conn.getRepository(Choice);
             const choice = choiceRepo.create({
                 name: name,
@@ -158,7 +157,8 @@ export default class ActivityResolver {
                 activity: activity,
             });
             await choiceRepo.save(choice);
-            /* Insert that choice into activity.choices. */
+            /* Update activity repo */
+            const activityRepo = conn.getRepository(Activity);
             activity.choices.push(choice);
             await activityRepo.save(activity);
             /* Success! */
