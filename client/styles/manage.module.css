@@ -1,0 +1,10 @@
+.session_code {
+    font-weight: 600;
+}
+
+.topInfo {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+}

@@ -2,6 +2,8 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import Navigation from "../../../components/Navigation";
 import { useQuery } from "urql";
+import styles from "../../../styles/manage.module.css";
+
 const QuerySessionDetails = `
     query ($code: String!) {
         sessionDetails(code: $code) {
@@ -39,6 +41,11 @@ interface QueriedSession {
 export default function SessionManage() {
     const router = useRouter();
     const code = router.query.code;
+
+    const gotoDashboard = () => {
+        router.push("/instructor/dashboard");
+    };
+
     const [result] = useQuery({ query: QuerySessionDetails, variables: { code } });
     let { data, fetching } = result;
     let content;
@@ -52,14 +59,19 @@ export default function SessionManage() {
         let session: QueriedSession = result.data.sessionDetails.session;
         content = (
             <>
-                <h1>{session.name}</h1>
-                <p>
-                    The instructor will be able to start, close, and present the results of the
-                    activities they have created
-                </p>
-                <p>
-                    Session Code: <span>{code}</span>
-                </p>
+                <div className={styles.topInfo}>
+                    <div onClick={gotoDashboard}>
+                        <p>&lt;- Go to dashboard</p>
+                    </div>
+                    <div className="container_center">
+                        <h2>{session.name}</h2>
+                        <p>
+                            Session Code: <span className={styles.session_code}>{code}</span>
+                        </p>
+                    </div>
+                    <button className="btn btn_primary">CLose session (/)</button>
+                </div>
+                <button className="btn btn_primary">Present session</button>
             </>
         );
     }
