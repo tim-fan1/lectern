@@ -25,6 +25,13 @@ export default class LiveSession {
     }
 
     /**
+     * Increment numJoined in the session.
+     */
+    incrementCount() {
+        this.session.numJoined++;
+    }
+
+    /**
      * Create a LiveSession from the ID of a session. Looks it up in the db,
      * and throws an error if it can't find it
      * @param conn the current database connection

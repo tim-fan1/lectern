@@ -65,4 +65,10 @@ export default class Session {
     @Field({ nullable: true })
     @Column({ unique: true, nullable: true })
     code?: string;
+
+    // TODO: this is a field to test live sessions, but may well be useful anyways
+    // this only exists in-memory and not in the database (not a column) so if this
+    // is changing then we know something's working
+    @Field(() => Int)
+    numJoined: number = 0;
 }

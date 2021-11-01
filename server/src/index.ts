@@ -13,6 +13,7 @@ import {
     UserResolver,
     SessionResolver,
     ActivityResolver,
+    SessionSubscriptionResolver,
 } from "./resolvers/resolvers";
 import {
     User,
@@ -23,12 +24,15 @@ import {
 } from "./entities/entities";
 import cookieParser from "cookie-parser";
 import config from "./config";
+import LiveSession from "./utils/liveSession";
 
 async function makeApp(
     schema: GraphQLSchema,
     connection: Connection
 ): Promise<express.Express> {
     const app = express();
+
+    const openSessions = await getOpenSessions(connection);
 
     // add apollo studio when not in production mode
     const corsOrigins = config.isProduction
@@ -52,7 +56,7 @@ async function makeApp(
                     req: req,
                     res: res,
                     conn: connection,
-                    userInfo: { loggedIn: false },
+                    openSessions: openSessions,
                 },
             };
         })
@@ -90,6 +94,7 @@ if (require.main === module) {
                 HelloResolver,
                 UserResolver,
                 SessionResolver,
+                SessionSubscriptionResolver,
                 ActivityResolver,
             ],
             emitSchemaFile: path.resolve(__dirname, "schema.gql"),
@@ -112,6 +117,19 @@ if (require.main === module) {
             console.log(`Started WebSocketServer on port ${config.serverPort}`);
         });
     })();
+}
+
+/* Gets all the sessions that are currently open from the database, and returns
+ * an in-mem map of them all (mostly useful for debugging, but maybe prod too) */
+async function getOpenSessions(
+    conn: Connection
+): Promise<Map<number, LiveSession>> {
+    const map = new Map();
+    await conn
+        .getRepository(Session)
+        .find({ where: { state: "open" }, relations: ["author"] })
+        .then((ss) => ss.map((s) => map.set(s.id, new LiveSession(conn, s))));
+    return map;
 }
 
 export default makeApp;
