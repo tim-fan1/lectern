@@ -36,7 +36,6 @@ export default class User {
     @Column()
     password!: string;
 
-    //why isn't this exposed as a field? won't the frontend need to know if a user is verified?
     @Column()
     verified!: boolean;
 
