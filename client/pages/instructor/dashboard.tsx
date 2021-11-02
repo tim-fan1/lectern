@@ -20,9 +20,22 @@ const QueryGetSessions = `
                 state,
                 startTime,
                 endTime,
+                group
             }
         }
     }
+`;
+
+const QueryGroups = `
+query {
+    getGroups {
+        errors {
+            kind,
+            msg
+        }
+        groups
+    }
+}
 `;
 
 type Session = {
@@ -32,12 +45,28 @@ type Session = {
     state: SessionStateString;
     startTime?: string;
     endTime?: string;
+    group?: string;
 };
 
 export default function Dashboard() {
     const [result] = useQuery({ query: QueryGetSessions });
-
     const { data, fetching, error } = result;
+
+    const [group_result] = useQuery({ query: QueryGroups });
+    const { data: group_data, fetching: group_fetching, error: group_error } = group_result;
+    let groups = [] as string[];
+    if (!group_fetching) {
+        if (group_data.getGroups.errors.length !== 0 || error) {
+            groups = ["error while fetching groups"]; // bodge haha
+        } else {
+            groups = group_data.getGroups.groups;
+            if (groups === null) {
+                // theoretically, we should never reach here
+                // since the backend never returns a null on non errors
+                groups = [];
+            }
+        }
+    }
     // TODO: error handling, use https://www.npmjs.com/package/next-urql with getServerSideProps
 
     // TODO: below will maybe be applied for when we add groups and properly order the sessions by their details.
@@ -98,27 +127,50 @@ export default function Dashboard() {
             </Link>
             <div id={styles.container_sessions} className="container_center">
                 <h2>Sessions</h2>
-                <div id={styles.container_card_session_labels}>
-                    <h3 id={styles.session_label_name}>Name</h3>
-                    <h3 id={styles.session_label_start_time}>Start time</h3>
-                    <h3 id={styles.session_label_end_time}>End time</h3>
-                    <div></div>
-                </div>
                 {!fetching &&
-                    data.getSessions.sessions
-                        .reverse()
-                        .map((session: Session) => (
-                            <CardSession
-                                key={session.id}
-                                code={session.code}
-                                id={session.id}
-                                name={session.name}
-                                state={sessionStateFromString(session.state)}
-                                startTime={session.startTime}
-                                endTime={session.endTime}
-                            />
-                        ))}
+                    /* Building the sessions list. */
+                    groups.map((groupName, i) => {
+                        return (
+                            <div>
+                                <h1>{groupName}</h1>
+                                <div id={styles.container_card_session_labels}>
+                                    <h3 id={styles.session_label_name}>Name</h3>
+                                    <h3 id={styles.session_label_start_time}>Start time</h3>
+                                    <h3 id={styles.session_label_end_time}>End time</h3>
+                                    <div></div>
+                                </div>
+                                {/* Filter sessions so that it on contains sessions for this group.
+                                 * probably will never FIXME: everything hurts. pain. */}
+                                {data.getSessions.sessions
+                                    .filter((session: Session) => session.group === groupName)
+                                    .map((session: Session) => (
+                                        <CardSession
+                                            key={session.id}
+                                            code={session.code}
+                                            id={session.id}
+                                            name={session.name}
+                                            state={sessionStateFromString(session.state)}
+                                            startTime={session.startTime}
+                                            endTime={session.endTime}
+                                        />
+                                    ))}
+                            </div>
+                        );
+                    })}
             </div>
         </div>
     );
 }
+// data.getSessions.sessions
+//     .reverse()
+//     .map((session: Session) => (
+//         <CardSession
+//             key={session.id}
+//             code={session.code}
+//             id={session.id}
+//             name={session.name}
+//             state={sessionStateFromString(session.state)}
+//             startTime={session.startTime}
+//             endTime={session.endTime}
+//         />
+//     ))}
