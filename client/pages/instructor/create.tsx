@@ -53,8 +53,9 @@ export default function Dashboard() {
         } else {
             groups = data.getGroups.groups;
             if (groups === null) {
+                // theoretically, we should never reach here
+                // since the backend never returns a null on non errors
                 groups = [];
-                debugger;
             }
         }
     }
