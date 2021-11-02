@@ -17,6 +17,13 @@ export default class LiveSession {
     }
 
     /**
+     * Increment numJoined in the session.
+     */
+    incrementCount() {
+        this.session.numJoined++;
+    }
+
+    /**
      * Save the current state of the session to the database. Throws an error
      * if something hecks up.
      */
@@ -25,10 +32,14 @@ export default class LiveSession {
     }
 
     /**
-     * Increment numJoined in the session.
+     * Close a session. Sets the session's state to archived and saves out to
+     * database. Remember to remove this LiveSession from your list of sessions
+     * just before closing.
      */
-    incrementCount() {
-        this.session.numJoined++;
+    async close() {
+        this.session.state = "archived";
+        this.session.endTime = new Date();
+        this.save();
     }
 
     /**
