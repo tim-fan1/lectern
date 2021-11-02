@@ -7,19 +7,23 @@ import {
     Subscription,
     PubSub,
     PubSubEngine,
+    Int,
 } from "type-graphql";
 import { AuthedContext, Context, EndpointResponse } from "../types";
 import CheckAuth from "../utils/authMiddleware";
 import LiveSession from "../utils/liveSession";
 import { SessionErrors, SessionResponse } from "./session";
 
+/* Function to convert an id to a topic string */
+const topic = (id: number): string => "SESSION_" + id.toString();
+
 @Resolver()
 export default class SessionSubscriptionResolver {
     @Subscription(() => SessionResponse, {
-        topics: ({ args }) => args.id.toString(),
+        topics: ({ args }) => topic(args.id),
     })
     async sessionSubscription(
-        @Arg("id") id: string,
+        @Arg("id", () => Int) id: number,
         @Root() payload: LiveSession
     ): Promise<SessionResponse> {
         // not sure about how to reject a subscription? maybe if the frontend
@@ -41,12 +45,12 @@ export default class SessionSubscriptionResolver {
      * is not a db column). */
     @Mutation(() => EndpointResponse)
     async testInteraction(
-        @Arg("id") id: string,
+        @Arg("id", () => Int) id: number,
         @Ctx() { openSessions }: Context,
         @PubSub() pubsub: PubSubEngine
     ): Promise<EndpointResponse> {
         /* look for this session in openSessions from the context (not db) */
-        const thisLive = openSessions.get(parseInt(id, 10));
+        const thisLive = openSessions.get(id);
         if (thisLive === undefined)
             return SessionResponse.withErrors({
                 kind: SessionErrors.SESSION_NOT_EXIST,
@@ -57,7 +61,7 @@ export default class SessionSubscriptionResolver {
         thisLive.incrementCount();
 
         /* publish the entire LiveSession on the relevant topic with this id */
-        pubsub.publish(id, thisLive);
+        pubsub.publish(topic(id), thisLive);
 
         return EndpointResponse.withErrors();
     }
@@ -65,20 +69,20 @@ export default class SessionSubscriptionResolver {
     @CheckAuth()
     @Mutation(() => SessionResponse)
     async closeSession(
-        @Arg("id") id: string,
+        @Arg("id", () => Int) id: number,
         @Ctx() { openSessions, user }: AuthedContext,
         @PubSub() pubsub: PubSubEngine
     ): Promise<SessionResponse> {
-        const thisLive = openSessions.get(parseInt(id, 10));
+        const thisLive = openSessions.get(id);
         if (thisLive === undefined || thisLive.session.author.id != user.id)
             return SessionResponse.withErrors({
                 kind: SessionErrors.SESSION_NOT_EXIST,
             });
 
-        openSessions.delete(parseInt(id, 10));
+        openSessions.delete(id);
         thisLive.close();
 
-        pubsub.publish(id, thisLive);
+        pubsub.publish(topic(id), thisLive);
 
         return { errors: [], session: thisLive.session };
     }
