@@ -95,7 +95,7 @@ export default class ActivityResolver {
                 });
             if (
                 session.activities.filter((activity) => activity.name === name)
-                    .length !== 1
+                    .length !== 0
             ) {
                 return EndpointResponse.withErrors({
                     kind: ActivityErrors.ACTIVITY_NAME_ALREADY_EXIST,
