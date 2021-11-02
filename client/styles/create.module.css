@@ -60,3 +60,28 @@
     margin: 1rem;
     min-width: 10rem;
 }
+
+.container_add_group {
+    display: flex;
+    flex-direction: row;
+}
+
+.container_add_group input {
+    margin: 0.5rem 1rem
+}
+
+.group_selected_button {
+    background-color: white;
+    color: black;
+}
+
+.group_button {
+    padding: 0.5rem 2rem;
+}
+
+#add_new_group_input:hover.group_selected_button {
+    color: black;
+}
+.group_button:hover.group_selected_button {
+    color: black;
+}
