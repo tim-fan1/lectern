@@ -46,8 +46,6 @@ export default class Session {
 
     /* One session contains many activities. */
     @OneToMany(() => Activity, (activity) => activity.session, {
-        /* Always grab the activities relation; session.activities is never null. */
-        eager: true,
         orphanedRowAction: "delete",
         cascade: true,
         nullable: false,

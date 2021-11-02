@@ -52,7 +52,7 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
         startSession({ id: id }).then((result) => {
             if (result.data.startSession.errors.length === 0) {
                 setError("");
-                state = SessionState.open;
+                state = SessionState.OPEN;
                 /* startSession generates a code, so we set that prop since it previously didn't exist .*/
                 code = result.data.startSession.session.code;
             } else {
@@ -65,7 +65,7 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
         closeSession({ id: id }).then((result) => {
             if (result.data.closeSession.errors.length === 0) {
                 setError("");
-                state = SessionState.archived;
+                state = SessionState.ARCHIVED;
                 endTime = result.data.closeSession.session.endTime;
             } else {
                 setError(`Could not close session "${name}". Please try again.`);
@@ -81,15 +81,7 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
                 </p>
             )}
             <div className={styles.container}>
-                <h3 className={styles.name}>
-                    {state !== SessionState.open && <p>{name}</p>}
-                    {/* We accent this button to make it extra clear that it is now clickable. */}
-                    {state === SessionState.open && (
-                        <Link href={`/session/manage/${code}`}>
-                            <a className={styles.accent_anchor}>{name}</a>
-                        </Link>
-                    )}
-                </h3>
+                <h3 className={styles.name}>{name}</h3>
                 <div className={styles.datetimes}>
                     {startTime && <p>{`${sessionDateToString(new Date(startTime))}`}</p>}
                     {endTime && <p>{`${sessionDateToString(new Date(endTime))}`}</p>}
@@ -97,21 +89,23 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
                 <div id={styles.container_actions}>
                     <a
                         onClick={
-                            state === SessionState.draft ? handleStartSession : handleCloseSession
+                            state === SessionState.DRAFT ? handleStartSession : handleCloseSession
                         }
                     >
-                        {state === SessionState.draft && "Start"}
-                        {state === SessionState.open && "Close"}
+                        {state === SessionState.DRAFT && "Start"}
+                        {state === SessionState.OPEN && "Close"}
                     </a>
                     {/* We have the invariant that if the session state is in open, then we will have a non-null code. */}
-                    {state === SessionState.open && (
-                        <Link href={`/instructor/present/${code}`}>
-                            <a className={styles.accent_anchor}>Present</a>
+                    {state === SessionState.OPEN && (
+                        <Link href={`/instructor/${code}/present`}>
+                            <a>Present</a>
                         </Link>
                     )}
-                    <Link href={`/session/edit/${id}`}>
-                        <a>Edit</a>
-                    </Link>
+                    {state === SessionState.OPEN && (
+                        <Link href={`/instructor/${code}/`}>
+                            <a className={styles.link_manage}>Manage</a>
+                        </Link>
+                    )}
                 </div>
             </div>
         </div>
