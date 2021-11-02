@@ -19,7 +19,7 @@ export default class SessionSubscriptionResolver {
         topics: ({ args }) => args.id.toString(),
     })
     async sessionSubscription(
-        @Arg("id") id: number,
+        @Arg("id") id: string,
         @Root() payload: LiveSession
     ): Promise<SessionResponse> {
         // not sure about how to reject a subscription? maybe if the frontend
@@ -41,12 +41,12 @@ export default class SessionSubscriptionResolver {
      * is not a db column). */
     @Mutation(() => EndpointResponse)
     async testInteraction(
-        @Arg("id") id: number,
+        @Arg("id") id: string,
         @Ctx() { openSessions }: Context,
         @PubSub() pubsub: PubSubEngine
     ): Promise<EndpointResponse> {
         /* look for this session in openSessions from the context (not db) */
-        const thisLive = openSessions.get(id);
+        const thisLive = openSessions.get(parseInt(id, 10));
         if (thisLive === undefined)
             return SessionResponse.withErrors({
                 kind: SessionErrors.SESSION_NOT_EXIST,
@@ -57,7 +57,7 @@ export default class SessionSubscriptionResolver {
         thisLive.incrementCount();
 
         /* publish the entire LiveSession on the relevant topic with this id */
-        pubsub.publish(id.toString(), thisLive);
+        pubsub.publish(id, thisLive);
 
         return EndpointResponse.withErrors();
     }
@@ -65,20 +65,20 @@ export default class SessionSubscriptionResolver {
     @CheckAuth()
     @Mutation(() => SessionResponse)
     async closeSession(
-        @Arg("id") id: number,
+        @Arg("id") id: string,
         @Ctx() { openSessions, user }: AuthedContext,
         @PubSub() pubsub: PubSubEngine
     ): Promise<SessionResponse> {
-        const thisLive = openSessions.get(id);
+        const thisLive = openSessions.get(parseInt(id, 10));
         if (thisLive === undefined || thisLive.session.author.id != user.id)
             return SessionResponse.withErrors({
                 kind: SessionErrors.SESSION_NOT_EXIST,
             });
 
-        openSessions.delete(id);
+        openSessions.delete(parseInt(id, 10));
         thisLive.close();
 
-        pubsub.publish(id.toString(), thisLive);
+        pubsub.publish(id, thisLive);
 
         return { errors: [], session: thisLive.session };
     }
