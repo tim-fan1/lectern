@@ -50,14 +50,18 @@ type Session = {
 };
 
 export default function Dashboard() {
-    const [result] = useQuery({ query: QueryGetSessions });
-    const { data, fetching, error } = result;
+    const [sessions_result] = useQuery({ query: QueryGetSessions });
+    const {
+        data: sessions_data,
+        fetching: sessions_fetching,
+        error: sessions_error,
+    } = sessions_result;
 
     const [group_result] = useQuery({ query: QueryGroups });
     const { data: group_data, fetching: group_fetching, error: group_error } = group_result;
     let groups = [] as string[];
     if (!group_fetching) {
-        if (group_data.getGroups.errors.length !== 0 || error) {
+        if (group_data.getGroups.errors.length !== 0 || group_error) {
             groups = ["error while fetching groups"]; // bodge haha
         } else {
             groups = group_data.getGroups.groups;
@@ -114,7 +118,7 @@ export default function Dashboard() {
             <ButtonCreate href="/instructor/create" text="Create session" />
             <div id={styles.container_sessions} className="container_center">
                 <h2>Sessions</h2>
-                {!fetching &&
+                {!sessions_fetching &&
                     /* Building the sessions list. */
                     groups.map((groupName, i) => {
                         return (
@@ -128,7 +132,7 @@ export default function Dashboard() {
                                 </div>
                                 {/* Filter sessions so that it on contains sessions for this group.
                                  * probably will never FIXME: everything hurts. pain. */}
-                                {data.getSessions.sessions
+                                {sessions_data.getSessions.sessions
                                     .filter((session: Session) => session.group === groupName)
                                     .map((session: Session) => (
                                         <CardSession
