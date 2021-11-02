@@ -119,10 +119,11 @@ export default function Dashboard() {
             <div id={styles.container_sessions} className="container_center">
                 <h2>Sessions</h2>
                 {!sessions_fetching &&
-                    /* Building the sessions list. */
+                    /* The list of sessions with a group attached. */
                     groups.map((groupName, i) => {
                         return (
                             <div key={i.toString()}>
+                                {/* TODO: probably center this group name lmao. */}
                                 <h1>{groupName}</h1>
                                 <div id={styles.container_card_session_labels}>
                                     <h3 id={styles.session_label_name}>Name</h3>
@@ -130,8 +131,7 @@ export default function Dashboard() {
                                     <h3 id={styles.session_label_end_time}>End time</h3>
                                     <div></div>
                                 </div>
-                                {/* Filter sessions so that it on contains sessions for this group.
-                                 * probably will never FIXME: everything hurts. pain. */}
+                                {/* Filter sessions so that it on contains sessions for this group. */}
                                 {sessions_data.getSessions.sessions
                                     .filter((session: Session) => session.group === groupName)
                                     .map((session: Session) => (
@@ -148,6 +148,34 @@ export default function Dashboard() {
                             </div>
                         );
                     })}
+                {/* The list of sessions with no group attached. */}
+                <h1>No group</h1>
+                <div id={styles.container_card_session_labels}>
+                    <h3 id={styles.session_label_name}>Name</h3>
+                    <h3 id={styles.session_label_start_time}>Start time</h3>
+                    <h3 id={styles.session_label_end_time}>End time</h3>
+                    <div></div>
+                </div>
+                {!sessions_fetching &&
+                    // console.log(
+                    //     sessions_data.getSessions.sessions
+                    //         /* Ok, this is actually pain. */
+                    //         .filter((session: Session) => session.group === null)
+                    // ) &&
+                    sessions_data.getSessions.sessions
+                        /* Ok, this is actually pain. */
+                        .filter((session: Session) => session.group === null)
+                        .map((session: Session) => (
+                            <CardSession
+                                key={session.id}
+                                code={session.code}
+                                id={session.id}
+                                name={session.name}
+                                state={sessionStateFromString(session.state)}
+                                startTime={session.startTime}
+                                endTime={session.endTime}
+                            />
+                        ))}
             </div>
         </div>
     );
