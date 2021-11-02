@@ -478,4 +478,28 @@ export default class UserResolver {
 
         return EndpointResponse.withErrors();
     }
+
+    @CheckAuth()
+    @Mutation(() => UserResponse)
+    async editUserDetails(
+        @Arg("bio") bio: string,
+        @Arg("name") name: string,
+        @Ctx() { user, conn }: AuthedContext
+    ) {
+        try {
+            user.name = name;
+            user.bio = bio;
+            await conn.getRepository(User).save(user);
+        } catch (e: Error | any) {
+            return UserResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
+        }
+
+        return {
+            errors: [],
+            user: user,
+        };
+    }
 }

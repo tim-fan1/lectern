@@ -59,11 +59,11 @@ export default class User {
     @Column({ type: "text", nullable: true })
     verifyResetCode!: string | null;
 
-    @Field({ nullable: true })
+    @Field()
     @Column()
-    bio?: string;
+    bio: string = "";
 
-    @Field({ nullable: true })
+    @Field()
     @Column()
-    pic?: string;
+    pic!: string;
 }
