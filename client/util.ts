@@ -1,18 +1,24 @@
+export enum SessionActivity {
+    POLL,
+    QA,
+    QUIZ,
+}
+
 export type SessionStateString = "draft" | "open" | "archived";
 export enum SessionState {
-    draft,
-    open,
-    archived,
+    DRAFT,
+    OPEN,
+    ARCHIVED,
 }
 
 export function sessionStateFromString(str: SessionStateString): SessionState {
     switch (str) {
         case "draft":
-            return SessionState.draft;
+            return SessionState.DRAFT;
         case "open":
-            return SessionState.open;
+            return SessionState.OPEN;
         case "archived":
-            return SessionState.archived;
+            return SessionState.ARCHIVED;
     }
 }
 

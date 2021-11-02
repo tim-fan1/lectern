@@ -14,6 +14,7 @@ import {
     SessionResolver,
     ActivityResolver,
     SessionSubscriptionResolver,
+    GroupResolver,
 } from "./resolvers/resolvers";
 import {
     User,
@@ -96,6 +97,7 @@ if (require.main === module) {
                 SessionResolver,
                 SessionSubscriptionResolver,
                 ActivityResolver,
+                GroupResolver,
             ],
             emitSchemaFile: path.resolve(__dirname, "schema.gql"),
             authChecker: () => false, // TODO: this is to filter auth'd eps, remove later

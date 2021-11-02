@@ -10,6 +10,8 @@ import {
 } from "typeorm";
 import { Session, Choice } from "./entities";
 
+type ActivityState = "draft" | "open" | "archived";
+
 @ObjectType()
 @Entity()
 export default class Activity {
@@ -31,6 +33,10 @@ export default class Activity {
     @Field(() => Session)
     @ManyToOne(() => Session, (session) => session.activities)
     session!: Session;
+
+    @Field()
+    @Column({ default: "draft" })
+    state!: ActivityState;
 
     /* One activity contains many choices. */
     @Field(() => [Choice], { defaultValue: [] })

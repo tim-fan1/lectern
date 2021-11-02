@@ -37,6 +37,7 @@ export enum SessionErrors {
     SESSION_INVALID_STATE = "SESSION_INVALID_STATE",
     SESSION_CODE_EXIST = "SESSION_CODE_EXIST",
     SESSION_CLOSED = "SESSION_CLOSED",
+    SESSION_NAME_ALREADY_EXIST = "SESSION_NAME_ALREADY_EXIST",
 }
 
 @Resolver()
@@ -67,6 +68,15 @@ export default class SessionResolver {
         @Arg("group", { nullable: true }) group?: string
     ): Promise<SessionResponse> {
         try {
+            if (
+                user.sessions.filter((session) => session.name === name)
+                    .length !== 1
+            ) {
+                return EndpointResponse.withErrors({
+                    kind: SessionErrors.SESSION_NAME_ALREADY_EXIST,
+                    msg: "A session with the same name already exists",
+                });
+            }
             const sessionRepo = conn.getRepository(Session);
             const newSession = sessionRepo.create({
                 name: name,
