@@ -31,6 +31,7 @@ enum ActivityErrors {
     ACTIVITY_NOT_EXIST = "ACTIVITY_NOT_EXIST",
     KIND_NOT_EXIT = "KIND_NOT_EXIST",
     ACTIVITY_INVALID_STATE = "ACTIVITY_INVALID_STATE",
+    ACTIVITY_NAME_ALREADY_EXIST = "ACTIVITY_NAME_ALREADY_EXIST",
 }
 
 enum ActivityKinds {
@@ -92,6 +93,15 @@ export default class ActivityResolver {
                     kind: ActivityErrors.SESSION_NOT_EXIST,
                     msg: "Session does not exist",
                 });
+            if (
+                session.activities.filter((activity) => activity.name === name)
+                    .length !== 1
+            ) {
+                return EndpointResponse.withErrors({
+                    kind: ActivityErrors.ACTIVITY_NAME_ALREADY_EXIST,
+                    msg: "An activity with the same name already exists",
+                });
+            }
             /* Update activity repo. */
             const activityRepo = conn.getRepository(Activity);
             const activity = activityRepo.create({
@@ -146,7 +156,9 @@ export default class ActivityResolver {
                     kind: ActivityErrors.ACTIVITY_NOT_EXIST,
                     msg: "Activity does not exist",
                 });
-            /* Update choice repo. */
+            /* Update choice repo. I won't add the check that name must be a unique choice,
+             * so that the instructor can make say a poll with all options being "Yes".
+             * This is peak comedy. */
             const choiceRepo = conn.getRepository(Choice);
             const choice = choiceRepo.create({
                 name: name,
