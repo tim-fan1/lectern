@@ -1,5 +1,5 @@
 import Image, { ImageProps } from "next/image";
-import styles from "../styles/TransparentButton.module.css";
+import styles from "../styles/ButtonTransparent.module.css";
 
 type Props = {
     width: number;
@@ -11,7 +11,7 @@ type Props = {
     className: string;
 };
 
-export default function TransparentButton({
+export default function ButtonTransparent({
     className,
     width,
     height,

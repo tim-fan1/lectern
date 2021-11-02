@@ -3,8 +3,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { FormEvent, useRef, useState } from "react";
 import { useMutation, useQuery } from "urql";
-import Navigation from "../../components/Navigation";
-import styles from "../../styles/create.module.css";
+import Navigation from "../../../components/Navigation";
+import styles from "../../../styles/create.module.css";
 
 const MutationSession = `
     mutation ($group: String, $name: String!) {
@@ -97,20 +97,6 @@ export default function Dashboard() {
                     onChange={(e) => setName(e.target.value)}
                     required
                 />
-                <div id={styles.container_add_activity} className="container_center">
-                    <h2>Prepare session activities to activate during the session</h2>
-                    <div id={styles.container_create_cards}>
-                        <Link href="/instructor/create">
-                            <a className={styles.card_create_activity}>Create a Poll (soon™)</a>
-                        </Link>
-                        <Link href="/instructor/create">
-                            <a className={styles.card_create_activity}>Create a Quiz (soon™)</a>
-                        </Link>
-                        <Link href="/instructor/create">
-                            <a className={styles.card_create_activity}>Create a Q&A (soon™)</a>
-                        </Link>
-                    </div>
-                </div>
                 <div className="container_center">
                     <p>Add this session to a group</p>
                     <div className={styles.container_add_group}>

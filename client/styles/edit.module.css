@@ -1,0 +1,22 @@
+#container_add_activity {
+    margin-top: 5rem;
+}
+
+#container_create_cards {
+    display: flex;
+    margin-top: 1.5rem;
+}
+
+.card_create_activity {
+    margin: 0 1rem;
+    background-color: var(--c-background-secondary);
+    padding: 2rem 3rem;
+    color: white;
+    border: 3px solid var(--c-background-tertiary);
+    transition: all 0.2s;
+    font-size: 1.25rem;
+}
+
+.card_create_activity:hover {
+    border: 3px solid var(--c-primary);
+}
