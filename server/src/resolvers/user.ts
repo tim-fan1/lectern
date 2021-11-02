@@ -14,6 +14,7 @@ import generateAlphanumCode from "../utils/generateCode";
 import config from "../config";
 import CheckAuth from "../utils/authMiddleware";
 import { Connection, getRepository } from "typeorm";
+import { MD5 } from "../utils/md5";
 
 @ObjectType()
 class UserResponse extends EndpointResponse {
@@ -131,6 +132,7 @@ export default class UserResolver {
                 verified: false,
                 /* Each newly registered user has a unique verification code mapped to them. */
                 verifyResetCode: verificationCode,
+                pic: "https://www.gravatar.com/avatar/" + MD5(email),
             });
             user = await userRepo.save(newUser);
         } catch (e: Error | any) {
