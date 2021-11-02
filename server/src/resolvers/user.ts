@@ -14,6 +14,7 @@ import generateAlphanumCode from "../utils/generateCode";
 import config from "../config";
 import CheckAuth from "../utils/authMiddleware";
 import { Connection, getRepository } from "typeorm";
+import { MD5 } from "../utils/md5";
 
 @ObjectType()
 class UserResponse extends EndpointResponse {
@@ -131,6 +132,10 @@ export default class UserResolver {
                 verified: false,
                 /* Each newly registered user has a unique verification code mapped to them. */
                 verifyResetCode: verificationCode,
+                pic:
+                    "https://www.gravatar.com/avatar/" +
+                    MD5(email) +
+                    "?d=retro",
             });
             user = await userRepo.save(newUser);
         } catch (e: Error | any) {
@@ -475,5 +480,27 @@ export default class UserResolver {
         }
 
         return EndpointResponse.withErrors();
+    }
+
+    @CheckAuth()
+    @Mutation(() => UserResponse)
+    async editUserDetails(
+        @Arg("bio") bio: string,
+        @Ctx() { user, conn }: AuthedContext
+    ) {
+        try {
+            user.bio = bio;
+            await conn.getRepository(User).save(user);
+        } catch (e: Error | any) {
+            return UserResponse.withErrors({
+                kind: UserError.DB_ERROR,
+                msg: e.message,
+            });
+        }
+
+        return {
+            errors: [],
+            user: user,
+        };
     }
 }
