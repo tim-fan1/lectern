@@ -4,9 +4,11 @@ import { config } from "dotenv";
 config();
 
 export default {
+    /* general config */
     isProduction: process.env.NODE_ENV === "production",
     frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
     serverPort: parseInt(process.env.PORT || "4000"),
+    /* email config */
     companyEmailAddress: process.env.COMPANY_EMAIL_ADDRESS,
-    companyEmailPassword: process.env.COMPANY_EMAIL_ADDRESS,
+    companyEmailPassword: process.env.COMPANY_EMAIL_PASSWORD,
 };
