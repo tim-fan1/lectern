@@ -1,6 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useQuery } from "urql";
+import ButtonCreate from "../../components/ButtonCreate";
 import CardSession from "../../components/CardSession";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/dashboard.module.css";
@@ -110,21 +111,7 @@ export default function Dashboard() {
             </Head>
             <Navigation />
             <h1>Instructor dashboard</h1>
-            <Link href="/instructor/create">
-                <a id={styles.btn_create_session} className="btn btn_primary">
-                    <p>Create session</p>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        height="24px"
-                        viewBox="0 0 24 24"
-                        width="24px"
-                        fill="#000000"
-                    >
-                        <path d="M0 0h24v24H0V0z" fill="none" />
-                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                    </svg>
-                </a>
-            </Link>
+            <ButtonCreate href="/instructor/create" text="Create session" />
             <div id={styles.container_sessions} className="container_center">
                 <h2>Sessions</h2>
                 {!fetching &&
