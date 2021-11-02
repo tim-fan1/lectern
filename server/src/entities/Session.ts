@@ -45,7 +45,9 @@ export default class Session {
     endTime?: Date;
 
     /* One session contains many activities. */
+    @Field(() => [Activity])
     @OneToMany(() => Activity, (activity) => activity.session, {
+        eager: true,
         orphanedRowAction: "delete",
         cascade: true,
         nullable: false,
