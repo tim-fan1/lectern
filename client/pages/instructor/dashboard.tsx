@@ -131,7 +131,7 @@ export default function Dashboard() {
                     /* Building the sessions list. */
                     groups.map((groupName, i) => {
                         return (
-                            <div>
+                            <div key={i.toString()}>
                                 <h1>{groupName}</h1>
                                 <div id={styles.container_card_session_labels}>
                                     <h3 id={styles.session_label_name}>Name</h3>
