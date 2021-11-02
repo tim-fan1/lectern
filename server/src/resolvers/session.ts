@@ -70,7 +70,7 @@ export default class SessionResolver {
         try {
             if (
                 user.sessions.filter((session) => session.name === name)
-                    .length !== 1
+                    .length !== 0
             ) {
                 return EndpointResponse.withErrors({
                     kind: SessionErrors.SESSION_NAME_ALREADY_EXIST,
