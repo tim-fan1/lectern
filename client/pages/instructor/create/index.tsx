@@ -73,7 +73,7 @@ export default function Dashboard() {
             if (result.data.createSession.errors.length === 0) {
                 router.push("/instructor/dashboard");
             } else {
-                const errorMessages = result.data.register.errors.map(
+                const errorMessages = result.data.createSession.errors.map(
                     (error: { msg: string }) => error.msg
                 );
                 setErrors((errors) => [...errors, errorMessages]);
