@@ -132,7 +132,10 @@ export default class UserResolver {
                 verified: false,
                 /* Each newly registered user has a unique verification code mapped to them. */
                 verifyResetCode: verificationCode,
-                pic: "https://www.gravatar.com/avatar/" + MD5(email),
+                pic:
+                    "https://www.gravatar.com/avatar/" +
+                    MD5(email) +
+                    "?d=retro",
             });
             user = await userRepo.save(newUser);
         } catch (e: Error | any) {
@@ -483,11 +486,9 @@ export default class UserResolver {
     @Mutation(() => UserResponse)
     async editUserDetails(
         @Arg("bio") bio: string,
-        @Arg("name") name: string,
         @Ctx() { user, conn }: AuthedContext
     ) {
         try {
-            user.name = name;
             user.bio = bio;
             await conn.getRepository(User).save(user);
         } catch (e: Error | any) {
