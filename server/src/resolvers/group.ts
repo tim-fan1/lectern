@@ -24,15 +24,16 @@ export default class GroupResolver {
     async getGroups(
         @Ctx() { user }: AuthedContext
     ): Promise<MultipleGroupResponse> {
-        // native solution: loop through all sessions and find unique groups
-
-           return {
+        // naive solution: loop through all sessions and find unique groups
+        return {
             errors: [],
-            groups: (user.sessions
-                // get .group of all sessions
-                .map((session) => session.group)
-                // filter out the undefined - but type is unchanged so typescript complains
-                .filter(group => group !== null)  as string[])
+            groups: (
+                user.sessions
+                    // get .group of all sessions
+                    .map((session) => session.group)
+                    // filter out the undefined - but type is unchanged so typescript complains
+                    .filter((group) => group !== null) as string[]
+            )
                 // finally, filter all non-unique (findIndex of element in array, if its not matching,
                 .filter(
                     (group, i, array) =>
