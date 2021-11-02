@@ -7,7 +7,7 @@ import Navigation from "../../components/Navigation";
 
 const MutationVerifyEmail = `
     mutation ($verification_code: String!) {
-        verify_email(verification_code: $verification_code) {
+        verifyEmail(verificationCode: $verification_code) {
             errors {
                 kind
                 msg
@@ -29,7 +29,7 @@ export default function VerifyEmail() {
         };
         gqlVerifyEmail(variables).then((result) => {
             setVerifyFinished(true);
-            if (result.data.verify_email.errors.length === 0) {
+            if (result.data.verifyEmail.errors.length === 0) {
                 setVerifySuccess(true);
             } else {
                 setVerifySuccess(false);

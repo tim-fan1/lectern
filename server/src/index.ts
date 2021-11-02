@@ -19,7 +19,6 @@ import {
     User,
     LoginSession,
     Session,
-    VerifyEmail,
     Activity,
     Choice,
 } from "./entities/entities";
@@ -84,14 +83,7 @@ if (require.main === module) {
             // replace this with ormconfig.json later (tm)
             type: "sqlite",
             database: "owo.db",
-            entities: [
-                User,
-                LoginSession,
-                Session,
-                VerifyEmail,
-                Activity,
-                Choice,
-            ],
+            entities: [User, LoginSession, Session, Activity, Choice],
         });
 
         const schema = await buildSchema({
