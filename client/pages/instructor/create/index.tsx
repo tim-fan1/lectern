@@ -66,20 +66,6 @@ export default function Dashboard() {
                     onChange={(e) => setName(e.target.value)}
                     required
                 />
-                <div id={styles.container_add_activity} className="container_center">
-                    <h2>Prepare session activities to activate during the session</h2>
-                    <div id={styles.container_create_cards}>
-                        <Link href="/instructor/create/poll">
-                            <a className={styles.card_create_activity}>Create a Poll</a>
-                        </Link>
-                        <Link href="/instructor/create">
-                            <a className={styles.card_create_activity}>Create a Quiz (soon™)</a>
-                        </Link>
-                        <Link href="/instructor/create">
-                            <a className={styles.card_create_activity}>Create a Q&A (soon™)</a>
-                        </Link>
-                    </div>
-                </div>
                 <div className="form_container_btn">
                     <Link href="/instructor/dashboard" passHref>
                         <button className="btn btn_secondary">Cancel</button>

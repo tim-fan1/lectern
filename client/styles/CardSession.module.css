@@ -38,16 +38,6 @@
     column-gap: 1.5rem;
 }
 
-.accent_anchor {
-    font-weight: 500;
-    /* Feel free to change this color. */
-    color: var(--c-red);
-    text-decoration: none;
-    transition: all 0.1s;
-    margin: 0;
-    padding: 0;
-    cursor: pointer;
-}
-.accent_anchor:hover {
-    color: white;
+.link_manage {
+    color: var(--c-purple-grey);
 }

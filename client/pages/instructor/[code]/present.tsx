@@ -5,7 +5,7 @@ import QRCode from "qrcode.react";
 import React, { useState } from "react";
 import { useQuery } from "urql";
 import Navigation from "../../../components/Navigation";
-import TransparentButton from "../../../components/TransparentButton";
+import ButtonTransparent from "../../../components/ButtonTransparent";
 import iconExitFullscreen from "../../../public/mdi_exit-to-app.svg";
 import iconEnterFullscreen from "../../../public/mdi_fullscreen.svg";
 import styles from "../../../styles/present.module.css";
@@ -58,7 +58,7 @@ export default function Present() {
             <div className={`container_center ${styles.main_container}`} id={styles.fullscreen_box}>
                 <div className={styles.topfloat_container}>
                     {!isFullscreen && (
-                        <TransparentButton
+                        <ButtonTransparent
                             className={styles.topfloat_item}
                             src={iconEnterFullscreen}
                             width={40}
@@ -69,7 +69,7 @@ export default function Present() {
                         />
                     )}
                     {isFullscreen && (
-                        <TransparentButton
+                        <ButtonTransparent
                             className={styles.topfloat_item}
                             src={iconExitFullscreen}
                             width={40}

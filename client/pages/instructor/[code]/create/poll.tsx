@@ -1,15 +1,16 @@
 import Head from "next/head";
 import Link from "next/link";
+import router from "next/router";
 import { FormEvent, useState } from "react";
-import Navigation from "../../../components/Navigation";
-import styles from "../../../styles/createPoll.module.css";
+import Navigation from "../../../../components/Navigation";
+import styles from "../../../../styles/createPoll.module.css";
 
 /* TODO
  * Hook up to state/backend
  * Need like a "back to" thing
  * Add/delete options
  */
-export default function createPoll() {
+export default function CreatePoll() {
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {};
 
     const [errors, setErrors] = useState([] as string[]);
@@ -23,7 +24,7 @@ export default function createPoll() {
             </Head>
             <Navigation />
             <h1>Create a poll</h1>
-            {/* TODO: want a back to dashboard or wahtever here */}
+            {/* TODO: want a back to dashboard or whatever here */}
             <form className="form" onSubmit={handleSubmit}>
                 <input
                     id={styles.input_poll_name}
@@ -70,9 +71,9 @@ export default function createPoll() {
                     </div>
                 </div>
                 <div className="form_container_btn">
-                    <Link href={`/instructor/dashboard`} passHref>
-                        <button className="btn btn_secondary">Cancel</button>
-                    </Link>
+                    <button className="btn btn_secondary" onClick={() => router.back()}>
+                        Cancel
+                    </button>
                     <button className="btn btn_primary">Add poll to session</button>
                 </div>
             </form>
