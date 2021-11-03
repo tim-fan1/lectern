@@ -1,21 +1,18 @@
 import styles from "../styles/Poll.module.css";
 import { useState } from "react";
+import { Activity } from "../entities/entities";
 
-export default function Poll() {
-    const questions = [
-        "Package managers",
-        "JavaScript bundlers",
-        "Frameworks on top of frameworks (e.g. Next.js)",
-        "All of the above",
-    ];
+interface Props {
+    activity: Activity;
+}
+
+export default function Poll({ activity }: Props) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     return (
         <div className={styles.poll_box}>
-            <h2 className={styles.poll_question}>
-                What is the best web development software for complexity?
-            </h2>
+            <h2 className={styles.poll_question}>{activity.name}</h2>
             <div className={styles.poll_answer_container}>
-                {questions.map((value, index) => {
+                {activity.choices.map((choice, index) => {
                     let className = styles.poll_button_button;
                     if (index === selectedIndex) {
                         className += " " + styles.poll_button_button_selected;
@@ -27,7 +24,7 @@ export default function Poll() {
                             onClick={(e) => setSelectedIndex(index)}
                         >
                             <button className={className} />
-                            <span>{value}</span>
+                            <span>{choice.name}</span>
                         </div>
                     );
                 })}

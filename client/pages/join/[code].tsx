@@ -4,6 +4,8 @@ import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
 import { useQuery } from "urql";
 import Navigation from "../../components/Navigation";
+import { useAppDispatch } from "../../state/hooks";
+import { updateSession } from "../../state/sessionSlice";
 import styles from "../../styles/join.module.css";
 import { validateSessionCode } from "../../util";
 
@@ -16,6 +18,15 @@ const QuerySessionDetails = `
                 author { name,pic,bio }
                 group
                 code
+                activities {
+                    id
+                    name
+                    state
+                    choices {
+                        id
+                        name
+                    }
+                }
             }
             errors {
                 kind
@@ -41,6 +52,8 @@ export default function Join() {
 
     const [result] = useQuery({ query: QuerySessionDetails, variables: { code: code } });
     const { data, fetching, error } = result;
+
+    const dispatch = useAppDispatch();
 
     if (enteredName) {
         router.push(`/session/${code}`);
@@ -87,6 +100,7 @@ export default function Join() {
     } else {
         let nameSection;
         if (!enteredName) {
+            dispatch(updateSession(data.sessionDetails.session));
             nameSection = (
                 <form className="container_center" id={styles.form_join} onSubmit={handleSubmit}>
                     <div id={styles.container_submit}>
