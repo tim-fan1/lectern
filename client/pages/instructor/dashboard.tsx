@@ -1,5 +1,4 @@
 import Head from "next/head";
-import Link from "next/link";
 import { useQuery } from "urql";
 import ButtonCreate from "../../components/ButtonCreate";
 import CardSession from "../../components/CardSession";
