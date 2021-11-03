@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useMutation } from "urql";
 import styles from "../styles/CardSession.module.css";
 import { sessionDateToString, SessionState } from "../util";
+import Modal from "./Modal";
 
 const MutationStartSession = `
     mutation ($id: Int!) {
@@ -32,6 +33,20 @@ const MutationCloseSession = `
     }
 `;
 
+const MutationDuplicate = `
+mutation($name: String!, $id: Int!) {
+    duplicateSession(name: $name, id: $id) {
+        errors {
+            kind,
+            msg
+        },
+        session {
+            id
+        }
+    }
+}
+`;
+
 interface Props {
     code?: string;
     id: number;
@@ -44,6 +59,10 @@ interface Props {
 export default function CardSession({ code, id, name, state, startTime, endTime }: Props) {
     const [startSessionResult, startSession] = useMutation(MutationStartSession);
     const [closeSessionResult, closeSession] = useMutation(MutationCloseSession);
+    const [_, DuplicateMutation] = useMutation(MutationDuplicate);
+    const [showModal, setShowModal] = useState(false);
+    const [modalError, setModalError] = useState("");
+    const [modalDuplicateText, setModalDuplicateText] = useState("");
 
     // TODO: error handling could be done better here. Little information is given to the user, perhaps it's fine though?
     const [error, setError] = useState("");
@@ -73,6 +92,23 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
         });
     };
 
+    interface test {
+        kind: string;
+        msg: string;
+    }
+    const submitDuplicate = async (
+        id: number,
+        modalDuplicateText: string
+    ): Promise<[true, null] | [false, string]> => {
+        const res = await DuplicateMutation({ id: id, name: modalDuplicateText });
+        if (res.error) {
+            return [false, res.error.message];
+        } else if (res.data.duplicateSession.errors.length !== 0) {
+            return [false, (res.data.duplicateSession.errors as test[]).map((e) => e.kind).join()];
+        }
+        return [true, null];
+    };
+
     return (
         <div>
             {error && (
@@ -97,14 +133,63 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
                     </a>
                     {/* We have the invariant that if the session state is in open, then we will have a non-null code. */}
                     {state === SessionState.OPEN && (
-                        <Link href={`/instructor/${code}/present`}>
-                            <a>Present</a>
-                        </Link>
+                        <>
+                            <Link href={`/instructor/${code}/present`}>
+                                <a>Present</a>
+                            </Link>
+
+                            <Link href={`/instructor/${code}/`}>
+                                <a className={styles.link_manage}>Manage</a>
+                            </Link>
+                        </>
                     )}
-                    {state === SessionState.OPEN && (
-                        <Link href={`/instructor/${code}/`}>
-                            <a className={styles.link_manage}>Manage</a>
-                        </Link>
+                    {state !== SessionState.OPEN && (
+                        <>
+                            <Modal
+                                show={showModal}
+                                onClose={() => setShowModal(false)}
+                                title={
+                                    <div className="container_center">
+                                        <h2>Duplicate Session: {name}</h2>
+                                    </div>
+                                }
+                            >
+                                <div className="container_center">
+                                    <input
+                                        className="input"
+                                        placeholder={"new name"}
+                                        onChange={(e) =>
+                                            setModalDuplicateText(e.currentTarget.value)
+                                        }
+                                    />
+                                    <button
+                                        className="btn btn_primary"
+                                        onClick={async () => {
+                                            const [success, errorMsg] = await submitDuplicate(
+                                                id,
+                                                modalDuplicateText
+                                            );
+                                            if (!success) {
+                                                setModalError(errorMsg!);
+                                            } else {
+                                                setShowModal(false);
+                                                setModalError("");
+                                            }
+                                        }}
+                                    >
+                                        Submit
+                                    </button>
+                                    {<p className="error">{modalError}</p>}
+                                </div>
+                            </Modal>
+                            <a
+                                onClick={() => {
+                                    setShowModal(true);
+                                }}
+                            >
+                                Duplicate
+                            </a>
+                        </>
                     )}
                 </div>
             </div>
