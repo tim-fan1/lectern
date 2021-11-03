@@ -5,7 +5,7 @@ import styles from "../styles/CardSession.module.css";
 import { sessionDateToString, SessionState } from "../util";
 
 const MutationStartSession = `
-    mutation ($id: Float!) {
+    mutation ($id: Int!) {
         startSession(id: $id) {
             session {
                 code
