@@ -2,21 +2,21 @@ import { CombinedError, useQuery } from "urql";
 import { UseQueryArgs, UseQueryResponse } from "urql/dist/types/hooks/useQuery";
 
 interface LecternApiResponseOk<Data> {
-    data: Data;
-    errors: null;
     fetching: false;
+    errors: [];
+    data: Data;
 }
 
 interface LecternApiResponseError {
+    fetching: false;
     errors: (CombinedError | ConcreteApiError)[];
     data: null;
-    fetching: false;
 }
 
 interface LecternApiResponseFetching {
-    errors: null;
-    data: null;
     fetching: true;
+    errors: [];
+    data: null;
 }
 
 type LecternApiResponse<Data> =
@@ -63,7 +63,7 @@ export const useLecternQuery = <LecternData extends object, Variables = object>(
     if (result.fetching) {
         return {
             fetching: true,
-            errors: null,
+            errors: [],
             data: null,
         };
     }
@@ -89,7 +89,7 @@ export const useLecternQuery = <LecternData extends object, Variables = object>(
 
     return {
         fetching: false,
-        errors: null,
+        errors: [],
         data: data,
     };
 };

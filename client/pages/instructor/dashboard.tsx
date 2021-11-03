@@ -5,6 +5,7 @@ import CardSession from "../../components/CardSession";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/dashboard.module.css";
 import { sessionStateFromString, SessionStateString } from "../../util";
+import { useLecternQuery } from "../../utils/lecternApi";
 
 const QueryGetSessions = `
     query {
@@ -49,26 +50,32 @@ type Session = {
 };
 
 export default function Dashboard() {
-    const [sessions_result] = useQuery({ query: QueryGetSessions });
     const {
         data: sessions_data,
         fetching: sessions_fetching,
-        error: sessions_error,
-    } = sessions_result;
+        errors: session_errors,
+    } = useLecternQuery<Session[]>({
+        query: QueryGetSessions,
+        queryName: "getSessions",
+        queryField: "sessions",
+    });
 
-    const [group_result] = useQuery({ query: QueryGroups });
-    const { data: group_data, fetching: group_fetching, error: group_error } = group_result;
+    const {
+        data: group_data,
+        fetching: group_fetching,
+        errors: group_errors,
+    } = useLecternQuery<string[]>({
+        query: QueryGroups,
+        queryField: "groups",
+        queryName: "getGroups",
+    });
+
     let groups = [] as string[];
     if (!group_fetching) {
-        if (group_data.getGroups.errors.length !== 0 || group_error) {
-            groups = ["error while fetching groups"]; // bodge haha
+        if (group_errors.length !== 0) {
+            groups = group_errors.map((error) => error.toString());
         } else {
-            groups = group_data.getGroups.groups;
-            if (groups === null) {
-                // theoretically, we should never reach here
-                // since the backend never returns a null on non errors
-                groups = [];
-            }
+            groups = group_data!;
         }
     }
     // TODO: error handling, use https://www.npmjs.com/package/next-urql with getServerSideProps
@@ -131,7 +138,7 @@ export default function Dashboard() {
                                     <div></div>
                                 </div>
                                 {/* Filter sessions so that it on contains sessions for this group. */}
-                                {sessions_data.getSessions.sessions
+                                {sessions_data!
                                     .filter((session: Session) => session.group === groupName)
                                     .map((session: Session) => (
                                         <CardSession
@@ -161,7 +168,7 @@ export default function Dashboard() {
                     //         /* Ok, this is actually pain. */
                     //         .filter((session: Session) => session.group === null)
                     // ) &&
-                    sessions_data.getSessions.sessions
+                    sessions_data!
                         /* Ok, this is actually pain. */
                         .filter((session: Session) => session.group === null)
                         .map((session: Session) => (
