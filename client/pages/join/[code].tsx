@@ -7,12 +7,13 @@ import Navigation from "../../components/Navigation";
 import styles from "../../styles/join.module.css";
 import { validateSessionCode } from "../../util";
 
+/* Love that prettier doesn't format these strings (obvs). */
 const QuerySessionDetails = `
     query ($code: String!) {
         sessionDetails(code: $code) {
             session {
                 name
-                author { name }
+                author { name,pic,bio }
                 group
                 code
             }
@@ -158,7 +159,24 @@ export default function Join() {
                 <h1 id={styles.header_session_title}>{data.sessionDetails.session.name}</h1>
                 <div>
                     <div>
-                        <h3>Instructor: {data.sessionDetails.session.author.name}</h3>
+                        <div
+                            /* Beautiful and reusable functional styling. */
+                            style={{
+                                display: "flex",
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: "20px",
+                            }}
+                        >
+                            <img
+                                src={data.sessionDetails.session.author.pic}
+                                style={{ borderRadius: "50%" }}
+                            />
+                            <h3>{data.sessionDetails.session.author.name}</h3>
+                        </div>
+                        <br />
+                        <i>{data.sessionDetails.session.author.bio}</i>
+
                         {enteredName && !isAnon && <p>Joining as &apos;{displayName}&apos;...</p>}
                         {enteredName && isAnon && <p>Joining anonymously...</p>}
                     </div>

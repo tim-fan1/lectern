@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Connection } from "typeorm";
 import { ObjectType, Field } from "type-graphql";
 import User from "./entities/User";
+import LiveSession from "./utils/liveSession";
 
 /**
  * The Context type used by express-graphql. This is generated for each request
@@ -11,6 +12,7 @@ export interface Context {
     req: Request;
     res: Response;
     conn: Connection;
+    openSessions: Map<number, LiveSession>;
 }
 
 /**

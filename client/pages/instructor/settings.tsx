@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { FormEvent, useState } from "react";
-import { useMutation } from "urql";
+import { useMutation, useQuery } from "urql";
 import InputPassword from "../../components/InputPassword";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/settings.module.css";
@@ -16,15 +16,54 @@ const MutationChangePassword = `
     }
 `;
 
+const QueryUserDetails = `
+    query {
+    userDetails {
+        user {
+        name,
+        pic,
+        bio,
+        },
+        errors {
+        kind,
+        msg
+        }
+    }
+    }
+`;
+
+const MutationEditUserDetails = `
+    mutation ($bio: String!){
+        editUserDetails(bio: $bio) {
+            errors {
+            kind,
+            msg
+            }
+            user {
+            name,
+            bio,
+            pic,
+            }
+        }
+    }
+`;
+
 export default function Settings() {
     const [changePasswordResult, changePassword] = useMutation(MutationChangePassword);
+    const [editUserDetailsResult, editUserDetails] = useMutation(MutationEditUserDetails);
 
-    const [errors, setErrors] = useState([] as string[]);
+    const [changePasswordErrors, setChangePasswordErrors] = useState([] as string[]);
+    const [changeDetailsErrors, setChangeDetailsErrors] = useState([] as string[]);
 
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
     const [changePasswordSuccess, setChangePasswordSuccess] = useState(false);
+
+    const [changeDetailsSuccess, setChangeDetailsSuccess] = useState(false);
+    const [bio, setBio] = useState("");
+    const [result] = useQuery({ query: QueryUserDetails });
+    const { data, fetching } = result;
 
     let changePasswordBtnOrMsg;
     if (changePasswordSuccess) {
@@ -37,20 +76,55 @@ export default function Settings() {
         );
     }
 
+    let changeDetailsBtnOrMsg;
+    if (changeDetailsSuccess) {
+        changeDetailsBtnOrMsg = <h3>Details successfully changed!</h3>;
+    } else {
+        changeDetailsBtnOrMsg = (
+            <button className="btn btn_secondary" type="submit">
+                Change details
+            </button>
+        );
+    }
+
+    const handleEditUserDetails = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setChangeDetailsErrors([]);
+
+        const variables = {
+            bio: bio,
+        };
+        editUserDetails(variables).then((result) => {
+            if (result.data.editUserDetails.errors.length === 0) {
+                setChangeDetailsSuccess(true);
+                /* We only want to give feedback that the details change has been successful for a certain amount of
+                 * time so we go back to the normal form. */
+                setTimeout(() => {
+                    setChangeDetailsSuccess(false);
+                }, 3000);
+            } else {
+                const errorMessages = result.data.editUserDetails.errors.map(
+                    (error: { msg: string }) => error.msg
+                );
+                setChangeDetailsErrors((errors) => [...errors, errorMessages]);
+            }
+        });
+    };
+
     const handleSubmitChangePassword = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         if (newPassword === currentPassword) {
-            setErrors(["New password is the same as current password."]);
+            setChangePasswordErrors(["New password is the same as current password."]);
             return;
         }
 
         if (newPassword !== newPasswordConfirm) {
-            setErrors(["New password and new password confirm do not match"]);
+            setChangePasswordErrors(["New password and new password confirm do not match"]);
             return;
         }
 
-        setErrors([]);
+        setChangePasswordErrors([]);
 
         const variables = {
             password: currentPassword,
@@ -68,7 +142,7 @@ export default function Settings() {
                 const errorMessages = result.data.changePassword.errors.map(
                     (error: { msg: string }) => error.msg
                 );
-                setErrors((errors) => [...errors, errorMessages]);
+                setChangePasswordErrors((errors) => [...errors, errorMessages]);
             }
         });
     };
@@ -81,6 +155,49 @@ export default function Settings() {
             <Navigation />
             <div>
                 <h1>Account settings</h1>
+                <h2 id={styles.header_security}>Details</h2>
+                {fetching ? (
+                    <p>Loading...</p>
+                ) : (
+                    <>
+                        <img style={{ borderRadius: "50%" }} src={data.userDetails.user.pic} />
+                        <h3>{data.userDetails.user.name}</h3>
+                        <p>
+                            {data.userDetails.user.bio.length === 0
+                                ? "User has no biography."
+                                : data.userDetails.user.bio}
+                        </p>
+                        <p>
+                            Note: profile pictures are configured via{" "}
+                            <a href="https://en.gravatar.com/">Gravatar</a> (globally recognisable
+                            avatars)
+                        </p>
+                        <form id={styles.form_change_password} onSubmit={handleEditUserDetails}>
+                            <h2>Change details</h2>
+                            <div className="container_input_label">
+                                <div className="container_input_label">
+                                    <label className="label" htmlFor="">
+                                        Bio
+                                    </label>
+                                    <input
+                                        className="input"
+                                        type="text"
+                                        maxLength={64}
+                                        onChange={(e) => setBio(e.target.value)}
+                                        defaultValue={data.userDetails.user.bio}
+                                    />
+                                </div>
+                            </div>
+                            {changeDetailsErrors.map((error, i) => (
+                                <p className="error" key={i}>
+                                    {error}
+                                </p>
+                            ))}
+                            {changeDetailsBtnOrMsg}
+                        </form>
+                    </>
+                )}
+
                 <h2 id={styles.header_security}>Security</h2>
                 <form id={styles.form_change_password} onSubmit={handleSubmitChangePassword}>
                     <h3>Change password</h3>
@@ -96,7 +213,7 @@ export default function Settings() {
                         <label className="label">Confirm new password</label>
                         <InputPassword setValue={setNewPasswordConfirm} />
                     </div>
-                    {errors.map((error, i) => (
+                    {changePasswordErrors.map((error, i) => (
                         <p className="error" key={i}>
                             {error}
                         </p>
