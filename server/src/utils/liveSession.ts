@@ -17,6 +17,32 @@ export default class LiveSession {
     }
 
     /**
+     * Vote for a choice in a poll.
+     */
+    pollVote(activityId: number, choiceId: number): boolean {
+        const activity = this.session.activities.find(
+            (a) => a.id === activityId
+        );
+        if (activity === undefined) return false;
+
+        const choice = activity.choices.find((c) => c.id === choiceId);
+        if (choice === undefined) return false;
+
+        choice.votes++;
+        return true;
+    }
+
+    startActivity(activityId: number): boolean {
+        const thisActivity = this.session.activities.find(
+            (a) => a.id === activityId
+        );
+        if (thisActivity === undefined) return false;
+
+        thisActivity.state = "open";
+        return true;
+    }
+
+    /**
      * Increment numJoined in the session.
      */
     incrementCount() {

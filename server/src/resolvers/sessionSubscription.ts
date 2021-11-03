@@ -66,6 +66,30 @@ export default class SessionSubscriptionResolver {
         return EndpointResponse.withErrors();
     }
 
+    @Mutation(() => EndpointResponse)
+    async pollVote(
+        @Arg("id", () => Int) id: number,
+        @Arg("activityId", () => Int) activityId: number,
+        @Arg("choiceId", () => Int) choiceId: number,
+        @Ctx() { openSessions }: Context,
+        @PubSub() pubsub: PubSubEngine
+    ) {
+        const thisLive = openSessions.get(id);
+        if (thisLive === undefined)
+            return SessionResponse.withErrors({
+                kind: SessionErrors.SESSION_NOT_EXIST,
+            });
+
+        if (!thisLive.pollVote(activityId, choiceId))
+            return SessionResponse.withErrors({
+                kind: SessionErrors.INVALID_CHOICE,
+            });
+
+        pubsub.publish(topic(id), thisLive);
+
+        return EndpointResponse.withErrors();
+    }
+
     @CheckAuth()
     @Mutation(() => SessionResponse)
     async closeSession(
