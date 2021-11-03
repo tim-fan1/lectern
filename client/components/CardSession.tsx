@@ -20,7 +20,7 @@ const MutationStartSession = `
 `;
 
 const MutationCloseSession = `
-    mutation ($id: Float!) {
+    mutation ($id: Int!) {
         closeSession(id: $id) {
             session {
                 endTime
