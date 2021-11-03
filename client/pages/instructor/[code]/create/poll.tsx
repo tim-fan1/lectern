@@ -100,7 +100,10 @@ export default function CreatePoll() {
                 if (optionB.length !== 0) addChoiceMutation(activity_id, optionB);
                 if (optionC.length !== 0) addChoiceMutation(activity_id, optionC);
                 if (optionD.length !== 0) addChoiceMutation(activity_id, optionD);
+
+                router.push("/instructor/" + router.query.code);
             } else {
+                //error
                 console.log(result);
             }
         });
