@@ -80,51 +80,12 @@ export default function Dashboard() {
     }
     // TODO: error handling, use https://www.npmjs.com/package/next-urql with getServerSideProps
 
-    // TODO: below will maybe be applied for when we add groups and properly order the sessions by their details.
-    // let content = [<p>Getting your sessions...</p>];
-    // if (!fetching) {
-    //     const openSessions: JSX.Element[] = [];
-    //     const otherSessions: JSX.Element[] = [];
-    //     content = [
-    //         <h3 className={styles.header_sessions}>Open sessions</h3>,
-    //         openSessions,
-    //         <h3 className={styles.header_sessions}>Other sessions</h3>,
-    //         otherSessions,
-    //     ];
-    //     data.getSessions.sessions.reverse().map((session: Session) => {
-    //         const sessionState = sessionStateFromString(session.state);
-
-    //         const cardSession = (
-    //             <CardSession
-    //                 key={session.id}
-    //                 code={session.code}
-    //                 id={session.id}
-    //                 name={session.name}
-    //                 state={sessionStateFromString(session.state)}
-    //                 startTime={session.startTime}
-    //                 endTime={session.startTime}
-    //             />
-    //         );
-
-    //         if (sessionState === SessionState.open) {
-    //             openSessions.push(cardSession);
-    //         } else {
-    //             otherSessions.push(cardSession);
-    //         }
-    //     });
-    // }
-
-    return (
-        <div className="container_center">
-            <Head>
-                <title>lectern - Instructor dashboard</title>
-            </Head>
-            <Navigation />
-            <h1>Instructor dashboard</h1>
-            <ButtonCreate href="/instructor/create" text="Create session" />
-            <div id={styles.container_sessions} className="container_center">
-                <h2>Sessions</h2>
-                {!sessions_fetching &&
+    let sessionsContent =
+        sessions_fetching || group_fetching ? (
+            <p>Getting your sessions...</p>
+        ) : (
+            <>
+                {
                     /* The list of sessions with a group attached. */
                     groups.map((groupName, i) => {
                         return (
@@ -135,7 +96,7 @@ export default function Dashboard() {
                                     <h3 id={styles.session_label_name}>Name</h3>
                                     <h3 id={styles.session_label_start_time}>Start time</h3>
                                     <h3 id={styles.session_label_end_time}>End time</h3>
-                                    <div></div>
+                                    <div />
                                 </div>
                                 {/* Filter sessions so that it on contains sessions for this group. */}
                                 {sessions_data!
@@ -153,14 +114,29 @@ export default function Dashboard() {
                                     ))}
                             </div>
                         );
-                    })}
+                    })
+                }
+            </>
+        );
+
+    return (
+        <div className="container_center">
+            <Head>
+                <title>lectern - Instructor dashboard</title>
+            </Head>
+            <Navigation />
+            <h1>Instructor dashboard</h1>
+            <ButtonCreate href="/instructor/create" text="Create session" />
+            <div id={styles.container_sessions} className="container_center">
+                <h2>Sessions</h2>
+                {sessionsContent}
                 {/* The list of sessions with no group attached. */}
                 <h1>No group</h1>
                 <div id={styles.container_card_session_labels}>
                     <h3 id={styles.session_label_name}>Name</h3>
                     <h3 id={styles.session_label_start_time}>Start time</h3>
                     <h3 id={styles.session_label_end_time}>End time</h3>
-                    <div></div>
+                    <div />
                 </div>
                 {!sessions_fetching &&
                     // console.log(
