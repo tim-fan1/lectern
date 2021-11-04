@@ -1,5 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
 import Navigation from "../../components/Navigation";
@@ -152,19 +153,13 @@ export default function Join() {
                 </h2>
                 <h1 id={styles.header_session_title}>{session.name}</h1>
                 <div>
-                    <div>
-                        <div
-                            /* Beautiful and reusable functional styling. */
-                            style={{
-                                display: "flex",
-                                flexDirection: "row",
-                                alignItems: "center",
-                                gap: "20px",
-                            }}
-                        >
-                            <img src={session.author.pic} style={{ borderRadius: "50%" }} />
-                            <h3>{session.author.name}</h3>
-                        </div>
+                    <div className={styles.profile_container}>
+                        <Image
+                            alt={"Picture of this session's author"}
+                            src={session.author.pic}
+                            className={styles.round_corners}
+                        />
+                        <h3>{session.author.name}</h3>
                         <br />
                         <i>{session.author.bio}</i>
 
