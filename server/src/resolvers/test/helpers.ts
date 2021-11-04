@@ -3,7 +3,7 @@ import { buildSchema } from "type-graphql";
 import { HelloResolver, SessionResolver, UserResolver } from "../resolvers";
 import http from "http";
 import makeApp from "../../index";
-import supertest from "supertest";
+import supertest, { Test } from "supertest";
 import generateAlphanumCode from "../../utils/generateCode";
 
 // mock the generate code first, before registering
@@ -44,20 +44,27 @@ export const testGetAppSingleton = async () => {
 
 export const TEST_HOST = "https://test.com";
 
-export const sendGraphqlRequest = async (
+export interface sendGraphqlRequestOpts {
+    url?: string;
+    supertest_obj?: supertest.SuperTest<supertest.Test>;
+}
+export const sendGraphqlRequest = (
     query: string,
     args: any = {},
-    url?: string,
-    app?: http.Server,
-    supertest_obj?: supertest.SuperTest<supertest.Test>
-) => {
+    opts?: sendGraphqlRequestOpts
+): Test => {
+    let url: string | undefined;
+    let supertest_obj: supertest.SuperTest<supertest.Test> | undefined;
+    if (opts !== undefined) {
+        ({ url, supertest_obj } = opts);
+    }
     if (url === undefined) {
         url = "/graphql";
     }
-    if (app === undefined) {
-        app = await testGetAppSingleton();
-    }
     if (supertest_obj === undefined) {
+        // app needs to be defined (testAppSingleton should be called before)
+        // however, since it is async it kinda sucks.
+        expect(app).toBeDefined();
         supertest_obj = supertest(app);
     }
 
@@ -72,14 +79,9 @@ export const sendGraphqlRequest = async (
         .expect("Content-Type", /json/)
         .expect(200);
 };
-export const resetDatabase = async () => {
-    // clear all entities https://stackoverflow.com/questions/58779347/jest-typeorm-purge-database-after-all-tests
-    const entities = getConnection().entityMetadatas;
 
-    for (const entity of entities) {
-        const repository = getConnection().getRepository(entity.name); // Get repository
-        await repository.clear(); // Clear each entity table's content
-    }
+export const resetDatabase = async () => {
+    await getConnection().synchronize(true);
 };
 
 export const RegisterMutation = `
@@ -155,6 +157,8 @@ export const registerUser = async (
     email: string,
     password: string
 ): Promise<any> => {
+    // HACK: we need to set the global app variable
+    await testGetAppSingleton();
     const res = await sendGraphqlRequest(RegisterMutation, {
         fname,
         lname,
