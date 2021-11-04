@@ -1,6 +1,5 @@
-import { useLecternQuery } from "./lecternApiHooks";
+import { useLecternQuery, useLecternQueryProps } from "./lecternApiHooks";
 import { SessionStateString } from "../util";
-import { QueryProps } from "urql";
 
 const QueryGetSessions = `
     query {
@@ -32,7 +31,7 @@ export type Session = {
     group?: string;
 };
 
-export const useGetSessionsQuery = (props?: QueryProps) => {
+export const useGetSessionsQuery = (props?: useLecternQueryProps) => {
     return useLecternQuery<Session[]>({
         ...props,
         queryName: "getSessions",
