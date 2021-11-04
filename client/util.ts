@@ -75,6 +75,6 @@ export function indexToMonth(index: number): string {
 }
 
 /* TODO: make this constraint consistent with server, should we check for non-alphanumeric chars? */
-export function validateSessionCode(code: string): boolean {
-    return code.length === 6;
+export function validateSessionCode(code?: string): boolean {
+    return code !== undefined && code.length === 6;
 }

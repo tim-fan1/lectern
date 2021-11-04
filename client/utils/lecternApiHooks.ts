@@ -64,6 +64,8 @@ export const useLecternQuery = <LecternData extends object, Variables = object>(
     props: useLecternQueryProps<Variables>
 ): LecternApiResponse<LecternData> => {
     const [result] = useQuery<any, Variables>(props);
+    console.log(result);
+
     if (result.fetching) {
         return {
             fetching: true,
@@ -75,7 +77,7 @@ export const useLecternQuery = <LecternData extends object, Variables = object>(
         };
     }
     if (result.error !== undefined) {
-        // error happened on the top level
+        // network error (mostly from fetch / Network related)
         return {
             fetching: false,
             errors: [result.error],
@@ -86,8 +88,40 @@ export const useLecternQuery = <LecternData extends object, Variables = object>(
         };
     }
     const { queryName, queryField } = props;
+    if (result.data === undefined) {
+        // result.fetching, error and data are all undefined or false
+        // this means we are "paused"
+        return {
+            // HACK: return fetching = true to indicate to consumer that
+            // no data has been given to us yet, but no error has occured
+            fetching: true,
+            data: null,
+            errors: [],
+            getData: () => {
+                throw new Error("cannot retrieve data while fetching");
+            },
+        };
+    } else if (result.data!.errors !== undefined) {
+        // backend 500 errors. These are sus and because the backend raised
+        // an exception that wasn't handled
+        interface TypeGraphqlError {
+            message: string;
+            locations: { line: string; column: string }[];
+        }
+        return {
+            fetching: false,
+            data: null,
+            errors: result.data!.errors.map(
+                (e: TypeGraphqlError) => new ConcreteApiError("", e.message)
+            ),
+            getData: () => {
+                throw new Error("cannot retreive data while error");
+            },
+        };
+    }
     const errors: ApiError[] = result.data![queryName].errors;
     if (errors.length !== 0) {
+        // errors signaled at the query level
         return {
             fetching: false,
             data: null,
