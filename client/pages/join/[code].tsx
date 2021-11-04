@@ -2,7 +2,6 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
-import { useQuery } from "urql";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/join.module.css";
 import { validateSessionCode } from "../../util";
@@ -19,6 +18,9 @@ export default function Join() {
 
     const [displayName, setDisplayName] = useState("");
 
+    /* Since this component does represent a possible route in the app, we have to consider that
+     * the user has entered an invalid session code by entering it in the URL, even though there
+     * are checks on the join form. */
     let isValidCode = validateSessionCode(code);
 
     const { getData, fetching, errors } = useSessionDetailsQuery({
@@ -40,10 +42,11 @@ export default function Join() {
 
     let content;
 
-    /* Since this component does represent a possible route in the app, we have to consider that
-     * the user has entered an invalid session code by entering it in the URL, even though there
-     * are checks on the join form. */
-    if (!isValidCode) {
+    if (!router.isReady) {
+        // sadge: wait till router is ready to not get spurious isValidCode
+        // this leaves us an "empty" page but its not toooo bad
+        content = <p>Loading url</p>;
+    } else if (!isValidCode) {
         content = (
             <div id={styles.container_invalid_code}>
                 <h2>

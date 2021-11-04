@@ -19,6 +19,7 @@ interface LecternApiResponseError<Data extends Object> extends GetData<Data> {
     data: null;
 }
 
+// either we are paused or in the middle of fetching a request
 interface LecternApiResponseFetching<Data extends Object> extends GetData<Data> {
     fetching: true;
     errors: [];
