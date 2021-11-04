@@ -1,166 +1,138 @@
-import makeApp from "../index";
+import {
+    checkUserResponse,
+    createUser,
+    LoginMutation,
+    mockGenerateAlphanumCode,
+    RegisterMutation,
+    registerUser,
+    resetDatabase,
+    sendGraphqlRequest,
+    TEST_HOST,
+    testGetAppSingleton,
+    VerifyEmailMutation,
+} from "./test/helpers";
 import supertest from "supertest";
-import { createConnection, getConnection } from "typeorm";
-import http from "http";
-import User from "../entities/User";
-import { buildSchema } from "type-graphql";
-import { HelloResolver, SessionResolver, UserResolver } from "./resolvers";
-import path from "path";
-
-let app: http.Server;
-beforeAll(async () => {
-    // setup connection and express app
-    const connection = await createConnection({
-        type: "sqlite",
-        database: ":memory:",
-        entities: ["src/entities/*.ts"],
-        synchronize: true,
-        dropSchema: true,
-    });
-
-    const schema = await buildSchema({
-        resolvers: [HelloResolver, UserResolver, SessionResolver],
-    });
-
-    app = http.createServer(await makeApp(schema, connection));
-});
-
-beforeEach(async () => {});
+import superagent from "superagent";
+import { CookieAccessInfo } from "cookiejar";
 
 afterEach(async () => {
-    // clear all entities https://stackoverflow.com/questions/58779347/jest-typeorm-purge-database-after-all-tests
-    const entities = getConnection().entityMetadatas;
-
-    for (const entity of entities) {
-        const repository = getConnection().getRepository(entity.name); // Get repository
-        await repository.clear(); // Clear each entity table's content
-    }
+    await resetDatabase();
 });
 
-const sendGraphqlRequest = async (query: string, url = "/graphql") => {
-    const request = supertest(app);
-    return request
-        .post(url)
-        .send({
-            query: query,
-        })
-        .set("Accept", "application/json")
-        .expect("Content-Type", /json/);
-};
-
-describe("graphql sanity checks", () => {
-    test("GET /graphql", async () => {
-        const request = supertest(app);
-        const res = await request.get("/graphql");
-        expect(res.statusCode).toBe(400);
-        expect(res.body).toEqual({
-            errors: [
-                {
-                    message: "Must provide query string.",
-                },
-            ],
-        });
-    });
-
-    test("graphql hello world", async () => {
-        let res = await sendGraphqlRequest(
-            `query {
-              helloWorld
-            }`
-        );
-
-        expect(res.statusCode).toBe(200);
-        expect(res.body).toEqual({
-            data: {
-                helloWorld: "Hello World!",
-            },
-        });
-    });
-});
 describe("graphql user detail tests", () => {
-    /// Register a user, and do some basic tests to ensure state is correct
-    const registerUser = async (
-        fname: string,
-        lname: string,
-        email: string,
-        password: string
-    ): Promise<User> => {
-        const res = await sendGraphqlRequest(
-            `mutation {
-              register(
-                password: "${password}",
-                fname: "${fname}",
-                lname: "${lname}",
-                # 4 char min :(
-                email: "${email}"
-              ) {
-                errors {
-                    msg,
-                    kind
-                },
-                user {
-                  email
-                  id
-                  name
-                }
-              }
-            }`
-        );
+    // This function checks if a user response contains a valid
+    // representation of a user from the /register register
 
-        expect(res.statusCode).toEqual(200);
-        expect(res.body).toEqual(
-            expect.objectContaining({
-                data: {
-                    register: {
-                        errors: [],
-                        user: {
-                            email: email,
-                            name: `${fname} ${lname}`,
-                            id: expect.any(Number),
-                        },
-                    },
-                },
-            })
-        );
-        return res.body.data.register.user;
-    };
     test("register test", async () => {
         const fname = "owo";
         const lname = "uwu";
         const email = "uwu@hewwo.com";
         const password = "whats this";
-        await registerUser(fname, lname, email, password);
+        const response = await registerUser(fname, lname, email, password);
+        checkUserResponse(response, { email, fname, lname });
     });
 
-    test("verification test", async () => {
+    test("register test fail", async () => {
+        const fname = "owo";
+        const lname = "uwu";
+        const email = "uwu@hewwo.com";
+        const password = "bad"; // password is too short
+        const response = await registerUser(fname, lname, email, password);
+        const errors = response.errors;
+        expect(errors).toHaveLength(1);
+        expect(errors).toContainEqual(
+            expect.objectContaining({
+                kind: "BAD_PASSWORD",
+                msg: expect.any(String),
+            })
+        );
+    });
+
+    test("verification + login test", async () => {
         const fname = "owo";
         const lname = "uwu";
         const email = "uwu@hewwo.com";
         const password = "whats this";
+
+        mockGenerateAlphanumCode.mockReturnValueOnce("owo");
         await registerUser(fname, lname, email, password);
 
-        let res = await sendGraphqlRequest(`
-        mutation {
-            login(email: "${email}", password: "${password}") {
-                errors {    
-                    kind,
-                    msg
-                }
-            }
-        }`);
-        expect(res.statusCode).toBe(200);
-        expect(res.body).toEqual({
-            // ? why are the errors returned in data
-            data: {
-                login: {
-                    errors: [
-                        {
-                            kind: "USER_UNVERIFIED",
-                            msg: "User not verified",
-                        },
-                    ],
-                },
-            },
+        // shouldn't let you login until verification is complete
+        let res = await sendGraphqlRequest(LoginMutation, {
+            email,
+            password,
         });
+        expect(res.body.data.login).toEqual({
+            errors: [
+                {
+                    kind: "USER_UNVERIFIED",
+                    msg: "User not verified",
+                },
+            ],
+        });
+
+        // use the wrong verification code
+        res = await sendGraphqlRequest(VerifyEmailMutation, {
+            verificationCode: "uwu",
+        });
+        expect(res.body.data.verifyEmail).toEqual({
+            errors: [
+                {
+                    kind: "INVALID_VERIFICATION_CODE",
+                    msg: "Invalid verification code",
+                },
+            ],
+        });
+
+        // now test with actual verification code (that we have mocked)
+        res = await sendGraphqlRequest(VerifyEmailMutation, {
+            verificationCode: "owo",
+        });
+        expect(res.body.data.verifyEmail.errors).toHaveLength(0);
+
+        // try to login again
+        res = await sendGraphqlRequest(LoginMutation, { email, password });
+        expect(res.body.data.login.errors).toHaveLength(0);
+
+        // try to login again with a wrong password
+        res = await sendGraphqlRequest(LoginMutation, {
+            email,
+            password: "this is wronger",
+        });
+        expect(res.body.data.login.errors).toEqual([
+            expect.objectContaining({
+                kind: "INCORRECT_PASSWORD",
+                msg: "Incorrect password",
+            }),
+        ]);
+    });
+
+    test("login test", async () => {
+        const email = "owo@uwu.com";
+        const password = "password";
+        const user = await createUser(email, "john", "smith", password);
+
+        // we need the actual supertest object to access the cookies afterwards
+        const supertest_obj = supertest.agent(await testGetAppSingleton());
+
+        // try to login
+        let res = await sendGraphqlRequest(
+            LoginMutation,
+            { email, password },
+            undefined,
+            undefined,
+            supertest_obj
+        );
+
+        expect(res.body.data.login.errors).toHaveLength(0);
+        const access_info = new CookieAccessInfo(TEST_HOST, "/", true);
+        expect(supertest_obj.jar.getCookie("token", access_info)).toEqual(
+            expect.objectContaining({
+                name: "token",
+                value: expect.any(String),
+                expiration_date: expect.any(Number),
+                path: "/",
+            })
+        );
     });
 });
