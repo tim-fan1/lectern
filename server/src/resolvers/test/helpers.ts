@@ -81,6 +81,7 @@ export const resetDatabase = async () => {
         await repository.clear(); // Clear each entity table's content
     }
 };
+
 export const RegisterMutation = `
 mutation($password: String!, $fname: String!, $lname: String!, $email: String!) {
   register(
@@ -100,15 +101,17 @@ mutation($password: String!, $fname: String!, $lname: String!, $email: String!) 
     }
   }
 }`;
+
 export const VerifyEmailMutation = `
-mutation($verification_code: String!) {
-    verify_email(verification_code: $verification_code) {
+mutation($verificationCode: String!) {
+    verifyEmail(verificationCode: $verificationCode) {
         errors {
             kind,
             msg
         }
     }
 }`;
+
 export const LoginMutation = `
 mutation($email: String!, $password: String!) {
     login(email: $email, password: $password) {
@@ -173,8 +176,8 @@ export const createUser = async (
     let user = checkUserResponse(response, { email, fname, lname });
     // verify the account
     response = await sendGraphqlRequest(VerifyEmailMutation, {
-        verification_code: "owo",
+        verificationCode: "owo",
     });
-    expect(response.body.data.verify_email.errors).toHaveLength(0);
+    expect(response.body.data.verifyEmail.errors).toHaveLength(0);
     return user;
 };
