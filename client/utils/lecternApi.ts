@@ -1,28 +1,34 @@
-import { CombinedError, useQuery } from "urql";
-import { UseQueryArgs, UseQueryResponse } from "urql/dist/types/hooks/useQuery";
+import { CombinedError, useQuery, UseQueryArgs, UseQueryResponse } from "urql";
 
-interface LecternApiResponseOk<Data> {
+/// Interface to get data. Note that the object returned is always
+/// a concrete object; it will throw an error otherwise
+/// use data to get a nullable version of the data
+interface GetData<Data extends Object> {
+    getData: () => Data;
+}
+
+interface LecternApiResponseOk<Data extends Object> extends GetData<Data> {
     fetching: false;
     errors: [];
     data: Data;
 }
 
-interface LecternApiResponseError {
+interface LecternApiResponseError<Data extends Object> extends GetData<Data> {
     fetching: false;
     errors: (CombinedError | ConcreteApiError)[];
     data: null;
 }
 
-interface LecternApiResponseFetching {
+interface LecternApiResponseFetching<Data extends Object> extends GetData<Data> {
     fetching: true;
     errors: [];
     data: null;
 }
 
-type LecternApiResponse<Data> =
+type LecternApiResponse<Data extends Object> =
     | LecternApiResponseOk<Data>
-    | LecternApiResponseError
-    | LecternApiResponseFetching;
+    | LecternApiResponseError<Data>
+    | LecternApiResponseFetching<Data>;
 
 interface QueryProps<Variables, Data> extends UseQueryArgs<Variables, Data> {
     queryName: string;
@@ -65,6 +71,9 @@ export const useLecternQuery = <LecternData extends object, Variables = object>(
             fetching: true,
             errors: [],
             data: null,
+            getData: () => {
+                throw new Error("cannot retrieve data while fetching");
+            },
         };
     }
     if (result.error !== undefined) {
@@ -73,6 +82,9 @@ export const useLecternQuery = <LecternData extends object, Variables = object>(
             fetching: false,
             errors: [result.error],
             data: null,
+            getData: () => {
+                throw new Error("cannot retrieve data while error");
+            },
         };
     }
     const errors: ApiError[] = result.data![queryName].errors;
@@ -81,6 +93,9 @@ export const useLecternQuery = <LecternData extends object, Variables = object>(
             fetching: false,
             data: null,
             errors: errors.map((e) => new ConcreteApiError(e.kind, e.msg)),
+            getData: () => {
+                throw new Error("cannot retrieve data while error");
+            },
         };
     }
 
@@ -91,5 +106,8 @@ export const useLecternQuery = <LecternData extends object, Variables = object>(
         fetching: false,
         errors: [],
         data: data,
+        getData: () => {
+            return data;
+        },
     };
 };
