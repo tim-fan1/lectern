@@ -26,29 +26,6 @@
     margin-bottom: 1.5rem;
 }
 
-#container_add_activity {
-    margin-top: 5rem;
-}
-
-#container_create_cards {
-    display: flex;
-    margin-top: 1.5rem;
-}
-
-.card_create_activity {
-    margin: 0 1rem;
-    background-color: var(--c-background-secondary);
-    padding: 2rem 3rem;
-    color: white;
-    border: 3px solid var(--c-background-tertiary);
-    transition: all 0.2s;
-    font-size: 1.25rem;
-}
-
-.card_create_activity:hover {
-    border: 3px solid var(--c-primary);
-}
-
 #container_btn {
     margin-top: 3rem;
     display: flex;
@@ -59,4 +36,29 @@
 #container_btn button {
     margin: 1rem;
     min-width: 10rem;
+}
+
+.container_add_group {
+    display: flex;
+    flex-direction: row;
+}
+
+.container_add_group input {
+    margin: 0.5rem 1rem;
+}
+
+.group_selected_button {
+    background-color: white;
+    color: black;
+}
+
+.group_button {
+    padding: 0.5rem 2rem;
+}
+
+#add_new_group_input:hover.group_selected_button {
+    color: black;
+}
+.group_button:hover.group_selected_button {
+    color: black;
 }

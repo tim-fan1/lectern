@@ -25,12 +25,16 @@ export default function VerifyEmail() {
 
     const [resetSuccess, setResetSuccess] = useState(false);
     const [password, setPassword] = useState("");
+    const [passwordConfirm, setPasswordConfirm] = useState("");
     const [errors, setErrors] = useState([] as string[]);
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setErrors([]);
-
+        if (password !== passwordConfirm) {
+            setErrors(["New password and new password confirm do not match"]);
+            return;
+        }
         const variables = {
             code: code,
             newPassword: password,
@@ -61,8 +65,12 @@ export default function VerifyEmail() {
                     <h1>Change your password</h1>
                     <form className="form" onSubmit={handleSubmit}>
                         <div className="container_input_label">
-                            <label className="label">Password</label>
+                            <label className="label">New password</label>
                             <InputPassword setValue={setPassword} />
+                        </div>
+                        <div className="container_input_label">
+                            <label className="label">Confirm new password</label>
+                            <InputPassword setValue={setPasswordConfirm} />
                         </div>
                         <button className="btn btn_primary" type="submit">
                             Change

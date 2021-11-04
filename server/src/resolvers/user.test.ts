@@ -73,9 +73,9 @@ describe("graphql user detail tests", () => {
 
         // use the wrong verification code
         res = await sendGraphqlRequest(VerifyEmailMutation, {
-            verification_code: "uwu",
+            verificationCode: "uwu",
         });
-        expect(res.body.data.verify_email).toEqual({
+        expect(res.body.data.verifyEmail).toEqual({
             errors: [
                 {
                     kind: "INVALID_VERIFICATION_CODE",
@@ -86,9 +86,9 @@ describe("graphql user detail tests", () => {
 
         // now test with actual verification code (that we have mocked)
         res = await sendGraphqlRequest(VerifyEmailMutation, {
-            verification_code: "owo",
+            verificationCode: "owo",
         });
-        expect(res.body.data.verify_email.errors).toHaveLength(0);
+        expect(res.body.data.verifyEmail.errors).toHaveLength(0);
 
         // try to login again
         res = await sendGraphqlRequest(LoginMutation, { email, password });

@@ -3,9 +3,10 @@ import { useState } from "react";
 import { useMutation } from "urql";
 import styles from "../styles/CardSession.module.css";
 import { sessionDateToString, SessionState } from "../util";
+import Modal from "./Modal";
 
 const MutationStartSession = `
-    mutation ($id: Float!) {
+    mutation ($id: Int!) {
         startSession(id: $id) {
             session {
                 code
@@ -19,7 +20,7 @@ const MutationStartSession = `
 `;
 
 const MutationCloseSession = `
-    mutation ($id: Float!) {
+    mutation ($id: Int!) {
         closeSession(id: $id) {
             session {
                 endTime
@@ -30,6 +31,20 @@ const MutationCloseSession = `
             }
         }
     }
+`;
+
+const MutationDuplicate = `
+mutation($name: String!, $id: Int!) {
+    duplicateSession(name: $name, id: $id) {
+        errors {
+            kind,
+            msg
+        },
+        session {
+            id
+        }
+    }
+}
 `;
 
 interface Props {
@@ -44,6 +59,10 @@ interface Props {
 export default function CardSession({ code, id, name, state, startTime, endTime }: Props) {
     const [startSessionResult, startSession] = useMutation(MutationStartSession);
     const [closeSessionResult, closeSession] = useMutation(MutationCloseSession);
+    const [_, DuplicateMutation] = useMutation(MutationDuplicate);
+    const [showModal, setShowModal] = useState(false);
+    const [modalError, setModalError] = useState("");
+    const [modalDuplicateText, setModalDuplicateText] = useState("");
 
     // TODO: error handling could be done better here. Little information is given to the user, perhaps it's fine though?
     const [error, setError] = useState("");
@@ -52,7 +71,7 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
         startSession({ id: id }).then((result) => {
             if (result.data.startSession.errors.length === 0) {
                 setError("");
-                state = SessionState.open;
+                state = SessionState.OPEN;
                 /* startSession generates a code, so we set that prop since it previously didn't exist .*/
                 code = result.data.startSession.session.code;
             } else {
@@ -65,12 +84,29 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
         closeSession({ id: id }).then((result) => {
             if (result.data.closeSession.errors.length === 0) {
                 setError("");
-                state = SessionState.archived;
+                state = SessionState.ARCHIVED;
                 endTime = result.data.closeSession.session.endTime;
             } else {
                 setError(`Could not close session "${name}". Please try again.`);
             }
         });
+    };
+
+    interface test {
+        kind: string;
+        msg: string;
+    }
+    const submitDuplicate = async (
+        id: number,
+        modalDuplicateText: string
+    ): Promise<[true, null] | [false, string]> => {
+        const res = await DuplicateMutation({ id: id, name: modalDuplicateText });
+        if (res.error) {
+            return [false, res.error.message];
+        } else if (res.data.duplicateSession.errors.length !== 0) {
+            return [false, (res.data.duplicateSession.errors as test[]).map((e) => e.kind).join()];
+        }
+        return [true, null];
     };
 
     return (
@@ -81,15 +117,7 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
                 </p>
             )}
             <div className={styles.container}>
-                <h3 className={styles.name}>
-                    {state !== SessionState.open && <p>{name}</p>}
-                    {/* We accent this button to make it extra clear that it is now clickable. */}
-                    {state === SessionState.open && (
-                        <Link href={`/session/manage/${code}`}>
-                            <a className={styles.accent_anchor}>{name}</a>
-                        </Link>
-                    )}
-                </h3>
+                <h3 className={styles.name}>{name}</h3>
                 <div className={styles.datetimes}>
                     {startTime && <p>{`${sessionDateToString(new Date(startTime))}`}</p>}
                     {endTime && <p>{`${sessionDateToString(new Date(endTime))}`}</p>}
@@ -97,21 +125,72 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
                 <div id={styles.container_actions}>
                     <a
                         onClick={
-                            state === SessionState.draft ? handleStartSession : handleCloseSession
+                            state === SessionState.DRAFT ? handleStartSession : handleCloseSession
                         }
                     >
-                        {state === SessionState.draft && "Start"}
-                        {state === SessionState.open && "Close"}
+                        {state === SessionState.DRAFT && "Start"}
+                        {state === SessionState.OPEN && "Close"}
                     </a>
                     {/* We have the invariant that if the session state is in open, then we will have a non-null code. */}
-                    {state === SessionState.open && (
-                        <Link href={`/instructor/present/${code}`}>
-                            <a className={styles.accent_anchor}>Present</a>
-                        </Link>
+                    {state === SessionState.OPEN && (
+                        <>
+                            <Link href={`/instructor/${code}/present`}>
+                                <a>Present</a>
+                            </Link>
+
+                            <Link href={`/instructor/${code}/`}>
+                                <a className={styles.link_manage}>Manage</a>
+                            </Link>
+                        </>
                     )}
-                    <Link href={`/session/edit/${id}`}>
-                        <a>Edit</a>
-                    </Link>
+                    {state !== SessionState.OPEN && (
+                        <>
+                            <Modal
+                                show={showModal}
+                                onClose={() => setShowModal(false)}
+                                title={
+                                    <div className="container_center">
+                                        <h2>Duplicate Session: {name}</h2>
+                                    </div>
+                                }
+                            >
+                                <div className="container_center">
+                                    <input
+                                        className="input"
+                                        placeholder={"new name"}
+                                        onChange={(e) =>
+                                            setModalDuplicateText(e.currentTarget.value)
+                                        }
+                                    />
+                                    <button
+                                        className="btn btn_primary"
+                                        onClick={async () => {
+                                            const [success, errorMsg] = await submitDuplicate(
+                                                id,
+                                                modalDuplicateText
+                                            );
+                                            if (!success) {
+                                                setModalError(errorMsg!);
+                                            } else {
+                                                setShowModal(false);
+                                                setModalError("");
+                                            }
+                                        }}
+                                    >
+                                        Submit
+                                    </button>
+                                    {<p className="error">{modalError}</p>}
+                                </div>
+                            </Modal>
+                            <a
+                                onClick={() => {
+                                    setShowModal(true);
+                                }}
+                            >
+                                Duplicate
+                            </a>
+                        </>
+                    )}
                 </div>
             </div>
         </div>
