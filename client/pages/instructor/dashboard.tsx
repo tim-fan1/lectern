@@ -5,44 +5,10 @@ import CardSession from "../../components/CardSession";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/dashboard.module.css";
 import { sessionStateFromString, SessionStateString } from "../../util";
-import { useLecternQuery } from "../../utils/lecternApiHooks";
-
-const QueryGetSessions = `
-    query {
-        getSessions {
-            errors {
-                kind,
-                msg
-            }
-            sessions {
-                code,
-                id,
-                name,
-                state,
-                startTime,
-                endTime,
-                group
-            }
-        }
-    }
-`;
-
-type Session = {
-    code?: string;
-    id: number;
-    name: string;
-    state: SessionStateString;
-    startTime?: string;
-    endTime?: string;
-    group?: string;
-};
+import { useGetSessionsQuery, Session } from "../../utils/lecternApi";
 
 export default function Dashboard() {
-    const { getData, fetching, errors } = useLecternQuery<Session[]>({
-        query: QueryGetSessions,
-        queryName: "getSessions",
-        queryField: "sessions",
-    });
+    const { getData, fetching, errors } = useGetSessionsQuery();
 
     let groupedSessionContent, nonGroupedSessionContent;
     if (fetching) {
