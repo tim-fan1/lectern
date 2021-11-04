@@ -1,0 +1,12 @@
+name: Pull Request title rules
+
+on:
+  pull_request:
+      branches: [ main ]
+      
+jobs:
+  check:
+    steps:
+    - uses: deepakputhraya/action-pr-title@v1.0.2
+      with:
+        allowed_prefixes: 'feature,bugfix,janotir,fix,feet,hotfix,feat,toes,revert'
