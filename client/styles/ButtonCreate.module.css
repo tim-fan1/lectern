@@ -1,0 +1,18 @@
+#btn_create {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#btn_create p {
+    margin: 0;
+}
+
+#btn_create svg {
+    fill: var(--c-primary);
+    margin-left: 0.5rem;
+}
+
+#btn_create:hover svg {
+    fill: var(--c-background);
+}

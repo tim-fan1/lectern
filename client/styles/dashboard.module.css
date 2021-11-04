@@ -2,25 +2,6 @@
     width: 75%;
 }
 
-#btn_create_session {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-#btn_create_session p {
-    margin: 0;
-}
-
-#btn_create_session svg {
-    fill: var(--c-primary);
-    margin-left: 0.5rem;
-}
-
-#btn_create_session:hover svg {
-    fill: var(--c-background);
-}
-
 #container_sessions {
     margin-bottom: 5rem;
 }

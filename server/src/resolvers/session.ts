@@ -33,6 +33,7 @@ enum SessionErrors {
     SESSION_NOT_EXIST = "SESSION_NOT_EXIST",
     SESSION_INVALID_STATE = "SESSION_INVALID_STATE",
     SESSION_CODE_EXIST = "SESSION_CODE_EXIST",
+    SESSION_NAME_ALREADY_EXIST = "SESSION_NAME_ALREADY_EXIST",
 }
 
 @Resolver()
@@ -40,11 +41,18 @@ export default class SessionResolver {
     @CheckAuth(["sessions"])
     @Query(() => SessionArrResponse)
     async getSessions(
-        @Ctx() { user }: AuthedContext
+        @Ctx() { user }: AuthedContext,
+        @Arg("id", { nullable: true }) id: string
     ): Promise<SessionArrResponse> {
+        /* Hopefully i understood authedcontext correctly when i did this merge main kek. */
         return {
             errors: [],
-            sessions: user.sessions,
+            sessions:
+                id === undefined
+                    ? user.sessions
+                    : user.sessions.filter(
+                          (session) => session.id === parseInt(id, 10)
+                      ),
         };
     }
 
@@ -54,15 +62,23 @@ export default class SessionResolver {
         @Ctx() { conn, user }: AuthedContext,
         @Arg("name") name: string,
         @Arg("group", { nullable: true }) group?: string
-        // @Arg("activities", () => [Activity], { nullable: true }) activities?: Activity[]
     ): Promise<SessionResponse> {
         try {
+            if (
+                user.sessions.filter((session) => session.name === name)
+                    .length !== 1
+            ) {
+                return EndpointResponse.withErrors({
+                    kind: SessionErrors.SESSION_NAME_ALREADY_EXIST,
+                    msg: "A session with the same name already exists",
+                });
+            }
             const sessionRepo = conn.getRepository(Session);
             const newSession = sessionRepo.create({
                 name: name,
                 group: group,
                 author: user,
-                // savedActivities: activities,
+                activities: [],
             });
             await sessionRepo.save(newSession);
 
@@ -78,7 +94,7 @@ export default class SessionResolver {
         }
     }
 
-    /* TODO add more edit fields? and define entity type properly */
+    /* TODO: add more edit fields? and define entity type properly */
     @CheckAuth()
     @Mutation(() => EndpointResponse)
     async editSession(
@@ -86,7 +102,6 @@ export default class SessionResolver {
         @Arg("id", () => Int) id: number,
         @Arg("name", { nullable: true }) name?: string,
         @Arg("group", { nullable: true }) group?: string
-        /// @Arg("activities", () => [Activity], { nullable: true }) activities?: Activity[]
     ): Promise<EndpointResponse> {
         try {
             const sessionRepo = conn.getRepository(Session);

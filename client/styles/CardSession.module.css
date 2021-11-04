@@ -37,3 +37,7 @@
     justify-content: flex-end;
     column-gap: 1.5rem;
 }
+
+.link_manage {
+    color: var(--c-purple-grey);
+}
