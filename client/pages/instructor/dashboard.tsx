@@ -5,7 +5,7 @@ import CardSession from "../../components/CardSession";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/dashboard.module.css";
 import { sessionStateFromString, SessionStateString } from "../../util";
-import { useLecternQuery } from "../../utils/lecternApi";
+import { useLecternQuery } from "../../utils/lecternApiHooks";
 
 const QueryGetSessions = `
     query {
