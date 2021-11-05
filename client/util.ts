@@ -2,6 +2,7 @@ export enum SessionActivity {
     POLL,
     QA,
     QUIZ,
+    POLL_RESULT,
 }
 
 export type SessionStateString = "draft" | "open" | "archived";

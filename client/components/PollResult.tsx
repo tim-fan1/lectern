@@ -13,10 +13,14 @@ export const PollResult = ({ title, results }: PollResultProps) => {
     let highestVote = results.reduce((a, b) => Math.max(a, b.numberOfVotes), 0);
 
     return (
-        <div>
+        <div className={styles.main_container}>
             <div className={styles.top_header_container}>
-                <h2 className={styles.top_header_q}>Q:</h2>
-                <p>{title}</p>
+                <div className={styles.header_q_container}>
+                    <h2 className={styles.top_header_q}>Q:</h2>
+                </div>
+                <h3 className={styles.top_header_text}>
+                    <b>{title}</b>
+                </h3>
             </div>
 
             {results.map((result, i) => {

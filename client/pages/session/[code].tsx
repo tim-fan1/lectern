@@ -27,7 +27,9 @@ function getActivityElement(activity: SessionActivity) {
         case SessionActivity.POLL_RESULT:
             return (
                 <PollResult
-                    title={"This is a title"}
+                    title={
+                        "This is a title A REALLLY REALLY fasdf sadf sadf saf sadf sadf safsaf saf saf sadfs af asfadf long one"
+                    }
                     results={[
                         {
                             optionName: "oof",
@@ -68,7 +70,7 @@ export default function Session() {
                     <span className={styles.room_text}>{code}</span>
                 </div>
             </div>
-            <div className={`"container_center" ${styles.content_container}`}>
+            <div className={`container_center ${styles.content_container}`}>
                 {getActivityElement(selectedActivity)}
             </div>
         </div>
