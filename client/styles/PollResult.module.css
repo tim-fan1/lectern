@@ -1,11 +1,22 @@
-.tank {
-    width: 500px;
+.bar_container {
+    width: 80%;
     height: 2rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-content: flex-start;
+    align-items: center
 }
 
-.liquid {
+.bar_coloured {
     background-color: var(--c-light-grey);
-    height: 100%
+    height: 100%;
+    display: inline-block;
+    margin-right: 1.25rem
+}
+
+.bar_label {
+    margin: 0.5rem 0.5rem
 }
 
 .top_header_container {
@@ -38,4 +49,12 @@
 
 .top_header_text {
     text-align: center;
+}
+
+#poll_result_break {
+    border: none;
+    overflow: visible;
+    height: 4px;
+    background-color: var(--c-light-grey);
+    width: 100%
 }
