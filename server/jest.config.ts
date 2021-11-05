@@ -11,5 +11,6 @@ const config: Config.InitialOptions = {
     },
     roots: ["<rootDir>/src"],
     collectCoverage: true,
+    setupFilesAfterEnv: ["jest-extended/all"],
 };
 export default config;

@@ -11,11 +11,11 @@ import {
     PubSubEngine,
 } from "type-graphql";
 import * as df from "date-fns";
-import { Session, User } from "../entities/entities";
+import { Activity, Session, User } from "../entities/entities";
 import { AuthedContext, Context, EndpointResponse } from "../types";
 import generateAlphanumCode from "../utils/generateCode";
 import CheckAuth from "../utils/authMiddleware";
-import { getRepository } from "typeorm";
+import { DeepPartial, getRepository } from "typeorm";
 import LiveSession from "../utils/liveSession";
 import { getSession } from "../utils/modifySession";
 
@@ -72,6 +72,7 @@ export default class SessionResolver {
         @Arg("name") name: string,
         @Arg("group", { nullable: true }) group?: string
     ): Promise<SessionResponse> {
+        name = name.trim();
         try {
             if (
                 user.sessions.filter((session) => session.name === name)
@@ -131,10 +132,11 @@ export default class SessionResolver {
 
             let entity: { name?: string; group?: string } = {};
             if (name !== undefined) {
-                entity.name = name;
+                // TODO: do or don't enforce uniqueness?
+                entity.name = name.trim();
             }
             if (group !== undefined) {
-                entity.group = group;
+                entity.group = group.trim();
             }
             await sessionRepo.update(id, entity);
 
@@ -182,7 +184,7 @@ export default class SessionResolver {
     @CheckAuth()
     @Mutation(() => SessionResponse)
     async startSession(
-        @Arg("id") id: number,
+        @Arg("id", () => Int) id: number,
         @Ctx() { conn, user, openSessions }: AuthedContext,
         @PubSub() pubsub: PubSubEngine
     ): Promise<SessionResponse> {
@@ -233,6 +235,50 @@ export default class SessionResolver {
                 msg: e.message,
             });
         }
+    }
+
+    @CheckAuth(["sessions"])
+    @Mutation(() => SessionResponse)
+    async duplicateSession(
+        @Arg("id", () => Int) id: number,
+        @Arg("name") newName: string,
+        @Ctx() { conn, user }: AuthedContext
+    ): Promise<SessionResponse> {
+        newName = newName.trim();
+        const srcSess = user.sessions.find((s) => s.id === id);
+        /* for now, only allow duplication of draft or archived sessions */
+        if (srcSess === undefined || srcSess.state === "open")
+            return SessionResponse.withErrors({
+                kind: SessionErrors.SESSION_NOT_EXIST,
+            });
+        if (user.sessions.find((s) => s.name === newName) !== undefined) {
+            return SessionResponse.withErrors({
+                kind: SessionErrors.SESSION_NAME_ALREADY_EXIST,
+            });
+        }
+
+        /* Clone the relevant fields from the session as a TypeORM DeepPartial */
+        const newSessPartial: DeepPartial<Session> = {
+            name: newName,
+            author: user,
+            group: srcSess.group,
+            activities: srcSess.activities.map((a) => {
+                return {
+                    name: a.name,
+                    kind: a.kind,
+                    session: newSess,
+                    state: "draft",
+                    choices: a.choices.map((c) => {
+                        return { name: c.name };
+                    }),
+                };
+            }),
+        };
+
+        /* Save to session repo (hope the cascades work!) */
+        const newSess = await conn.getRepository(Session).save(newSessPartial);
+
+        return { errors: [], session: newSess };
     }
 
     @Query(() => SessionResponse)
