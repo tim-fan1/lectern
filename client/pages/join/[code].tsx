@@ -158,6 +158,8 @@ export default function Join() {
                             alt={"Picture of this session's author"}
                             src={session.author.pic}
                             className={styles.round_corners}
+                            width={"64px"}
+                            height={"64px"}
                         />
                         <h3>{session.author.name}</h3>
                         <br />
