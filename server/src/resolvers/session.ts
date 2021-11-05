@@ -7,6 +7,8 @@ import {
     ObjectType,
     Query,
     Resolver,
+    PubSub,
+    PubSubEngine,
 } from "type-graphql";
 import * as df from "date-fns";
 import { Session, User } from "../entities/entities";
@@ -179,7 +181,8 @@ export default class SessionResolver {
     @Mutation(() => SessionResponse)
     async startSession(
         @Arg("id") id: number,
-        @Ctx() { conn, user, openSessions }: AuthedContext
+        @Ctx() { conn, user, openSessions }: AuthedContext,
+        @PubSub() pubsub: PubSubEngine
     ): Promise<SessionResponse> {
         try {
             const sessionRepo = conn.getRepository(Session);
@@ -216,7 +219,10 @@ export default class SessionResolver {
             await sessionRepo.save(session);
 
             /* Add session to openSessions TODO: set up auto-end somewhere here */
-            openSessions.set(session.id, new LiveSession(conn, session));
+            openSessions.set(
+                session.id,
+                new LiveSession(conn, pubsub, session)
+            );
 
             return { errors: [], session: session };
         } catch (e: Error | any) {
@@ -254,7 +260,7 @@ export default class SessionResolver {
 
             return {
                 errors: [],
-                session: thisLive ? thisLive.session : thisSession,
+                session: thisLive ? thisLive.getSession() : thisSession,
             };
         } catch (e: Error | any) {
             return SessionResponse.withErrors({

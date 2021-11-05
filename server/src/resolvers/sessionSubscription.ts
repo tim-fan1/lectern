@@ -14,6 +14,7 @@ import CheckAuth from "../utils/authMiddleware";
 import LiveSession, { topic } from "../utils/liveSession";
 import { SessionErrors, SessionResponse } from "./session";
 import modifySession from "../utils/modifySession";
+import ActivityResolver from "./activity";
 
 @Resolver()
 export default class SessionSubscriptionResolver {
@@ -44,14 +45,21 @@ export default class SessionSubscriptionResolver {
     @Mutation(() => EndpointResponse)
     async testInteraction(
         @Arg("id", () => Int) id: number,
-        @Ctx() { openSessions }: Context,
-        @PubSub() pubsub: PubSubEngine
+        @Ctx() { openSessions }: Context
     ): Promise<EndpointResponse> {
-        /* use modifySession to make necessary changes */
-        await modifySession(openSessions, { id: id }, (session) => {
-            session.numJoined++;
-            return session;
-        });
+        /* use modifySession to make necessary changes (see its jsdoc) */
+        const result = await modifySession(
+            openSessions,
+            { id: id },
+            /* the third argument is a function which returns a modified sess */
+            (session) => {
+                session.numJoined++;
+                return session;
+            }
+        );
+
+        /* see Either docs in types.ts; left means there was an error */
+        if (result.isLeft) return EndpointResponse.withErrors(result.data);
 
         return EndpointResponse.withErrors();
     }
@@ -61,21 +69,25 @@ export default class SessionSubscriptionResolver {
         @Arg("id", () => Int) id: number,
         @Arg("activityId", () => Int) activityId: number,
         @Arg("choiceId", () => Int) choiceId: number,
-        @Ctx() { openSessions }: Context,
-        @PubSub() pubsub: PubSubEngine
+        @Ctx() { openSessions }: Context
     ) {
-        const thisLive = openSessions.get(id);
-        if (thisLive === undefined)
-            return SessionResponse.withErrors({
-                kind: SessionErrors.SESSION_NOT_EXIST,
-            });
+        const result = await modifySession(
+            openSessions,
+            { id: id },
+            (session) => {
+                const activity = session.activities.find(
+                    (a) => a.id === activityId
+                );
+                if (activity === undefined) return session;
+                const choice = activity.choices.find((c) => c.id === choiceId);
+                if (choice === undefined) return session;
 
-        if (!thisLive.pollVote(activityId, choiceId))
-            return SessionResponse.withErrors({
-                kind: SessionErrors.INVALID_CHOICE,
-            });
+                choice.votes++;
+                return session;
+            }
+        );
 
-        pubsub.publish(topic(id), thisLive);
+        if (result.isLeft) return EndpointResponse.withErrors(result.data);
 
         return EndpointResponse.withErrors();
     }
@@ -88,7 +100,10 @@ export default class SessionSubscriptionResolver {
         @PubSub() pubsub: PubSubEngine
     ): Promise<SessionResponse> {
         const thisLive = openSessions.get(id);
-        if (thisLive === undefined || thisLive.session.author.id != user.id)
+        if (
+            thisLive === undefined ||
+            thisLive.getSession().author.id != user.id
+        )
             return SessionResponse.withErrors({
                 kind: SessionErrors.SESSION_NOT_EXIST,
             });
@@ -98,6 +113,6 @@ export default class SessionSubscriptionResolver {
 
         pubsub.publish(topic(id), thisLive);
 
-        return { errors: [], session: thisLive.session };
+        return { errors: [], session: thisLive.getSession() };
     }
 }
