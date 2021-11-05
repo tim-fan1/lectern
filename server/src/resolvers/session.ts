@@ -17,6 +17,7 @@ import generateAlphanumCode from "../utils/generateCode";
 import CheckAuth from "../utils/authMiddleware";
 import { getRepository } from "typeorm";
 import LiveSession from "../utils/liveSession";
+import { getSession } from "../utils/modifySession";
 
 // TODO: this is exported for use in sessionSubscription; should it be somewhere
 // else like types.ts?
@@ -41,6 +42,7 @@ export enum SessionErrors {
     SESSION_CLOSED = "SESSION_CLOSED",
     SESSION_NAME_ALREADY_EXIST = "SESSION_NAME_ALREADY_EXIST",
     INVALID_CHOICE = "INVALID_CHOICE",
+    INVALID_ACTIVITY = "INVALID_ACTIVITY", // TODO move to activity.ts
 }
 
 @Resolver()
@@ -238,35 +240,11 @@ export default class SessionResolver {
         @Arg("code") code: string,
         @Ctx() { conn, openSessions }: Context
     ): Promise<SessionResponse> {
-        try {
-            const sessionRepo = conn.getRepository(Session);
-            const thisSession = await sessionRepo.findOne({
-                where: { code: code.trim().toUpperCase() },
-                relations: ["author"],
-            });
-            if (thisSession === undefined || thisSession.state !== "open")
-                return SessionResponse.withErrors({
-                    kind: SessionErrors.SESSION_NOT_EXIST,
-                    msg: "Session does not exist or has not been opened",
-                });
-
-            /* If session is open, return the in-memory session instead
-             * This raises the question: why do we store & query live sessions
-             * by id instead of code? The important part is that the frontend
-             * uses an id; codes can be re-used, but ids cannot, so the frontend
-             * won't accidentally get data from another session if it queries
-             * using ids. This is a really unlikely case but yeah haha hafdsv */
-            const thisLive = openSessions.get(thisSession.id);
-
-            return {
-                errors: [],
-                session: thisLive ? thisLive.getSession() : thisSession,
-            };
-        } catch (e: Error | any) {
-            return SessionResponse.withErrors({
-                kind: SessionErrors.DB_ERROR,
-                msg: e.message,
-            });
+        const result = await getSession(openSessions, { code: code });
+        if (result.isLeft) {
+            return SessionResponse.withErrors(result.data);
+        } else {
+            return { errors: [], session: result.data };
         }
     }
 }

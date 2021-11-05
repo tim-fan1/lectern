@@ -9,12 +9,17 @@ import {
     PubSubEngine,
     Int,
 } from "type-graphql";
-import { AuthedContext, Context, EndpointResponse } from "../types";
+import {
+    AuthedContext,
+    Context,
+    EndpointResponse,
+    left,
+    right,
+} from "../types";
 import CheckAuth from "../utils/authMiddleware";
 import LiveSession, { topic } from "../utils/liveSession";
 import { SessionErrors, SessionResponse } from "./session";
 import modifySession from "../utils/modifySession";
-import ActivityResolver from "./activity";
 
 @Resolver()
 export default class SessionSubscriptionResolver {
@@ -54,7 +59,7 @@ export default class SessionSubscriptionResolver {
             /* the third argument is a function which returns a modified sess */
             (session) => {
                 session.numJoined++;
-                return session;
+                return right(session);
             }
         );
 
@@ -78,12 +83,15 @@ export default class SessionSubscriptionResolver {
                 const activity = session.activities.find(
                     (a) => a.id === activityId
                 );
-                if (activity === undefined) return session;
+                if (activity === undefined)
+                    return left({ kind: SessionErrors.INVALID_ACTIVITY });
+
                 const choice = activity.choices.find((c) => c.id === choiceId);
-                if (choice === undefined) return session;
+                if (choice === undefined)
+                    return left({ kind: SessionErrors.INVALID_CHOICE });
 
                 choice.votes++;
-                return session;
+                return right(session);
             }
         );
 

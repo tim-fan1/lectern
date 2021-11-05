@@ -6,7 +6,7 @@ import { SessionErrors } from "../resolvers/session";
 
 export async function getSession(
     opens: Map<number, LiveSession>,
-    where: { id: number | undefined; code: string | undefined }
+    where: { id?: number; code?: string }
 ) {
     return modifySession(opens, where);
 }
@@ -23,7 +23,11 @@ export async function getSession(
 export default async function modifySession(
     opens: Map<number, LiveSession>,
     where: { id?: number; code?: string },
-    change: (s: Session) => Session | Promise<Session> = (s) => s
+    change: (
+        s: Session
+    ) => Either<RespError, Session> | Promise<Either<RespError, Session>> = (
+        s
+    ) => right(s)
 ): Promise<Either<RespError, Session>> {
     /* Get the session */
     let session: Session;
@@ -61,7 +65,12 @@ export default async function modifySession(
     }
 
     /* Make the change */
-    session = await change(session);
+    const result = await change(session);
+    if (result.isLeft) {
+        return left(result.data);
+    } else {
+        session = result.data;
+    }
 
     /* Commit it */
     if (live !== undefined) live.updateSession(session);
