@@ -27,17 +27,23 @@ function getActivityElement(activity: SessionActivity) {
         case SessionActivity.POLL_RESULT:
             return (
                 <PollResult
-                    title={
-                        "This is a title A REALLLY REALLY fasdf sadf sadf saf sadf sadf safsaf saf saf sadfs af asfadf long one"
-                    }
+                    title={"What is the best text editor?"}
                     results={[
                         {
-                            optionName: "oof",
-                            numberOfVotes: 73,
+                            optionName: "Sublime text 3",
+                            numberOfVotes: 7,
                         },
                         {
-                            optionName: "uw",
-                            numberOfVotes: 50,
+                            optionName: "Visual Studio Code 🤢",
+                            numberOfVotes: 15,
+                        },
+                        {
+                            optionName: "Punch cards",
+                            numberOfVotes: 6,
+                        },
+                        {
+                            optionName: "Vim",
+                            numberOfVotes: 3,
                         },
                     ]}
                 />

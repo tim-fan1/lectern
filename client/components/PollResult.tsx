@@ -14,35 +14,32 @@ export const PollResult = ({ title, results }: PollResultProps) => {
     return (
         <div className={`${styles.main_container} container_center`}>
             <div className={styles.top_header_container}>
-                <div className={styles.header_q_container}>
-                    <h2 className={styles.top_header_q}>Q:</h2>
-                </div>
-                <h3 className={styles.top_header_text}>
-                    <b>{title}</b>
-                </h3>
+                <h2 className={styles.top_header_q}>Q:</h2>
+                <h2 className={styles.top_header_text}>{title}</h2>
             </div>
             <hr id={styles.poll_result_break} />
-            <h3>
+            <h3 className={styles.vote_count}>
                 <b>{totalVotes}</b> answers
             </h3>
-            <div style={{ width: "100%" }}>
+            <div className={styles.all_bars_container}>
                 {results.map((result, i) => {
                     const votePercent = Math.round((result.numberOfVotes / totalVotes) * 100) + "%";
+                    let votePercentStyle = "";
                     let shownBarStyle = {
                         width: votePercent,
                         backgroundColor: "",
                     };
                     if (result.numberOfVotes === highestVote) {
                         shownBarStyle.backgroundColor = "var(--c-primary)";
+                        votePercentStyle = styles.vote_highest_label;
                     }
+
                     return (
                         <div key={i}>
-                            <p className={styles.bar_label}>
-                                {result.optionName}, with {result.numberOfVotes} votes
-                            </p>
+                            <p className={styles.bar_label}>{result.optionName}</p>
                             <div className={styles.bar_container}>
                                 <div className={styles.bar_coloured} style={shownBarStyle} />
-                                <span>
+                                <span className={votePercentStyle}>
                                     {votePercent} ({result.numberOfVotes})
                                 </span>
                             </div>
