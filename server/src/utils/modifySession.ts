@@ -1,7 +1,7 @@
 import { getRepository } from "typeorm";
 import { Session } from "../entities/entities";
 import LiveSession from "./liveSession";
-import { RespError } from "../types";
+import { Either, left, RespError, right } from "../types";
 import { SessionErrors } from "../resolvers/session";
 
 export async function getSession(
@@ -24,14 +24,14 @@ export default async function modifySession(
     opens: Map<number, LiveSession>,
     where: { id?: number; code?: string },
     change: (s: Session) => Session | Promise<Session> = (s) => s
-): Promise<Session | RespError> {
+): Promise<Either<RespError, Session>> {
     /* Get the session */
     let session: Session;
     let live: LiveSession | undefined = undefined;
     if (where.id && opens.has(where.id)) {
         live = opens.get(where.id);
         if (live === undefined)
-            return { kind: SessionErrors.SESSION_NOT_EXIST };
+            return left({ kind: SessionErrors.SESSION_NOT_EXIST });
         session = live.getSession();
     } else {
         try {
@@ -39,10 +39,10 @@ export default async function modifySession(
                 where: where,
             });
             if (maybeSession === undefined)
-                return { kind: SessionErrors.SESSION_NOT_EXIST };
+                return left({ kind: SessionErrors.SESSION_NOT_EXIST });
             session = maybeSession;
         } catch (e) {
-            return { kind: SessionErrors.DB_ERROR };
+            return left({ kind: SessionErrors.DB_ERROR });
         }
         /* If session is open, use the in-memory session instead
          * This raises the question: why do we store & query live sessions
@@ -53,11 +53,11 @@ export default async function modifySession(
         if (session && session.state === "open") {
             live = opens.get(session.id);
             if (live === undefined)
-                return { kind: SessionErrors.SESSION_NOT_EXIST };
+                return left({ kind: SessionErrors.SESSION_NOT_EXIST });
             session = live.getSession();
         }
         if (session === undefined)
-            return { kind: SessionErrors.SESSION_NOT_EXIST };
+            return left({ kind: SessionErrors.SESSION_NOT_EXIST });
     }
 
     /* Make the change */
@@ -69,8 +69,8 @@ export default async function modifySession(
         try {
             session = await getRepository(Session).save(session);
         } catch (e) {
-            return { kind: SessionErrors.DB_ERROR };
+            return left({ kind: SessionErrors.DB_ERROR });
         }
 
-    return session;
+    return right(session);
 }

@@ -21,6 +21,9 @@ export default class LiveSession {
         this.pubsub = pubsub;
     }
 
+    /**
+     * why the fuck did i just write a getter in javascript
+     */
     getSession() {
         return this.session;
     }
