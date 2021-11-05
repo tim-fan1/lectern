@@ -1,0 +1,18 @@
+.tank {
+    width: 500px;
+    height: 2rem;
+}
+
+.liquid {
+    background-color: var(--c-light-grey);
+    height: 100%
+}
+
+.top_header_container {
+    display: flex;
+    flex-direction: row;
+}
+
+.top_header_q {
+    text-align: center;
+}

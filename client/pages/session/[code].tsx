@@ -6,6 +6,7 @@ import Poll from "../../components/Poll";
 import styles from "../../styles/session.module.css";
 import { SessionActivity } from "../../util";
 import NavigationSession from "../../components/NavigationSession";
+import { PollResult } from "../../components/PollResult";
 
 const title = "What is the best web development software for complexity?";
 
@@ -23,6 +24,22 @@ function getActivityElement(activity: SessionActivity) {
                     ]}
                 />
             );
+        case SessionActivity.POLL_RESULT:
+            return (
+                <PollResult
+                    title={"This is a title"}
+                    results={[
+                        {
+                            optionName: "oof",
+                            numberOfVotes: 73,
+                        },
+                        {
+                            optionName: "uw",
+                            numberOfVotes: 50,
+                        },
+                    ]}
+                />
+            );
         default:
             return <p>Coming soon™</p>;
     }
@@ -31,7 +48,7 @@ function getActivityElement(activity: SessionActivity) {
 export default function Session() {
     const router = useRouter();
     const { code } = router.query;
-    const [selectedActivity, setSelectedActivity] = useState(SessionActivity.POLL);
+    const [selectedActivity, setSelectedActivity] = useState(SessionActivity.POLL_RESULT);
 
     return (
         <div className={`container_center ${styles.root_container}`}>
