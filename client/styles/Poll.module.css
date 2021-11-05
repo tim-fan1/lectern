@@ -36,7 +36,7 @@
     margin-right: 1rem;
     background-color: white;
     border: gray solid;
-
+    pointer-events: none;
 }
 
 .poll_button_button_selected {

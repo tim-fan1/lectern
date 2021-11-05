@@ -7,10 +7,22 @@ import styles from "../../styles/session.module.css";
 import { SessionActivity } from "../../util";
 import NavigationSession from "../../components/NavigationSession";
 
+const title = "What is the best web development software for complexity?";
+
 function getActivityElement(activity: SessionActivity) {
     switch (activity) {
         case SessionActivity.POLL:
-            return <Poll />;
+            return (
+                <Poll
+                    title={title}
+                    questions={[
+                        "Package managers",
+                        "JavaScript bundlers",
+                        "Frameworks on top of frameworks (e.g. Next.js)",
+                        "All of the above",
+                    ]}
+                />
+            );
         default:
             return <p>Coming soon™</p>;
     }
