@@ -6,9 +6,10 @@ import { SessionErrors } from "../resolvers/session";
 
 export async function getSession(
     opens: Map<number, LiveSession>,
-    where: { id?: number; code?: string }
+    where: { id?: number; code?: string },
+    relations: string[] = []
 ) {
-    return modifySession(opens, where);
+    return modifySession(opens, where, (s) => right(s), relations);
 }
 
 /**
@@ -27,12 +28,14 @@ export default async function modifySession(
         s: Session
     ) => Either<RespError, Session> | Promise<Either<RespError, Session>> = (
         s
-    ) => right(s)
+    ) => right(s),
+    relations: string[] = []
 ): Promise<Either<RespError, Session>> {
     /* Get the session */
     let session: Session;
     let live: LiveSession | undefined = undefined;
-    if (where.id && opens.has(where.id)) {
+    /* If the session is open (and we don't want extra relations) use live ver */
+    if (relations.length === 0 && where.id && opens.has(where.id)) {
         live = opens.get(where.id);
         if (live === undefined)
             return left({ kind: SessionErrors.SESSION_NOT_EXIST });
@@ -41,6 +44,7 @@ export default async function modifySession(
         try {
             let maybeSession = await getRepository(Session).findOne({
                 where: where,
+                relations: relations,
             });
             if (maybeSession === undefined)
                 return left({ kind: SessionErrors.SESSION_NOT_EXIST });
