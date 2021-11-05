@@ -1,46 +1,34 @@
 import Head from "next/head";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
-import { useQuery } from "urql";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/join.module.css";
 import { validateSessionCode } from "../../util";
-
-/* Love that prettier doesn't format these strings (obvs). */
-const QuerySessionDetails = `
-    query ($code: String!) {
-        sessionDetails(code: $code) {
-            session {
-                name
-                author { name,pic,bio }
-                group
-                code
-            }
-            errors {
-                kind
-                msg
-            }
-        }
-    }
-`;
+import { useSessionDetailsQuery } from "../../utils/lecternApi";
 
 export default function Join() {
     const router = useRouter();
-    const { code } = router.query;
-
-    /* Since this component does represent a possible route in the app, we have to consider that
-     * the user has entered an invalid session code by entering it in the URL, even though there
-     * are checks on the join form. */
-    let codeFormatIsValid = typeof code === "string" && validateSessionCode(code);
+    // we can also do [...code] to match all (*/)*[code], which will return a string[]
+    // however, since we only have 1 arg, this will be a single string
+    const { code } = router.query as { code?: string };
 
     let [enteredName, setEnteredName] = useState(false);
     let [isAnon, setIsAnon] = useState(false);
 
     const [displayName, setDisplayName] = useState("");
 
-    const [result] = useQuery({ query: QuerySessionDetails, variables: { code: code } });
-    const { data, fetching, error } = result;
+    /* Since this component does represent a possible route in the app, we have to consider that
+     * the user has entered an invalid session code by entering it in the URL, even though there
+     * are checks on the join form. */
+    let isValidCode = validateSessionCode(code);
+
+    const { getData, fetching, errors } = useSessionDetailsQuery({
+        variables: { code: code! },
+        // don't request with an invalid code
+        pause: !isValidCode,
+    });
 
     if (enteredName) {
         router.push(`/session/${code}`);
@@ -54,9 +42,12 @@ export default function Join() {
     };
 
     let content;
-    if (fetching) {
-        content = <div className="container_center"></div>;
-    } else if (!codeFormatIsValid) {
+
+    if (!router.isReady) {
+        // sadge: wait till router is ready to not get spurious isValidCode
+        // this leaves us an "empty" page but its not toooo bad
+        content = <p>Loading url</p>;
+    } else if (!isValidCode) {
         content = (
             <div id={styles.container_invalid_code}>
                 <h2>
@@ -68,35 +59,77 @@ export default function Join() {
                 </Link>
             </div>
         );
-    } else if (error !== undefined || data.sessionDetails.errors.length !== 0) {
+    } else if (fetching) {
+        content = (
+            <div className="container_center">
+                <p>Loading sessions</p>
+            </div>
+        );
+    } else if (errors.length !== 0) {
+        let errorMsg = errors.map((e) => e.toString()).join(" ");
         content = (
             <div id={styles.container_invalid_code}>
                 <h2>
                     The session with code <b>#{code}</b> could not be accessed.
                 </h2>
                 <h2>Please double check it is the correct code.</h2>
-                <p>
-                    Error message:{" "}
-                    {error !== undefined ? error.message : data.sessionDetails.errors[0].msg}
-                </p>
+                <p>Error message: {errorMsg}</p>
                 <Link href="/">
                     <a>Back to home.</a>
                 </Link>
             </div>
         );
     } else {
-        let nameSection;
-        if (!enteredName) {
-            nameSection = (
-                <form className="container_center" id={styles.form_join} onSubmit={handleSubmit}>
-                    <div id={styles.container_submit}>
+        let session = getData();
+        const nameSection = enteredName ? (
+            <></>
+        ) : (
+            <form className="container_center" id={styles.form_join} onSubmit={handleSubmit}>
+                <div id={styles.container_submit}>
+                    <button
+                        className={`btn btn_secondary ${styles.btn_submit}`}
+                        id={styles.btn_submit_anon}
+                        type="submit"
+                        onClick={() => setIsAnon(true)}
+                    >
+                        Continue anonymously
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="24px"
+                            viewBox="0 0 24 24"
+                            width="24px"
+                            fill="#000000"
+                        >
+                            <path d="M0 0h24v24H0V0z" fill="none" />
+                            <path d="M10.02 6L8.61 7.41 13.19 12l-4.58 4.59L10.02 18l6-6-6-6z" />
+                        </svg>
+                    </button>
+                    <div id={styles.submit_separator}>
+                        <hr />
+                        <p>or</p>
+                        <hr />
+                    </div>
+                    <div id={styles.container_submit_name}>
+                        <div className="container_input_label">
+                            <label className="label">Enter your name to be displayed</label>
+                            <input
+                                className="input"
+                                type="text"
+                                maxLength={32}
+                                onChange={(e) => setDisplayName(e.target.value.trim())}
+                            />
+                        </div>
                         <button
                             className={`btn btn_secondary ${styles.btn_submit}`}
-                            id={styles.btn_submit_anon}
+                            id={styles.btn_submit_name}
                             type="submit"
-                            onClick={() => setIsAnon(true)}
                         >
-                            Continue anonymously
+                            {displayName.length !== 0 && (
+                                <p>
+                                    Continue as <span>{displayName}</span>
+                                </p>
+                            )}
+                            {displayName.length === 0 && `Continue with name`}
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 height="24px"
@@ -108,74 +141,27 @@ export default function Join() {
                                 <path d="M10.02 6L8.61 7.41 13.19 12l-4.58 4.59L10.02 18l6-6-6-6z" />
                             </svg>
                         </button>
-                        <div id={styles.submit_seperator}>
-                            <hr></hr>
-                            <p>or</p>
-                            <hr></hr>
-                        </div>
-                        <div id={styles.container_submit_name}>
-                            <div className="container_input_label">
-                                <label className="label">Enter your name to be displayed</label>
-                                <input
-                                    className="input"
-                                    type="text"
-                                    maxLength={32}
-                                    onChange={(e) => setDisplayName(e.target.value.trim())}
-                                />
-                            </div>
-                            <button
-                                className={`btn btn_secondary ${styles.btn_submit}`}
-                                id={styles.btn_submit_name}
-                                type="submit"
-                            >
-                                {displayName.length !== 0 && (
-                                    <p>
-                                        Continue as <span>{displayName}</span>
-                                    </p>
-                                )}
-                                {displayName.length === 0 && `Continue with name`}
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    height="24px"
-                                    viewBox="0 0 24 24"
-                                    width="24px"
-                                    fill="#000000"
-                                >
-                                    <path d="M0 0h24v24H0V0z" fill="none" />
-                                    <path d="M10.02 6L8.61 7.41 13.19 12l-4.58 4.59L10.02 18l6-6-6-6z" />
-                                </svg>
-                            </button>
-                        </div>
                     </div>
-                </form>
-            );
-        }
+                </div>
+            </form>
+        );
 
         content = (
             <div id={styles.container_join}>
                 <h2 id={styles.header_enter_session}>
                     About to enter session <span id={styles.code}>{code}</span>
                 </h2>
-                <h1 id={styles.header_session_title}>{data.sessionDetails.session.name}</h1>
+                <h1 id={styles.header_session_title}>{session.name}</h1>
                 <div>
-                    <div>
-                        <div
-                            /* Beautiful and reusable functional styling. */
-                            style={{
-                                display: "flex",
-                                flexDirection: "row",
-                                alignItems: "center",
-                                gap: "20px",
-                            }}
-                        >
-                            <img
-                                src={data.sessionDetails.session.author.pic}
-                                style={{ borderRadius: "50%" }}
-                            />
-                            <h3>{data.sessionDetails.session.author.name}</h3>
-                        </div>
+                    <div className={styles.profile_container}>
+                        <Image
+                            alt={"Picture of this session's author"}
+                            src={session.author.pic}
+                            className={styles.round_corners}
+                        />
+                        <h3>{session.author.name}</h3>
                         <br />
-                        <i>{data.sessionDetails.session.author.bio}</i>
+                        <i>{session.author.bio}</i>
 
                         {enteredName && !isAnon && <p>Joining as &apos;{displayName}&apos;...</p>}
                         {enteredName && isAnon && <p>Joining anonymously...</p>}

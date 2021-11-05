@@ -1,4 +1,4 @@
-import { CombinedError, useQuery, UseQueryArgs, UseQueryResponse } from "urql";
+import { CombinedError, useQuery, UseQueryArgs } from "urql";
 
 /// Interface to get data. Note that the object returned is always
 /// a concrete object; it will throw an error otherwise
@@ -19,6 +19,7 @@ interface LecternApiResponseError<Data extends Object> extends GetData<Data> {
     data: null;
 }
 
+// either we are paused or in the middle of fetching a request
 interface LecternApiResponseFetching<Data extends Object> extends GetData<Data> {
     fetching: true;
     errors: [];
@@ -30,7 +31,8 @@ type LecternApiResponse<Data extends Object> =
     | LecternApiResponseError<Data>
     | LecternApiResponseFetching<Data>;
 
-interface QueryProps<Variables, Data> extends UseQueryArgs<Variables, Data> {
+export interface useLecternQueryProps<Variables = object, Data = any>
+    extends UseQueryArgs<Variables, Data> {
     queryName: string;
     queryField: string;
 }
@@ -59,13 +61,12 @@ class ConcreteApiError implements ApiError {
 /// An abstraction over the useQuery hook to also parse and process api errors from the backend
 /// LecternData: the model returned via the api. Generally via .data.[getSession].[sessions]
 /// Variables: variables passed to the query
-export const useLecternQuery = <LecternData extends object, Variables = object>({
-    query,
-    queryName,
-    queryField,
-    variables,
-}: QueryProps<Variables, any>): LecternApiResponse<LecternData> => {
-    const [result] = useQuery<any, Variables>({ query: query, variables: variables });
+export const useLecternQuery = <LecternData extends object, Variables = object>(
+    props: useLecternQueryProps<Variables>
+): LecternApiResponse<LecternData> => {
+    const [result] = useQuery<any, Variables>(props);
+    console.log(result);
+
     if (result.fetching) {
         return {
             fetching: true,
@@ -77,7 +78,7 @@ export const useLecternQuery = <LecternData extends object, Variables = object>(
         };
     }
     if (result.error !== undefined) {
-        // error happened on the top level
+        // network error (mostly from fetch / Network related)
         return {
             fetching: false,
             errors: [result.error],
@@ -87,8 +88,41 @@ export const useLecternQuery = <LecternData extends object, Variables = object>(
             },
         };
     }
+    const { queryName, queryField } = props;
+    if (result.data === undefined) {
+        // result.fetching, error and data are all undefined or false
+        // this means we are "paused"
+        return {
+            // HACK: return fetching = true to indicate to consumer that
+            // no data has been given to us yet, but no error has occured
+            fetching: true,
+            data: null,
+            errors: [],
+            getData: () => {
+                throw new Error("cannot retrieve data while fetching");
+            },
+        };
+    } else if (result.data!.errors !== undefined) {
+        // backend 500 errors. These are sus and because the backend raised
+        // an exception that wasn't handled
+        interface TypeGraphqlError {
+            message: string;
+            locations: { line: string; column: string }[];
+        }
+        return {
+            fetching: false,
+            data: null,
+            errors: result.data!.errors.map(
+                (e: TypeGraphqlError) => new ConcreteApiError("", e.message)
+            ),
+            getData: () => {
+                throw new Error("cannot retreive data while error");
+            },
+        };
+    }
     const errors: ApiError[] = result.data![queryName].errors;
     if (errors.length !== 0) {
+        // errors signaled at the query level
         return {
             fetching: false,
             data: null,

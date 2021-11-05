@@ -52,13 +52,13 @@
     align-items: center;
 }
 
-#submit_seperator {
+#submit_separator {
     display: flex;
     align-items: center;
     margin: 0.75rem 0;
 }
 
-#submit_seperator hr {
+#submit_separator hr {
     width: 8rem;
     margin: 0 1rem;
 }
@@ -78,4 +78,16 @@
 #container_invalid_code {
     text-align: center;
     color: var(--c-red);
+}
+
+
+.profile_container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+}
+
+.round_corners {
+    border-radius: 50%;
 }
