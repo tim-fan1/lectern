@@ -25,6 +25,10 @@ export default class Choice {
     @Column()
     votes!: number;
 
+    @Field()
+    @Column()
+    isCorrect: boolean = false;
+
     /* Many choices belong to one activity. */
     @Field(() => Activity)
     @ManyToOne(() => Activity, (activity) => activity.choices)
