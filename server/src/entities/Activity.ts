@@ -13,21 +13,22 @@ import { Session, Choice } from "./entities";
 type ActivityState = "draft" | "open" | "archived";
 
 @ObjectType()
-@Entity()
 export default class Activity {
     @Field(() => Int)
     @PrimaryGeneratedColumn()
     id!: number;
 
-    /* TODO: probably change how this works if there is a better way.
-     * can be "POLL", "MCQUIZ", etc. */
-    @Field()
-    @Column()
-    kind!: string;
-
     @Field()
     @Column()
     name!: string;
+
+    @Field()
+    @Column()
+    question!: string;
+
+    @Field()
+    @Column()
+    kind!: string;
 
     /* Many activities belong to one session. */
     @Field(() => Session)
@@ -38,8 +39,8 @@ export default class Activity {
     @Column({ default: "draft" })
     state!: ActivityState;
 
-    /* One activity contains many choices. */
-    @Field(() => [Choice], { defaultValue: [] })
+    /* One poll contains many choices. */
+    @Field(() => [Choice])
     @OneToMany(() => Choice, (choice) => choice.activity, {
         /* Always grab the choices relation; activity.choices is never null. */
         eager: true,

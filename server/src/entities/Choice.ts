@@ -1,18 +1,9 @@
-import { Field, Int, ObjectType } from "type-graphql";
-import {
-    Column,
-    CreateDateColumn,
-    Entity,
-    ManyToOne,
-    OneToMany,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
-} from "typeorm";
+import { Field, Int, InterfaceType } from "type-graphql";
+import { Column, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Activity } from "./entities";
 
-@ObjectType()
-@Entity()
-export default class Choice {
+@InterfaceType()
+export default abstract class Choice {
     @Field(() => Int)
     @PrimaryGeneratedColumn()
     id!: number;
@@ -20,14 +11,6 @@ export default class Choice {
     @Field()
     @Column()
     name!: string;
-
-    @Field(() => Int)
-    @Column()
-    votes!: number;
-
-    @Field()
-    @Column()
-    isCorrect: boolean = false;
 
     /* Many choices belong to one activity. */
     @Field(() => Activity)
