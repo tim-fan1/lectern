@@ -4,6 +4,12 @@ export enum SessionActivity {
     QUIZ,
 }
 
+export namespace SessionActivity {
+    export function toString(sa: SessionActivity): string {
+        return SessionActivity[sa];
+    }
+}
+
 export type SessionStateString = "draft" | "open" | "archived";
 export enum SessionState {
     DRAFT,

@@ -110,13 +110,17 @@ export default function DashboardSession() {
         console.log(memes);
 
         let activities = memes.map((i: any) => {
-            return (
-                <div className={csstyle.container} key={i.id}>
-                    <h3 className={csstyle.name}>{i.name}</h3>
-                    <p className={csstyle.datetimes}>{i.state}</p>
-                    <p id={csstyle.container_actions}>{i.kind}</p>
-                </div>
-            );
+            if (i.kind === SessionActivity.toString(selectedActivity)) {
+                return (
+                    <div className={csstyle.container} key={i.id}>
+                        <h3 className={csstyle.name}>{i.name}</h3>
+                        <p className={csstyle.datetimes}>{i.state}</p>
+                        <div id={csstyle.container_actions}>
+                            <a>Close</a>
+                        </div>
+                    </div>
+                );
+            }
         });
 
         content = (
