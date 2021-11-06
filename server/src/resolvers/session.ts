@@ -7,14 +7,17 @@ import {
     ObjectType,
     Query,
     Resolver,
+    PubSub,
+    PubSubEngine,
 } from "type-graphql";
 import * as df from "date-fns";
-import { Session, User } from "../entities/entities";
+import { Activity, Session, User } from "../entities/entities";
 import { AuthedContext, Context, EndpointResponse } from "../types";
 import generateAlphanumCode from "../utils/generateCode";
 import CheckAuth from "../utils/authMiddleware";
-import { getRepository } from "typeorm";
+import { DeepPartial, getRepository } from "typeorm";
 import LiveSession from "../utils/liveSession";
+import { getSession } from "../utils/modifySession";
 
 // TODO: this is exported for use in sessionSubscription; should it be somewhere
 // else like types.ts?
@@ -38,6 +41,8 @@ export enum SessionErrors {
     SESSION_CODE_EXIST = "SESSION_CODE_EXIST",
     SESSION_CLOSED = "SESSION_CLOSED",
     SESSION_NAME_ALREADY_EXIST = "SESSION_NAME_ALREADY_EXIST",
+    INVALID_CHOICE = "INVALID_CHOICE",
+    INVALID_ACTIVITY = "INVALID_ACTIVITY", // TODO move to activity.ts
 }
 
 @Resolver()
@@ -67,6 +72,7 @@ export default class SessionResolver {
         @Arg("name") name: string,
         @Arg("group", { nullable: true }) group?: string
     ): Promise<SessionResponse> {
+        name = name.trim();
         try {
             if (
                 user.sessions.filter((session) => session.name === name)
@@ -126,10 +132,11 @@ export default class SessionResolver {
 
             let entity: { name?: string; group?: string } = {};
             if (name !== undefined) {
-                entity.name = name;
+                // TODO: do or don't enforce uniqueness?
+                entity.name = name.trim();
             }
             if (group !== undefined) {
-                entity.group = group;
+                entity.group = group.trim();
             }
             await sessionRepo.update(id, entity);
 
@@ -177,8 +184,9 @@ export default class SessionResolver {
     @CheckAuth()
     @Mutation(() => SessionResponse)
     async startSession(
-        @Arg("id") id: number,
-        @Ctx() { conn, user, openSessions }: AuthedContext
+        @Arg("id", () => Int) id: number,
+        @Ctx() { conn, user, openSessions }: AuthedContext,
+        @PubSub() pubsub: PubSubEngine
     ): Promise<SessionResponse> {
         try {
             const sessionRepo = conn.getRepository(Session);
@@ -215,7 +223,10 @@ export default class SessionResolver {
             await sessionRepo.save(session);
 
             /* Add session to openSessions TODO: set up auto-end somewhere here */
-            openSessions.set(session.id, new LiveSession(conn, session));
+            openSessions.set(
+                session.id,
+                new LiveSession(conn, pubsub, session)
+            );
 
             return { errors: [], session: session };
         } catch (e: Error | any) {
@@ -226,40 +237,60 @@ export default class SessionResolver {
         }
     }
 
+    @CheckAuth(["sessions"])
+    @Mutation(() => SessionResponse)
+    async duplicateSession(
+        @Arg("id", () => Int) id: number,
+        @Arg("name") newName: string,
+        @Ctx() { conn, user }: AuthedContext
+    ): Promise<SessionResponse> {
+        newName = newName.trim();
+        const srcSess = user.sessions.find((s) => s.id === id);
+        /* for now, only allow duplication of draft or archived sessions */
+        if (srcSess === undefined || srcSess.state === "open")
+            return SessionResponse.withErrors({
+                kind: SessionErrors.SESSION_NOT_EXIST,
+            });
+        if (user.sessions.find((s) => s.name === newName) !== undefined) {
+            return SessionResponse.withErrors({
+                kind: SessionErrors.SESSION_NAME_ALREADY_EXIST,
+            });
+        }
+
+        /* Clone the relevant fields from the session as a TypeORM DeepPartial */
+        const newSessPartial: DeepPartial<Session> = {
+            name: newName,
+            author: user,
+            group: srcSess.group,
+            activities: srcSess.activities.map((a) => {
+                return {
+                    name: a.name,
+                    kind: a.kind,
+                    session: newSess,
+                    state: "draft",
+                    choices: a.choices.map((c) => {
+                        return { name: c.name };
+                    }),
+                };
+            }),
+        };
+
+        /* Save to session repo (hope the cascades work!) */
+        const newSess = await conn.getRepository(Session).save(newSessPartial);
+
+        return { errors: [], session: newSess };
+    }
+
     @Query(() => SessionResponse)
     async sessionDetails(
         @Arg("code") code: string,
         @Ctx() { conn, openSessions }: Context
     ): Promise<SessionResponse> {
-        try {
-            const sessionRepo = conn.getRepository(Session);
-            const thisSession = await sessionRepo.findOne({
-                where: { code: code.trim().toUpperCase() },
-                relations: ["author"],
-            });
-            if (thisSession === undefined || thisSession.state !== "open")
-                return SessionResponse.withErrors({
-                    kind: SessionErrors.SESSION_NOT_EXIST,
-                    msg: "Session does not exist or has not been opened",
-                });
-
-            /* If session is open, return the in-memory session instead
-             * This raises the question: why do we store & query live sessions
-             * by id instead of code? The important part is that the frontend
-             * uses an id; codes can be re-used, but ids cannot, so the frontend
-             * won't accidentally get data from another session if it queries
-             * using ids. This is a really unlikely case but yeah haha hafdsv */
-            const thisLive = openSessions.get(thisSession.id);
-
-            return {
-                errors: [],
-                session: thisLive ? thisLive.session : thisSession,
-            };
-        } catch (e: Error | any) {
-            return SessionResponse.withErrors({
-                kind: SessionErrors.DB_ERROR,
-                msg: e.message,
-            });
+        const result = await getSession(openSessions, { code: code });
+        if (result.isLeft) {
+            return SessionResponse.withErrors(result.data);
+        } else {
+            return { errors: [], session: result.data };
         }
     }
 }

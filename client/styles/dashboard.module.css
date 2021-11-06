@@ -32,3 +32,13 @@
 #container_card_session_labels div {
     flex: 2;
 }
+
+.group_header {
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.non_group_header {
+    text-align: center;
+    color: var(--c-light-grey);
+}

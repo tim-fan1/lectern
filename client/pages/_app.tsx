@@ -62,7 +62,7 @@ function App({ Component, pageProps }: AppProps) {
                 <link rel="shortcut icon" href="/favicon.ico" />
                 <title>lectern</title>
             </Head>
-
+            <div id="modal-root" />
             <ProviderRedux store={store}>
                 <ProviderUrqlClient value={client}>
                     <Component {...pageProps} />

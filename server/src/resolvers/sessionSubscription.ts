@@ -9,13 +9,17 @@ import {
     PubSubEngine,
     Int,
 } from "type-graphql";
-import { AuthedContext, Context, EndpointResponse } from "../types";
+import {
+    AuthedContext,
+    Context,
+    EndpointResponse,
+    left,
+    right,
+} from "../types";
 import CheckAuth from "../utils/authMiddleware";
-import LiveSession from "../utils/liveSession";
+import LiveSession, { topic } from "../utils/liveSession";
 import { SessionErrors, SessionResponse } from "./session";
-
-/* Function to convert an id to a topic string */
-const topic = (id: number): string => "SESSION_" + id.toString();
+import modifySession from "../utils/modifySession";
 
 @Resolver()
 export default class SessionSubscriptionResolver {
@@ -32,12 +36,12 @@ export default class SessionSubscriptionResolver {
         // just found out that this'll still sub to a topic, but if nothing
         // is broadcast the client will be left hanging. that should be fine
         // since the actual frontend will get valid ids from sessionDetails
-        if (payload.session.state === "archived")
+        if (payload.getSession().state === "archived")
             return SessionResponse.withErrors({
                 kind: SessionErrors.SESSION_CLOSED,
             });
 
-        return { errors: [], session: payload.session };
+        return { errors: [], session: payload.getSession() };
     }
 
     /* example of an interaction that works on live sessions -- increments the
@@ -46,22 +50,52 @@ export default class SessionSubscriptionResolver {
     @Mutation(() => EndpointResponse)
     async testInteraction(
         @Arg("id", () => Int) id: number,
-        @Ctx() { openSessions }: Context,
-        @PubSub() pubsub: PubSubEngine
+        @Ctx() { openSessions }: Context
     ): Promise<EndpointResponse> {
-        /* look for this session in openSessions from the context (not db) */
-        const thisLive = openSessions.get(id);
-        if (thisLive === undefined)
-            return SessionResponse.withErrors({
-                kind: SessionErrors.SESSION_NOT_EXIST,
-            });
+        /* use modifySession to make necessary changes (see its jsdoc) */
+        const result = await modifySession(
+            openSessions,
+            { id: id },
+            /* the third argument is a function which returns a modified sess */
+            (session) => {
+                session.numJoined++;
+                return right(session);
+            }
+        );
 
-        /* call the relevant LiveSession method (all live ops should be
-         * abstracted in this way) */
-        thisLive.incrementCount();
+        /* see Either docs in types.ts; left means there was an error */
+        if (result.isLeft) return EndpointResponse.withErrors(result.data);
 
-        /* publish the entire LiveSession on the relevant topic with this id */
-        pubsub.publish(topic(id), thisLive);
+        return EndpointResponse.withErrors();
+    }
+
+    @Mutation(() => EndpointResponse)
+    async pollVote(
+        @Arg("id", () => Int) id: number,
+        @Arg("activityId", () => Int) activityId: number,
+        @Arg("choiceId", () => Int) choiceId: number,
+        @Ctx() { openSessions }: Context
+    ) {
+        const result = await modifySession(
+            openSessions,
+            { id: id },
+            (session) => {
+                const activity = session.activities.find(
+                    (a) => a.id === activityId
+                );
+                if (activity === undefined)
+                    return left({ kind: SessionErrors.INVALID_ACTIVITY });
+
+                const choice = activity.choices.find((c) => c.id === choiceId);
+                if (choice === undefined)
+                    return left({ kind: SessionErrors.INVALID_CHOICE });
+
+                choice.votes++;
+                return right(session);
+            }
+        );
+
+        if (result.isLeft) return EndpointResponse.withErrors(result.data);
 
         return EndpointResponse.withErrors();
     }
@@ -74,7 +108,10 @@ export default class SessionSubscriptionResolver {
         @PubSub() pubsub: PubSubEngine
     ): Promise<SessionResponse> {
         const thisLive = openSessions.get(id);
-        if (thisLive === undefined || thisLive.session.author.id != user.id)
+        if (
+            thisLive === undefined ||
+            thisLive.getSession().author.id != user.id
+        )
             return SessionResponse.withErrors({
                 kind: SessionErrors.SESSION_NOT_EXIST,
             });
@@ -84,6 +121,6 @@ export default class SessionSubscriptionResolver {
 
         pubsub.publish(topic(id), thisLive);
 
-        return { errors: [], session: thisLive.session };
+        return { errors: [], session: thisLive.getSession() };
     }
 }
