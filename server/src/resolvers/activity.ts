@@ -8,6 +8,7 @@ import {
     Query,
     Resolver,
 } from "type-graphql";
+import { getRepository } from "typeorm";
 import { Activity, Session, Choice } from "../entities/entities";
 import { EndpointResponse, AuthedContext, left, right } from "../types";
 import CheckAuth from "../utils/authMiddleware";
@@ -134,53 +135,61 @@ export default class ActivityResolver {
         @Arg("session_id") session_id: string,
         @Arg("activity_id") activity_id: string,
         @Arg("name") name: string,
-        @Ctx() { conn, user }: AuthedContext
+        @Ctx() { conn, user, openSessions }: AuthedContext
     ): Promise<ActivityResponse> {
-        try {
-            /* Does the session pointed by id belong to user? */
-            const sessionRepo = conn.getRepository(Session);
-            const session = await sessionRepo.findOne(session_id, {
-                relations: ["author", "activities"],
-            });
-            if (session === undefined || session.author.id !== user.id)
-                return ActivityResponse.withErrors({
-                    kind: ActivityErrors.SESSION_NOT_EXIST,
-                    msg: "Session does not exist",
-                });
-            /* Does the activity pointed by id belong to session (that we know belongs to user)? */
-            const activityRepo = conn.getRepository(Activity);
-            const activity = await activityRepo.findOne(activity_id, {
-                relations: ["session"],
-            });
-            if (activity === undefined || activity.session.id !== session.id)
-                return ActivityResponse.withErrors({
-                    kind: ActivityErrors.ACTIVITY_NOT_EXIST,
-                    msg: "Activity does not exist",
-                });
-            /* Update choice repo. I won't add the check that name must be a unique choice,
-             * so that the instructor can make say a poll with all options being "Yes".
-             * This is peak comedy. */
-            const choiceRepo = conn.getRepository(Choice);
-            const choice = choiceRepo.create({
-                name: name,
-                votes: 0,
-                activity: activity,
-            });
-            await choiceRepo.save(choice);
-            /* Update activity repo */
-            activity.choices.push(choice);
-            await activityRepo.save(activity);
-            /* Success! */
+        // TODO declare int type in arg, fix up frontend
+        const sessionId = parseInt(session_id, 10);
+        const activityId = parseInt(activity_id, 10);
+        const result = await modifySession(
+            openSessions,
+            { id: sessionId },
+            (session) => {
+                /* Does the session pointed by id belong to user? */
+                if (session.author.id !== user.id)
+                    return left({
+                        kind: ActivityErrors.SESSION_NOT_EXIST,
+                        msg: "Session does not exist",
+                    });
+
+                /* Is there an activity with this id in the session? */
+                const thisActivity = session.activities.find(
+                    (a) => a.id === activityId
+                );
+                if (thisActivity === undefined)
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_NOT_EXIST,
+                        msg: "Activity does not exist",
+                    });
+
+                /* Is the activity not yet archived? */
+                if (thisActivity.state !== "archived")
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                    });
+
+                /* I won't add the check that name must be a unique choice,
+                 * so that the instructor can make say a poll with all options
+                 * being "Yes". This is peak comedy. */
+                thisActivity.choices.push(
+                    conn
+                        .getRepository(Choice)
+                        .create({ name: name, activity: thisActivity })
+                );
+
+                return right(session);
+            },
+            ["author"],
+            true // set saveNow so the choice gets an ID generated
+        );
+
+        if (result.isLeft) return ActivityResponse.withErrors(result.data);
+        else
             return {
                 errors: [],
-                activity: activity,
+                activity: result.data.activities.find(
+                    (a) => a.id === activityId
+                ),
             };
-        } catch (e: Error | any) {
-            return ActivityResponse.withErrors({
-                kind: ActivityErrors.DB_ERROR,
-                msg: e.message,
-            });
-        }
     }
 
     @CheckAuth(["sessions"])
