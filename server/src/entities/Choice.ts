@@ -26,8 +26,8 @@ export default class Choice {
     votes!: number;
 
     @Field()
-    @Column()
-    isCorrect: boolean = false;
+    @Column({ default: false })
+    isCorrect!: boolean;
 
     /* Many choices belong to one activity. */
     @Field(() => Activity)
