@@ -46,7 +46,7 @@ export default class ActivityResolver {
     @Query(() => ActivityArrResponse)
     async getActivities(
         @Arg("session_id") session_id: string,
-        @Ctx() { user, conn, openSessions }: AuthedContext
+        @Ctx() { user, openSessions }: AuthedContext
     ): Promise<ActivityArrResponse> {
         const sessionId = parseInt(session_id, 10);
         const result = await getSession(openSessions, { id: sessionId }, [
@@ -69,59 +69,57 @@ export default class ActivityResolver {
         @Arg("session_id") session_id: string,
         @Arg("name") name: string,
         @Arg("kind") kind: string,
-        @Ctx() { conn, user }: AuthedContext
+        @Ctx() { conn, user, openSessions }: AuthedContext
     ): Promise<ActivityResponse> {
-        try {
-            /* Validate kind. */
-            kind = kind.trim().toUpperCase();
-            if (!(kind in ActivityKinds)) {
-                return ActivityResponse.withErrors({
-                    kind: ActivityErrors.KIND_NOT_EXIT,
-                    msg: "An activity of that kind can not be created",
-                });
-            }
-            /* Does the session pointed by id belong to user? */
-            const sessionRepo = conn.getRepository(Session);
-            const session = await sessionRepo.findOne(session_id, {
-                relations: ["author", "activities"],
-            });
-            if (session === undefined || session.author.id !== user.id)
-                return ActivityResponse.withErrors({
-                    kind: ActivityErrors.SESSION_NOT_EXIST,
-                    msg: "Session does not exist",
-                });
-            if (
-                session.activities.filter((activity) => activity.name === name)
-                    .length !== 0
-            ) {
-                return EndpointResponse.withErrors({
-                    kind: ActivityErrors.ACTIVITY_NAME_ALREADY_EXIST,
-                    msg: "An activity with the same name already exists",
-                });
-            }
-            /* Update activity repo. */
-            const activityRepo = conn.getRepository(Activity);
-            const activity = activityRepo.create({
-                kind: kind,
-                name: name,
-                session: session,
-                choices: [],
-            });
-            await activityRepo.save(activity);
-            /* Update session repo. */
-            session.activities.push(activity);
-            await sessionRepo.save(session);
-            /* Success! */
-            return {
-                errors: [],
-                activity: activity,
-            };
-        } catch (e: Error | any) {
+        /* Validate kind. */
+        kind = kind.trim().toUpperCase();
+        if (!(kind in ActivityKinds)) {
             return ActivityResponse.withErrors({
-                kind: ActivityErrors.DB_ERROR,
-                msg: e.message,
+                kind: ActivityErrors.KIND_NOT_EXIT,
+                msg: "An activity of that kind can not be created",
             });
         }
+
+        const sessionId = parseInt(session_id, 10);
+        const result = await modifySession(
+            openSessions,
+            { id: sessionId },
+            (session) => {
+                /* Does the session pointed by id belong to user? */
+                if (session.author.id !== user.id)
+                    return left({
+                        kind: ActivityErrors.SESSION_NOT_EXIST,
+                        msg: "Session does not exist",
+                    });
+
+                /* Does an activity of the same name already exist? */
+                if (session.activities.filter((a) => a.name === name))
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_NAME_ALREADY_EXIST,
+                        msg: "An activity with the same name already exists",
+                    });
+
+                session.activities.push(
+                    conn.getRepository(Activity).create({
+                        kind: kind,
+                        name: name,
+                        session: session,
+                        choices: [],
+                    })
+                );
+
+                return right(session);
+            },
+            ["author"],
+            true
+        );
+
+        if (result.isLeft) return ActivityResponse.withErrors(result.data);
+        else
+            return {
+                errors: [],
+                activity: result.data.activities.find((a) => a.name === name),
+            };
     }
 
     @CheckAuth(["sessions"])

@@ -22,7 +22,7 @@ export default class Choice {
     name!: string;
 
     @Field(() => Int)
-    @Column()
+    @Column({ default: 0 })
     votes!: number;
 
     @Field()
