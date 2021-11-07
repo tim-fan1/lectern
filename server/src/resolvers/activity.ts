@@ -45,10 +45,9 @@ export default class ActivityResolver {
     @CheckAuth(["sessions"])
     @Query(() => ActivityArrResponse)
     async getActivities(
-        @Arg("session_id") session_id: string,
+        @Arg("sessionId", () => Int) sessionId: number,
         @Ctx() { user, openSessions }: AuthedContext
     ): Promise<ActivityArrResponse> {
-        const sessionId = parseInt(session_id, 10);
         const result = await getSession(openSessions, { id: sessionId }, [
             "author",
         ]);
@@ -66,7 +65,7 @@ export default class ActivityResolver {
     @CheckAuth(["sessions"])
     @Mutation(() => ActivityResponse)
     async createActivity(
-        @Arg("session_id") session_id: string,
+        @Arg("sessionId", () => Int) sessionId: number,
         @Arg("name") name: string,
         @Arg("kind") kind: string,
         @Ctx() { conn, user, openSessions }: AuthedContext
@@ -80,7 +79,6 @@ export default class ActivityResolver {
             });
         }
 
-        const sessionId = parseInt(session_id, 10);
         const result = await modifySession(
             openSessions,
             { id: sessionId },
@@ -125,14 +123,11 @@ export default class ActivityResolver {
     @CheckAuth(["sessions"])
     @Mutation(() => ActivityResponse)
     async addChoice(
-        @Arg("session_id") session_id: string,
-        @Arg("activity_id") activity_id: string,
+        @Arg("sessionId", () => Int) sessionId: number,
+        @Arg("activityId", () => Int) activityId: number,
         @Arg("name") name: string,
         @Ctx() { conn, user, openSessions }: AuthedContext
     ): Promise<ActivityResponse> {
-        // TODO declare int type in arg, fix up frontend
-        const sessionId = parseInt(session_id, 10);
-        const activityId = parseInt(activity_id, 10);
         const result = await modifySession(
             openSessions,
             { id: sessionId },
@@ -188,13 +183,11 @@ export default class ActivityResolver {
     @CheckAuth(["sessions"])
     @Mutation(() => ActivityResponse)
     async startActivity(
-        @Arg("session_id") session_id: string,
-        @Arg("activity_id") activity_id: string,
+        @Arg("sessionId", () => Int) sessionId: number,
+        @Arg("activityId", () => Int) activityId: number,
         @Ctx() { user, openSessions }: AuthedContext
     ): Promise<ActivityResponse> {
         // TODO declare int type in arg, fix up frontend
-        const sessionId = parseInt(session_id, 10);
-        const activityId = parseInt(activity_id, 10);
         const result = await modifySession(
             openSessions,
             { id: sessionId },
@@ -241,13 +234,10 @@ export default class ActivityResolver {
     @CheckAuth(["sessions"])
     @Mutation(() => ActivityResponse)
     async closeActivity(
-        @Arg("session_id") session_id: string,
-        @Arg("activity_id") activity_id: string,
+        @Arg("sessionId") sessionId: number,
+        @Arg("activityId") activityId: number,
         @Ctx() { user, openSessions }: AuthedContext
     ): Promise<ActivityResponse> {
-        // TODO declare int type in arg, fix up frontend
-        const sessionId = parseInt(session_id, 10);
-        const activityId = parseInt(activity_id, 10);
         const result = await modifySession(
             openSessions,
             { id: sessionId },
