@@ -12,7 +12,7 @@ import { getRepository } from "typeorm";
 import { Activity, Session, Choice } from "../entities/entities";
 import { EndpointResponse, AuthedContext, left, right } from "../types";
 import CheckAuth from "../utils/authMiddleware";
-import modifySession from "../utils/modifySession";
+import modifySession, { getSession } from "../utils/modifySession";
 
 @ObjectType()
 class ActivityResponse extends EndpointResponse {
@@ -46,26 +46,21 @@ export default class ActivityResolver {
     @Query(() => ActivityArrResponse)
     async getActivities(
         @Arg("session_id") session_id: string,
-        @Ctx() { user, conn }: AuthedContext
+        @Ctx() { user, conn, openSessions }: AuthedContext
     ): Promise<ActivityArrResponse> {
-        try {
-            /* Does the session pointed by id belong to user? */
-            const sessionRepo = conn.getRepository(Session);
-            const session = await sessionRepo.findOne(session_id, {
-                relations: ["author", "activities"],
+        const sessionId = parseInt(session_id, 10);
+        const result = await getSession(openSessions, { id: sessionId }, [
+            "author",
+        ]);
+        if (result.isLeft) return ActivityArrResponse.withErrors(result.data);
+        const session = result.data;
+
+        if (session.author.id !== user.id)
+            return ActivityArrResponse.withErrors({
+                kind: ActivityErrors.ACTIVITY_NOT_EXIST,
             });
-            if (session === undefined || session.author.id !== user.id)
-                return ActivityResponse.withErrors({
-                    kind: ActivityErrors.SESSION_NOT_EXIST,
-                    msg: "Session does not exist",
-                });
-            return { errors: [], activities: session.activities };
-        } catch (e: Error | any) {
-            return ActivityResponse.withErrors({
-                kind: ActivityErrors.DB_ERROR,
-                msg: e.message,
-            });
-        }
+
+        return { errors: [], activities: session.activities };
     }
 
     @CheckAuth(["sessions"])
