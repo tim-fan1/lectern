@@ -188,61 +188,14 @@ export default class ActivityResolver {
     async startActivity(
         @Arg("session_id") session_id: string,
         @Arg("activity_id") activity_id: string,
-        @Ctx() { conn, user }: AuthedContext
-    ): Promise<ActivityResponse> {
-        try {
-            /* Does the session pointed by id belong to user? */
-            const sessionRepo = conn.getRepository(Session);
-            const session = await sessionRepo.findOne(session_id, {
-                relations: ["author", "activities"],
-            });
-            if (session === undefined || session.author.id !== user.id)
-                return ActivityResponse.withErrors({
-                    kind: ActivityErrors.SESSION_NOT_EXIST,
-                    msg: "Session does not exist",
-                });
-            /* Does the activity pointed by id belong to session (that we know belongs to user)? */
-            const activityRepo = conn.getRepository(Activity);
-            const activity = await activityRepo.findOne(activity_id, {
-                relations: ["session"],
-            });
-            if (activity === undefined || activity.session.id !== session.id)
-                return ActivityResponse.withErrors({
-                    kind: ActivityErrors.ACTIVITY_NOT_EXIST,
-                    msg: "Activity does not exist",
-                });
-            /* Update activity repo */
-            if (activity.state !== "draft")
-                return ActivityResponse.withErrors({
-                    kind: ActivityErrors.ACTIVITY_INVALID_STATE,
-                });
-            activity.state = "open";
-            await activityRepo.save(activity);
-            /* The activity is now started.
-             * TODO: How is this event published to the subscribers? */
-            /* Success! */
-            return {
-                errors: [],
-                activity: activity,
-            };
-        } catch (e: Error | any) {
-            return ActivityResponse.withErrors({
-                kind: ActivityErrors.DB_ERROR,
-                msg: e.message,
-            });
-        }
-    }
-
-    @CheckAuth(["sessions"])
-    @Mutation(() => ActivityResponse)
-    async closeActivity(
-        @Arg("session_id") session_id: string,
-        @Arg("activity_id") activity_id: string,
         @Ctx() { user, openSessions }: AuthedContext
     ): Promise<ActivityResponse> {
+        // TODO declare int type in arg, fix up frontend
+        const sessionId = parseInt(session_id, 10);
+        const activityId = parseInt(activity_id, 10);
         const result = await modifySession(
             openSessions,
-            { id: parseInt(session_id, 10) },
+            { id: sessionId },
             (session) => {
                 /* Does the session pointed by id belong to user? */
                 if (session.author.id !== user.id)
@@ -253,7 +206,60 @@ export default class ActivityResolver {
 
                 /* Is there an activity with this id in the session? */
                 const thisActivity = session.activities.find(
-                    (a) => a.id === parseInt(activity_id, 10)
+                    (a) => a.id === activityId
+                );
+                if (thisActivity === undefined)
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_NOT_EXIST,
+                        msg: "Activity does not exist",
+                    });
+
+                /* Is the activity in draft? */
+                if (thisActivity.state !== "draft")
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                    });
+
+                thisActivity.state = "open";
+                return right(session);
+            },
+            ["author"]
+        );
+
+        if (result.isLeft) return ActivityResponse.withErrors(result.data);
+        else
+            return {
+                errors: [],
+                activity: result.data.activities.find(
+                    (a) => a.id === activityId
+                ),
+            };
+    }
+
+    @CheckAuth(["sessions"])
+    @Mutation(() => ActivityResponse)
+    async closeActivity(
+        @Arg("session_id") session_id: string,
+        @Arg("activity_id") activity_id: string,
+        @Ctx() { user, openSessions }: AuthedContext
+    ): Promise<ActivityResponse> {
+        // TODO declare int type in arg, fix up frontend
+        const sessionId = parseInt(session_id, 10);
+        const activityId = parseInt(activity_id, 10);
+        const result = await modifySession(
+            openSessions,
+            { id: sessionId },
+            (session) => {
+                /* Does the session pointed by id belong to user? */
+                if (session.author.id !== user.id)
+                    return left({
+                        kind: ActivityErrors.SESSION_NOT_EXIST,
+                        msg: "Session does not exist",
+                    });
+
+                /* Is there an activity with this id in the session? */
+                const thisActivity = session.activities.find(
+                    (a) => a.id === activityId
                 );
                 if (thisActivity === undefined)
                     return left({
@@ -278,7 +284,7 @@ export default class ActivityResolver {
             return {
                 errors: [],
                 activity: result.data.activities.find(
-                    (a) => a.id === parseInt(activity_id, 10)
+                    (a) => a.id === activityId
                 ),
             };
     }
