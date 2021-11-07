@@ -3,21 +3,22 @@ import { useState } from "react";
 import { Activity } from "../entities/entities";
 
 export interface PollProps {
-    title: string;
-    // require at least 1 question
-    questions: Array<string>;
+    // title: string;
+    // // require at least 1 question
+    // questions: Array<string>;
+    activity: Activity;
 }
 
-export default function Poll({ questions, title }: PollProps) {
+export default function Poll({ activity }: PollProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const submitPollAnswer = () => {
         // TODO
     };
     return (
         <div className={styles.poll_box}>
-            <h2 className={styles.poll_question}>{title}</h2>
+            <h2 className={styles.poll_question}>{activity.name}</h2>
             <form className={styles.poll_answer_container}>
-                {questions.map((value, index) => {
+                {activity.choices.map((choice, index) => {
                     let className = styles.poll_button_button;
                     if (index === selectedIndex) {
                         className += " " + styles.poll_button_button_selected;
@@ -35,7 +36,7 @@ export default function Poll({ questions, title }: PollProps) {
                                 checked={index === selectedIndex}
                                 onChange={(e) => setSelectedIndex(index)}
                             />
-                            <span>{value}</span>
+                            <span>{choice.name}</span>
                         </div>
                     );
                 })}

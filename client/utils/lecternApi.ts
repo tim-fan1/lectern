@@ -17,7 +17,17 @@ const QueryGetSessions = `
                 state,
                 startTime,
                 endTime,
-                group
+                group,
+                activities {
+                    id,
+                    name,
+                    state,
+                    choices {
+                        id,
+                        name,
+                        votes
+                    }
+                }
             }
         }
     }
@@ -55,6 +65,16 @@ const QuerySessionDetails = `
                 author { name,pic,bio }
                 group
                 code
+                activities {
+                    id,
+                    name,
+                    state,
+                    choices {
+                        id,
+                        name,
+                        votes
+                    }
+                }
             }
             errors {
                 kind
