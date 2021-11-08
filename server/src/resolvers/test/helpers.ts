@@ -1,6 +1,6 @@
 import { createConnection, getConnection } from "typeorm";
 import { buildSchema } from "type-graphql";
-import { HelloResolver, SessionResolver, UserResolver } from "../resolvers";
+import resolvers from "../resolvers";
 import http from "http";
 import makeApp from "../../index";
 import supertest, { Test } from "supertest";
@@ -34,7 +34,7 @@ export const testGetAppSingleton = async () => {
         });
 
         const schema = await buildSchema({
-            resolvers: [HelloResolver, UserResolver, SessionResolver],
+            resolvers: [resolvers.ALL],
         });
 
         app = http.createServer(await makeApp(schema, connection));

@@ -7,7 +7,7 @@ import ActivityResolver from "./activity";
 import GroupResolver from "./group";
 import SessionSubscriptionResolver from "./sessionSubscription";
 
-export {
+const _ALL = {
     HelloResolver,
     UserResolver,
     SessionResolver,
@@ -15,3 +15,7 @@ export {
     SessionSubscriptionResolver,
     GroupResolver,
 };
+
+export const ALL = Object.values(_ALL);
+
+export default { ..._ALL, ALL };
