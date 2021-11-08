@@ -8,6 +8,7 @@ import {
     testGetAppSingleton,
 } from "./test/helpers";
 import { CookieAccessInfo } from "cookiejar";
+import { CreateSessionsSession } from "./session.test";
 
 const email = "test@gmail.com";
 const password = "test1234";
@@ -73,9 +74,19 @@ describe("graphql group tests", () => {
     });
 
     test("single group", async () => {
-        /*let res = await sendGraphqlRequest(CreateSessionQuery).set(
+        const testGroup = "test-group";
+        let res = await sendGraphqlRequest(CreateSessionsSession, {name: "oof", group: testGroup}).set(
             "Cookie",
             loginCookie
-        );*/
+        );
+        expect(res.body.data.createSession.errors).toHaveLength(0);
+
+        res = await sendGraphqlRequest(
+            GetGroupsQuery,
+            {},
+            { supertest_obj: supertest_authenticated }
+        ).set("Cookie", loginCookie);
+        expect(res.body.data.getGroups.errors).toHaveLength(0);
+        expect(res.body.data.getGroups.groups).toEqual([testGroup]);
     });
 });
