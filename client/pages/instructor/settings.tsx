@@ -203,15 +203,18 @@ export default function Settings() {
                     <h3>Change password</h3>
                     <div className="container_input_label">
                         <label className="label">Current password</label>
-                        <InputPassword setValue={setCurrentPassword} />
+                        <InputPassword value={currentPassword} setValue={setCurrentPassword} />
                     </div>
                     <div className="container_input_label">
                         <label className="label">New password</label>
-                        <InputPassword setValue={setNewPassword} />
+                        <InputPassword value={newPassword} setValue={setNewPassword} />
                     </div>
                     <div className="container_input_label">
                         <label className="label">Confirm new password</label>
-                        <InputPassword setValue={setNewPasswordConfirm} />
+                        <InputPassword
+                            value={newPasswordConfirm}
+                            setValue={setNewPasswordConfirm}
+                        />
                     </div>
                     {changePasswordErrors.map((error, i) => (
                         <p className="error" key={i}>

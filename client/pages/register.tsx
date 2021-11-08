@@ -5,6 +5,7 @@ import { useMutation } from "urql";
 import Navigation from "../components/Navigation";
 import MessageBox from "../components/MessageBox";
 import InputPassword from "../components/InputPassword";
+import { validatePassword } from "../util";
 
 const MutationRegister = `
     mutation ($email: String!, $fname: String!, $lname: String!, $password: String!) {
@@ -116,13 +117,13 @@ export default function Register() {
                             <label className="label" htmlFor="">
                                 Password
                             </label>
-                            <InputPassword setValue={setPassword} />
+                            <InputPassword value={password} setValue={setPassword} />
                         </div>
                         <div className="container_input_label">
                             <label className="label" htmlFor="">
                                 Confirm password
                             </label>
-                            <InputPassword setValue={setPasswordConfirm} />
+                            <InputPassword value={passwordConfirm} setValue={setPasswordConfirm} />
                         </div>
                         <button className="btn btn_primary" type="submit">
                             Register
