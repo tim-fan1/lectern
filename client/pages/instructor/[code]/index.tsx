@@ -7,7 +7,7 @@ import ButtonCreate from "../../../components/ButtonCreate";
 import Navigation from "../../../components/Navigation";
 import NavigationSession from "../../../components/NavigationSession";
 import styles from "../../../styles/manage.module.css";
-import { SessionActivity } from "../../../util";
+import { SessionActivity } from "../../../utils/util";
 
 const QuerySessionDetails = `
     query ($code: String!) {

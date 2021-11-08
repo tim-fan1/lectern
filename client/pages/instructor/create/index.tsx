@@ -98,7 +98,7 @@ export default function Dashboard() {
                     required
                 />
                 <div className="container_center">
-                    <p>Add this session to a group</p>
+                    <p>Add this session to a group (optional)</p>
                     <div className={styles.container_add_group}>
                         {groups.map((groupName, i) => {
                             let className = `btn btn_secondary ${styles.group_button}`;

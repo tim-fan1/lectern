@@ -1,5 +1,5 @@
 import { useLecternQuery, useLecternQueryProps } from "./lecternApiHooks";
-import { SessionStateString } from "../util";
+import { SessionStateString } from "./util";
 import { UseQueryArgs } from "urql";
 
 const QueryGetSessions = `

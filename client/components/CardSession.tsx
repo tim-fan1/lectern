@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useMutation } from "urql";
 import styles from "../styles/CardSession.module.css";
-import { sessionDateToString, SessionState } from "../util";
+import { sessionDateToString, SessionState } from "../utils/util";
 import Modal from "./Modal";
 
 const MutationStartSession = `

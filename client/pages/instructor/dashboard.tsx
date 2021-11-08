@@ -4,7 +4,7 @@ import ButtonCreate from "../../components/ButtonCreate";
 import CardSession from "../../components/CardSession";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/dashboard.module.css";
-import { sessionStateFromString, SessionStateString } from "../../util";
+import { sessionStateFromString, SessionStateString } from "../../utils/util";
 import { useGetSessionsQuery, Session } from "../../utils/lecternApi";
 
 export default function Dashboard() {

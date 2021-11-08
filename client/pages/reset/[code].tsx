@@ -73,7 +73,7 @@ export default function VerifyEmail() {
                             <InputPassword value={passwordConfirm} setValue={setPasswordConfirm} />
                         </div>
                         <button className="btn btn_primary" type="submit">
-                            Change
+                            Change password
                         </button>
                         {errors.map((error, i) => (
                             <p className="error" key={i}>

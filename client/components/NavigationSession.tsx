@@ -1,5 +1,5 @@
 import type { SetStateAction } from "react";
-import { SessionActivity } from "../util";
+import { SessionActivity } from "../utils/util";
 import styles from "../styles/NavigationSession.module.css";
 
 interface Props {
