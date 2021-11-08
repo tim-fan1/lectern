@@ -1,6 +1,6 @@
 import { createConnection, getConnection } from "typeorm";
-import { buildSchema } from "type-graphql";
-import { HelloResolver, SessionResolver, UserResolver } from "../resolvers";
+import { buildSchema, NonEmptyArray } from "type-graphql";
+import * as resolvers from "../resolvers";
 import http from "http";
 import makeApp from "../../index";
 import supertest, { Test } from "supertest";
@@ -34,7 +34,10 @@ export const testGetAppSingleton = async () => {
         });
 
         const schema = await buildSchema({
-            resolvers: [HelloResolver, UserResolver, SessionResolver],
+            // I love typescript
+            resolvers: Object.values(
+                resolvers
+            ) as unknown as NonEmptyArray<Function>,
         });
 
         app = http.createServer(await makeApp(schema, connection));
