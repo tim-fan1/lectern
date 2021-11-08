@@ -66,11 +66,11 @@ export default function VerifyEmail() {
                     <form className="form" onSubmit={handleSubmit}>
                         <div className="container_input_label">
                             <label className="label">New password</label>
-                            <InputPassword setValue={setPassword} />
+                            <InputPassword value={password} setValue={setPassword} />
                         </div>
                         <div className="container_input_label">
                             <label className="label">Confirm new password</label>
-                            <InputPassword setValue={setPasswordConfirm} />
+                            <InputPassword value={passwordConfirm} setValue={setPasswordConfirm} />
                         </div>
                         <button className="btn btn_primary" type="submit">
                             Change
