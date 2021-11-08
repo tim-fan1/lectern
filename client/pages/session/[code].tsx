@@ -24,7 +24,9 @@ export default function Session() {
     const [selectedActivityKind, setSelectedActivityKind] = useState(SessionActivity.POLL);
     const session = useAppSelector((s) => s.session.session);
     const openActivity =
-        session !== undefined ? session.activities.find((a) => a.state === "open") : undefined;
+        session !== undefined && session.activities !== undefined
+            ? session.activities.find((a) => a.state === "open")
+            : undefined;
 
     return (
         <div className={`container_center ${styles.root_container}`}>

@@ -96,8 +96,7 @@ export default class SessionSubscriptionResolver {
         );
 
         if (result.isLeft) return EndpointResponse.withErrors(result.data);
-
-        return EndpointResponse.withErrors();
+        else return EndpointResponse.withErrors();
     }
 
     @CheckAuth()

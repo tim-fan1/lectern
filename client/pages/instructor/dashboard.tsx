@@ -3,9 +3,10 @@ import { useQuery } from "urql";
 import ButtonCreate from "../../components/ButtonCreate";
 import CardSession from "../../components/CardSession";
 import Navigation from "../../components/Navigation";
+import { Session } from "../../entities/entities";
 import styles from "../../styles/dashboard.module.css";
 import { sessionStateFromString, SessionStateString } from "../../util";
-import { useGetSessionsQuery, Session } from "../../utils/lecternApi";
+import { useGetSessionsQuery } from "../../utils/lecternApi";
 
 export default function Dashboard() {
     const { getData, fetching, errors } = useGetSessionsQuery();
@@ -48,8 +49,8 @@ export default function Dashboard() {
                                             id={session.id}
                                             name={session.name}
                                             state={sessionStateFromString(session.state)}
-                                            startTime={session.startTime}
-                                            endTime={session.endTime}
+                                            startTime={session.startTime?.toString()}
+                                            endTime={session.endTime?.toString()}
                                         />
                                     ))}
                             </div>
@@ -76,8 +77,8 @@ export default function Dashboard() {
                             id={session.id}
                             name={session.name}
                             state={sessionStateFromString(session.state)}
-                            startTime={session.startTime}
-                            endTime={session.endTime}
+                            startTime={session.startTime?.toString()}
+                            endTime={session.endTime?.toString()}
                         />
                     ))}
             </>

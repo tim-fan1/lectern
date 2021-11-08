@@ -5,6 +5,7 @@ import http from "http";
 import makeApp from "../../index";
 import supertest, { Test } from "supertest";
 import generateAlphanumCode from "../../utils/generateCode";
+import { PubSub } from "graphql-subscriptions";
 
 // mock the generate code first, before registering
 // this needs to be done in top level scope (as jest will actually hoist
@@ -33,11 +34,14 @@ export const testGetAppSingleton = async () => {
             dropSchema: true,
         });
 
+        const ps = new PubSub();
+
         const schema = await buildSchema({
             resolvers: [HelloResolver, UserResolver, SessionResolver],
+            pubSub: ps,
         });
 
-        app = http.createServer(await makeApp(schema, connection));
+        app = http.createServer(await makeApp(schema, connection, ps));
     }
     return app;
 };

@@ -12,6 +12,14 @@ export default abstract class Choice {
     @Column()
     name!: string;
 
+    @Field(() => Int)
+    @Column({ default: 0 })
+    votes!: number;
+
+    @Field()
+    @Column({ default: false })
+    isCorrect!: boolean;
+
     /* Many choices belong to one activity. */
     @Field(() => Activity)
     @ManyToOne(() => Activity, (activity) => activity.choices)

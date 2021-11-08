@@ -9,9 +9,11 @@ import {
     Query,
     Resolver,
 } from "type-graphql";
+import { getRepository } from "typeorm";
 import { Activity, Session, Choice } from "../entities/entities";
-import { EndpointResponse, AuthedContext } from "../types";
+import { EndpointResponse, AuthedContext, left, right } from "../types";
 import CheckAuth from "../utils/authMiddleware";
+import modifySession, { getSession } from "../utils/modifySession";
 
 @ObjectType()
 class ActivityResponse extends EndpointResponse {
@@ -43,27 +45,22 @@ export default function createActivityResolver<T extends ClassType>(
         @CheckAuth(["sessions"])
         @Query(() => ActivityArrResponse)
         async getActivities(
-            @Arg("session_id") session_id: string,
-            @Ctx() { user, conn }: AuthedContext
+            @Arg("sessionId", () => Int) sessionId: number,
+            @Ctx() { user, openSessions }: AuthedContext
         ): Promise<ActivityArrResponse> {
-            try {
-                /* Does the session pointed by id belong to user? */
-                const sessionRepo = conn.getRepository(Session);
-                const session = await sessionRepo.findOne(session_id, {
-                    relations: ["author", "activities"],
+            const result = await getSession(openSessions, { id: sessionId }, [
+                "author",
+            ]);
+            if (result.isLeft)
+                return ActivityArrResponse.withErrors(result.data);
+            const session = result.data;
+
+            if (session.author.id !== user.id)
+                return ActivityArrResponse.withErrors({
+                    kind: ActivityErrors.ACTIVITY_NOT_EXIST,
                 });
-                if (session === undefined || session.author.id !== user.id)
-                    return ActivityResponse.withErrors({
-                        kind: ActivityErrors.SESSION_NOT_EXIST,
-                        msg: "Session does not exist",
-                    });
-                return { errors: [], activities: session.activities };
-            } catch (e: Error | any) {
-                return ActivityResponse.withErrors({
-                    kind: ActivityErrors.DB_ERROR,
-                    msg: e.message,
-                });
-            }
+
+            return { errors: [], activities: session.activities };
         }
 
         @CheckAuth(["sessions"])
@@ -82,53 +79,52 @@ export default function createActivityResolver<T extends ClassType>(
         @CheckAuth(["sessions"])
         @Mutation(() => ActivityResponse)
         async createActivity(
-            @Arg("session_id") session_id: string,
+            @Arg("sessionId", () => Int) sessionId: number,
             @Arg("name") name: string,
-            @Ctx() { conn, user }: AuthedContext
+            @Arg("kind") kind: string,
+            @Ctx() { conn, user, openSessions }: AuthedContext
         ): Promise<ActivityResponse> {
-            try {
-                /* Does the session pointed by id belong to user? */
-                const sessionRepo = conn.getRepository(Session);
-                const session = await sessionRepo.findOne(session_id, {
-                    relations: ["author", "activities"],
-                });
-                if (session === undefined || session.author.id !== user.id)
-                    return ActivityResponse.withErrors({
-                        kind: ActivityErrors.SESSION_NOT_EXIST,
-                        msg: "Session does not exist",
-                    });
-                if (
-                    session.activities.filter(
-                        (activity) => activity.name === name
-                    ).length !== 0
-                ) {
-                    return EndpointResponse.withErrors({
-                        kind: ActivityErrors.ACTIVITY_NAME_ALREADY_EXIST,
-                        msg: "An activity with the same name already exists",
-                    });
-                }
-                /* Update activity repo. */
-                const activityRepo = conn.getRepository(Activity);
-                const activity = activityRepo.create({
-                    name: name,
-                    session: session,
-                    choices: [],
-                });
-                await activityRepo.save(activity);
-                /* Update session repo. */
-                session.activities.push(activity);
-                await sessionRepo.save(session);
-                /* Success! */
+            const result = await modifySession(
+                openSessions,
+                { id: sessionId },
+                (session) => {
+                    /* Does the session pointed by id belong to user? */
+                    if (session.author.id !== user.id)
+                        return left({
+                            kind: ActivityErrors.SESSION_NOT_EXIST,
+                            msg: "Session does not exist",
+                        });
+
+                    /* Does an activity of the same name already exist? */
+                    if (session.activities.filter((a) => a.name === name))
+                        return left({
+                            kind: ActivityErrors.ACTIVITY_NAME_ALREADY_EXIST,
+                            msg: "An activity with the same name already exists",
+                        });
+
+                    session.activities.push(
+                        conn.getRepository(Activity).create({
+                            kind: kind,
+                            name: name,
+                            session: session,
+                            choices: [],
+                        })
+                    );
+
+                    return right(session);
+                },
+                ["author"],
+                true
+            );
+
+            if (result.isLeft) return ActivityResponse.withErrors(result.data);
+            else
                 return {
                     errors: [],
-                    activity: activity,
+                    activity: result.data.activities.find(
+                        (a) => a.name === name
+                    ),
                 };
-            } catch (e: Error | any) {
-                return ActivityResponse.withErrors({
-                    kind: ActivityErrors.DB_ERROR,
-                    msg: e.message,
-                });
-            }
         }
 
         // TODO: this needs to be implemented and checked before an activity is moved to open
@@ -143,172 +139,165 @@ export default function createActivityResolver<T extends ClassType>(
         @CheckAuth(["sessions"])
         @Mutation(() => ActivityResponse)
         async addChoice(
-            @Arg("session_id") session_id: string,
-            @Arg("activity_id") activity_id: string,
+            @Arg("sessionId", () => Int) sessionId: number,
+            @Arg("activityId", () => Int) activityId: number,
             @Arg("name") name: string,
-            @Ctx() { conn, user }: AuthedContext
+            @Ctx() { conn, user, openSessions }: AuthedContext
         ): Promise<ActivityResponse> {
             // TODO: if this is a dnd or a quiz make sure relevant "correct" fields are filled.
-            try {
-                /* Does the session pointed by id belong to user? */
-                const sessionRepo = conn.getRepository(Session);
-                const session = await sessionRepo.findOne(session_id, {
-                    relations: ["author", "activities"],
-                });
-                if (session === undefined || session.author.id !== user.id)
-                    return ActivityResponse.withErrors({
-                        kind: ActivityErrors.SESSION_NOT_EXIST,
-                        msg: "Session does not exist",
-                    });
-                /* Does the activity pointed by id belong to session (that we know belongs to user)? */
-                const activityRepo = conn.getRepository(Activity);
-                const activity = await activityRepo.findOne(activity_id, {
-                    relations: ["session"],
-                });
-                if (
-                    activity === undefined ||
-                    activity.session.id !== session.id
-                )
-                    return ActivityResponse.withErrors({
-                        kind: ActivityErrors.ACTIVITY_NOT_EXIST,
-                        msg: "Activity does not exist",
-                    });
-                /* Update choice repo. I won't add the check that name must be a unique choice,
-                 * so that the instructor can make say a poll with all options being "Yes".
-                 * This is peak comedy. */
-                const choiceRepo = conn.getRepository(Choice);
-                const choice = choiceRepo.create({
-                    name: name,
-                    activity: activity,
-                });
-                await choiceRepo.save(choice);
-                /* Update activity repo */
-                activity.choices.push(choice);
-                await activityRepo.save(activity);
-                /* Success! */
+            const result = await modifySession(
+                openSessions,
+                { id: sessionId },
+                (session) => {
+                    /* Does the session pointed by id belong to user? */
+                    if (session.author.id !== user.id)
+                        return left({
+                            kind: ActivityErrors.SESSION_NOT_EXIST,
+                            msg: "Session does not exist",
+                        });
+
+                    /* Is there an activity with this id in the session? */
+                    const thisActivity = session.activities.find(
+                        (a) => a.id === activityId
+                    );
+                    if (thisActivity === undefined)
+                        return left({
+                            kind: ActivityErrors.ACTIVITY_NOT_EXIST,
+                            msg: "Activity does not exist",
+                        });
+
+                    /* Is the activity not yet archived? */
+                    if (thisActivity.state !== "archived")
+                        return left({
+                            kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                        });
+
+                    /* I won't add the check that name must be a unique choice,
+                     * so that the instructor can make say a poll with all options
+                     * being "Yes". This is peak comedy. */
+                    thisActivity.choices.push(
+                        conn
+                            .getRepository(Choice)
+                            .create({ name: name, activity: thisActivity })
+                    );
+
+                    return right(session);
+                },
+                ["author"],
+                true // set saveNow so the choice gets an ID generated
+            );
+
+            if (result.isLeft) return ActivityResponse.withErrors(result.data);
+            else
                 return {
                     errors: [],
-                    activity: activity,
+                    activity: result.data.activities.find(
+                        (a) => a.id === activityId
+                    ),
                 };
-            } catch (e: Error | any) {
-                return ActivityResponse.withErrors({
-                    kind: ActivityErrors.DB_ERROR,
-                    msg: e.message,
-                });
-            }
         }
 
         @CheckAuth(["sessions"])
         @Mutation(() => ActivityResponse)
         async startActivity(
-            @Arg("session_id") session_id: string,
-            @Arg("activity_id") activity_id: string,
-            @Ctx() { conn, user }: AuthedContext
+            @Arg("sessionId", () => Int) sessionId: number,
+            @Arg("activityId", () => Int) activityId: number,
+            @Ctx() { user, openSessions }: AuthedContext
         ): Promise<ActivityResponse> {
-            try {
-                /* Does the session pointed by id belong to user? */
-                const sessionRepo = conn.getRepository(Session);
-                const session = await sessionRepo.findOne(session_id, {
-                    relations: ["author", "activities"],
-                });
-                if (session === undefined || session.author.id !== user.id)
-                    return ActivityResponse.withErrors({
-                        kind: ActivityErrors.SESSION_NOT_EXIST,
-                        msg: "Session does not exist",
-                    });
-                /* Does the activity pointed by id belong to session (that we know belongs to user)? */
-                const activityRepo = conn.getRepository(Activity);
-                const activity = await activityRepo.findOne(activity_id, {
-                    relations: ["session"],
-                });
-                if (
-                    activity === undefined ||
-                    activity.session.id !== session.id
-                )
-                    return ActivityResponse.withErrors({
-                        kind: ActivityErrors.ACTIVITY_NOT_EXIST,
-                        msg: "Activity does not exist",
-                    });
-                /* Update activity repo */
-                if (activity.state !== "draft")
-                    return ActivityResponse.withErrors({
-                        kind: ActivityErrors.ACTIVITY_INVALID_STATE,
-                    });
+            // TODO declare int type in arg, fix up frontend
+            const result = await modifySession(
+                openSessions,
+                { id: sessionId },
+                (session) => {
+                    /* Does the session pointed by id belong to user? */
+                    if (session.author.id !== user.id)
+                        return left({
+                            kind: ActivityErrors.SESSION_NOT_EXIST,
+                            msg: "Session does not exist",
+                        });
 
-                if (!this.isValidActivity()) {
-                    return ActivityResponse.withErrors({
-                        kind: ActivityErrors.ACTIVITY_INVALID_STATE,
-                    });
-                }
+                    /* Is there an activity with this id in the session? */
+                    const thisActivity = session.activities.find(
+                        (a) => a.id === activityId
+                    );
+                    if (thisActivity === undefined)
+                        return left({
+                            kind: ActivityErrors.ACTIVITY_NOT_EXIST,
+                            msg: "Activity does not exist",
+                        });
 
-                activity.state = "open";
-                await activityRepo.save(activity);
-                /* The activity is now started.
-                 * TODO: How is this event published to the subscribers? */
-                /* Success! */
+                    /* Is the activity in draft? */
+                    if (thisActivity.state !== "draft")
+                        return left({
+                            kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                        });
+
+                    thisActivity.state = "open";
+                    return right(session);
+                },
+                ["author"]
+            );
+
+            if (result.isLeft) return ActivityResponse.withErrors(result.data);
+            else
                 return {
                     errors: [],
-                    activity: activity,
+                    activity: result.data.activities.find(
+                        (a) => a.id === activityId
+                    ),
                 };
-            } catch (e: Error | any) {
-                return ActivityResponse.withErrors({
-                    kind: ActivityErrors.DB_ERROR,
-                    msg: e.message,
-                });
-            }
         }
+
         @CheckAuth(["sessions"])
         @Mutation(() => ActivityResponse)
         async closeActivity(
-            @Arg("session_id") session_id: string,
-            @Arg("activity_id") activity_id: string,
-            @Ctx() { conn, user }: AuthedContext
+            @Arg("sessionId") sessionId: number,
+            @Arg("activityId") activityId: number,
+            @Ctx() { user, openSessions }: AuthedContext
         ): Promise<ActivityResponse> {
-            try {
-                /* Does the session pointed by id belong to user? */
-                const sessionRepo = conn.getRepository(Session);
-                const session = await sessionRepo.findOne(session_id, {
-                    relations: ["author", "activities"],
-                });
-                if (session === undefined || session.author.id !== user.id)
-                    return ActivityResponse.withErrors({
-                        kind: ActivityErrors.SESSION_NOT_EXIST,
-                        msg: "Session does not exist",
-                    });
-                /* Does the activity pointed by id belong to session (that we know belongs to user)? */
-                const activityRepo = conn.getRepository(Activity);
-                const activity = await activityRepo.findOne(activity_id, {
-                    relations: ["session"],
-                });
-                if (
-                    activity === undefined ||
-                    activity.session.id !== session.id
-                )
-                    return ActivityResponse.withErrors({
-                        kind: ActivityErrors.ACTIVITY_NOT_EXIST,
-                        msg: "Activity does not exist",
-                    });
-                /* Update activity repo */
-                if (activity.state !== "open")
-                    return ActivityResponse.withErrors({
-                        kind: ActivityErrors.ACTIVITY_INVALID_STATE,
-                    });
-                activity.state = "archived";
-                await activityRepo.save(activity);
-                /* The activity is now closed.
-                 * TODO: How is this event published to the subscribers? */
-                /* Success! */
+            const result = await modifySession(
+                openSessions,
+                { id: sessionId },
+                (session) => {
+                    /* Does the session pointed by id belong to user? */
+                    if (session.author.id !== user.id)
+                        return left({
+                            kind: ActivityErrors.SESSION_NOT_EXIST,
+                            msg: "Session does not exist",
+                        });
+
+                    /* Is there an activity with this id in the session? */
+                    const thisActivity = session.activities.find(
+                        (a) => a.id === activityId
+                    );
+                    if (thisActivity === undefined)
+                        return left({
+                            kind: ActivityErrors.ACTIVITY_NOT_EXIST,
+                            msg: "Activity does not exist",
+                        });
+
+                    /* Is the activity currently open? */
+                    if (thisActivity.state !== "open")
+                        return left({
+                            kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                        });
+
+                    thisActivity.state = "archived";
+                    return right(session);
+                },
+                ["author"]
+            );
+
+            if (result.isLeft) return ActivityResponse.withErrors(result.data);
+            else
                 return {
                     errors: [],
-                    activity: activity,
+                    activity: result.data.activities.find(
+                        (a) => a.id === activityId
+                    ),
                 };
-            } catch (e: Error | any) {
-                return ActivityResponse.withErrors({
-                    kind: ActivityErrors.DB_ERROR,
-                    msg: e.message,
-                });
-            }
         }
     }
+
     return ActivityResolver;
 }

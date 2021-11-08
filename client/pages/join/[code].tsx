@@ -85,7 +85,7 @@ export default function Join() {
         );
     } else {
         let session = getData();
-        dispatch(updateSession(data.sessionDetails.session));
+        dispatch(updateSession(session));
         const nameSection = enteredName ? (
             <></>
         ) : (

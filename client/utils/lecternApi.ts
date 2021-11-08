@@ -1,6 +1,7 @@
 import { useLecternQuery, useLecternQueryProps } from "./lecternApiHooks";
 import { SessionStateString } from "../util";
 import { UseQueryArgs } from "urql";
+import { Session } from "../entities/entities";
 
 const QueryGetSessions = `
     query {
@@ -16,21 +17,31 @@ const QueryGetSessions = `
                 state,
                 startTime,
                 endTime,
-                group
+                group,
+                activities {
+                    id,
+                    name,
+                    state,
+                    choices {
+                        id,
+                        name,
+                        votes
+                    }
+                }
             }
         }
     }
 `;
 
-export interface Session {
-    code?: string;
-    id: number;
-    name: string;
-    state: SessionStateString;
-    startTime?: string;
-    endTime?: string;
-    group?: string;
-}
+// export interface Session {
+//     code?: string;
+//     id: number;
+//     name: string;
+//     state: SessionStateString;
+//     startTime?: string;
+//     endTime?: string;
+//     group?: string;
+// }
 
 // just in case we
 export type UseLecternSpecificProps = {
@@ -54,6 +65,16 @@ const QuerySessionDetails = `
                 author { name,pic,bio }
                 group
                 code
+                activities {
+                    id,
+                    name,
+                    state,
+                    choices {
+                        id,
+                        name,
+                        votes
+                    }
+                }
             }
             errors {
                 kind
@@ -63,13 +84,13 @@ const QuerySessionDetails = `
     }
 `;
 
-export interface SessionWithAuthor extends Session {
-    author: {
-        name: string;
-        pic: string;
-        bio: string;
-    };
-}
+// export interface SessionWithAuthor extends Session {
+//     author: {
+//         name: string;
+//         pic: string;
+//         bio: string;
+//     };
+// }
 export const useSessionDetailsQuery = (
     props?: UseLecternSpecificProps & {
         variables: {
@@ -77,7 +98,7 @@ export const useSessionDetailsQuery = (
         };
     }
 ) => {
-    return useLecternQuery<SessionWithAuthor>({
+    return useLecternQuery<Session>({
         ...props,
         queryName: "sessionDetails",
         queryField: "session",

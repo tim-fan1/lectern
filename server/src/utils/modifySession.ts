@@ -19,6 +19,8 @@ export async function getSession(
  * @param opens The map of openSessions (can get from context)
  * @param where An object containing lookup criteria (either id or code)
  * @param change A function which takes a Session and returns a changed Session
+ * @param saveNow Set to true to save immediately to the database (e.g. if
+ *                you've added a new relation and need an ID generated)
  * @returns Either a RespError (error object) or the changed session.
  */
 export default async function modifySession(
@@ -29,7 +31,8 @@ export default async function modifySession(
     ) => Either<RespError, Session> | Promise<Either<RespError, Session>> = (
         s
     ) => right(s),
-    relations: string[] = []
+    relations: string[] = [],
+    saveNow: boolean = false
 ): Promise<Either<RespError, Session>> {
     /* Get the session */
     let session: Session;
@@ -77,8 +80,10 @@ export default async function modifySession(
     }
 
     /* Commit it */
-    if (live !== undefined) live.updateSession(session);
-    else
+    if (live !== undefined) {
+        live.updateSession(session);
+        if (saveNow) await live.save();
+    } else
         try {
             session = await getRepository(Session).save(session);
         } catch (e) {

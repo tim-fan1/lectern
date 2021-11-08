@@ -12,12 +12,18 @@ import {
 } from "type-graphql";
 import * as df from "date-fns";
 import { Activity, Session, User } from "../entities/entities";
-import { AuthedContext, Context, EndpointResponse } from "../types";
+import {
+    AuthedContext,
+    Context,
+    EndpointResponse,
+    left,
+    right,
+} from "../types";
 import generateAlphanumCode from "../utils/generateCode";
 import CheckAuth from "../utils/authMiddleware";
 import { DeepPartial, getRepository } from "typeorm";
 import LiveSession from "../utils/liveSession";
-import { getSession } from "../utils/modifySession";
+import modifySession, { getSession } from "../utils/modifySession";
 
 // TODO: this is exported for use in sessionSubscription; should it be somewhere
 // else like types.ts?
@@ -108,53 +114,51 @@ export default class SessionResolver {
     @CheckAuth()
     @Mutation(() => EndpointResponse)
     async editSession(
-        @Ctx() { conn, user }: AuthedContext,
+        @Ctx() { conn, user, openSessions }: AuthedContext,
         @Arg("id", () => Int) id: number,
         @Arg("name", { nullable: true }) name?: string,
         @Arg("group", { nullable: true }) group?: string
     ): Promise<EndpointResponse> {
-        try {
-            const sessionRepo = conn.getRepository(Session);
-            const targetSession = await sessionRepo.findOne(id, {
-                relations: ["author"],
-            });
+        const result = await modifySession(
+            openSessions,
+            { id: id },
+            (session) => {
+                if (session.author.id !== user.id)
+                    return left({
+                        kind: SessionErrors.SESSION_NOT_EXIST,
+                    });
+                if (session.state === "open")
+                    return left({
+                        kind: SessionErrors.SESSION_INVALID_STATE,
+                        msg: "Sessions cannot be edited once opened",
+                    });
 
-            if (targetSession === undefined)
-                return EndpointResponse.withErrors({
-                    kind: SessionErrors.SESSION_NOT_EXIST,
-                });
-            if (targetSession.author.id !== user.id)
-                // I don't think we should reveal that this session exists if
-                // this author isn't allowed to access it
-                return EndpointResponse.withErrors({
-                    kind: SessionErrors.SESSION_NOT_EXIST,
-                });
+                if (name !== undefined) session.name = name.trim();
+                if (group !== undefined) session.group = group.trim();
 
-            let entity: { name?: string; group?: string } = {};
-            if (name !== undefined) {
-                // TODO: do or don't enforce uniqueness?
-                entity.name = name.trim();
-            }
-            if (group !== undefined) {
-                entity.group = group.trim();
-            }
-            await sessionRepo.update(id, entity);
+                return right(session);
+            },
+            ["author"]
+        );
 
-            return { errors: [] };
-        } catch (e: Error | any) {
-            return EndpointResponse.withErrors({
-                kind: SessionErrors.DB_ERROR,
-                msg: e.message,
-            });
-        }
+        if (result.isLeft) return EndpointResponse.withErrors(result.data);
+        else return EndpointResponse.withErrors();
     }
 
     @CheckAuth()
     @Mutation(() => EndpointResponse)
     async deleteSession(
-        @Ctx() { conn, user }: AuthedContext,
+        @Ctx() { conn, user, openSessions }: AuthedContext,
         @Arg("id", () => Int) id: number
     ): Promise<EndpointResponse> {
+        const res = await getSession(openSessions, { id: id });
+        if (res.isLeft) return EndpointResponse.withErrors(res.data);
+        else if (res.data.state === "open")
+            return EndpointResponse.withErrors({
+                kind: SessionErrors.SESSION_INVALID_STATE,
+                msg: "Cannot close an open session; close it first",
+            });
+
         try {
             const sessionRepo = conn.getRepository(Session);
             const targetSession = await sessionRepo.findOne(id, {
@@ -185,56 +189,46 @@ export default class SessionResolver {
     @Mutation(() => SessionResponse)
     async startSession(
         @Arg("id", () => Int) id: number,
-        @Ctx() { conn, user, openSessions }: AuthedContext,
-        @PubSub() pubsub: PubSubEngine
+        @Ctx() { user, openSessions }: AuthedContext
     ): Promise<SessionResponse> {
-        try {
-            const sessionRepo = conn.getRepository(Session);
-            const session = await sessionRepo.findOne(id, {
-                relations: ["author"],
-            });
-            if (session === undefined || session.author.id !== user.id)
-                return SessionResponse.withErrors({
-                    kind: SessionErrors.SESSION_NOT_EXIST,
-                });
-            if (session.state !== "draft")
-                return SessionResponse.withErrors({
-                    kind: SessionErrors.SESSION_INVALID_STATE,
-                });
+        const result = await modifySession(
+            openSessions,
+            { id: id },
+            async (session) => {
+                if (session.author.id !== user.id)
+                    return left({
+                        kind: SessionErrors.SESSION_NOT_EXIST,
+                    });
+                if (session.state !== "draft")
+                    return left({
+                        kind: SessionErrors.SESSION_INVALID_STATE,
+                    });
 
-            /* Generate session code */
-            const thisCode = generateAlphanumCode(6);
-            if (
-                (await sessionRepo.findOne({ where: { code: thisCode } })) !==
-                undefined
-            )
-                // code already exists, somewhat unlikely (unlike session token)
-                return SessionResponse.withErrors({
-                    kind: SessionErrors.SESSION_CODE_EXIST,
-                    msg: "Code already exists; don't buy a lottery ticket \
-                        but maybe roll some gacha or something",
-                });
+                /* Generate session code */
+                const thisCode = generateAlphanumCode();
+                if (
+                    !(await getSession(openSessions, { code: thisCode })).isLeft
+                ) {
+                    return left({
+                        kind: SessionErrors.SESSION_CODE_EXIST,
+                        msg: "Code already exists; don't buy a lottery ticket \
+                            but maybe roll some gacha or something",
+                    });
+                }
 
-            session.code = thisCode;
-            session.state = "open";
-            // TODO: make this configurable; default for now is 6 hours
-            session.startTime = new Date();
-            session.endTime = df.add(session.startTime, { hours: 6 });
-            await sessionRepo.save(session);
+                session.code = thisCode;
+                session.state = "open";
+                // TODO: make this configurable; default for now is 6 hours
+                session.startTime = new Date();
+                session.endTime = df.add(session.startTime, { hours: 6 });
 
-            /* Add session to openSessions TODO: set up auto-end somewhere here */
-            openSessions.set(
-                session.id,
-                new LiveSession(conn, pubsub, session)
-            );
+                return right(session);
+            },
+            ["author"]
+        );
 
-            return { errors: [], session: session };
-        } catch (e: Error | any) {
-            return SessionResponse.withErrors({
-                kind: SessionErrors.DB_ERROR,
-                msg: e.message,
-            });
-        }
+        if (result.isLeft) return SessionResponse.withErrors(result.data);
+        else return { errors: [], session: result.data };
     }
 
     @CheckAuth(["sessions"])
