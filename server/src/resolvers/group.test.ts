@@ -2,6 +2,7 @@ import supertest from "supertest";
 import {
     createUser,
     LoginMutation,
+    resetDatabase,
     sendGraphqlRequest,
     TEST_HOST,
     testGetAppSingleton,
@@ -28,6 +29,10 @@ query {
 describe("graphql group tests", () => {
     let supertest_authenticated: supertest.SuperTest<supertest.Test>;
     let loginCookie: string;
+
+    afterEach(async () => {
+        await resetDatabase();
+    });
 
     beforeEach(async () => {
         await createUser(email, fname, lname, password);
@@ -64,6 +69,13 @@ describe("graphql group tests", () => {
             { supertest_obj: supertest_authenticated }
         ).set("Cookie", loginCookie);
         expect(res.body.data.getGroups.errors).toHaveLength(0);
-        expect(res.body.data.getGroups.sessions).toEqual([]);
+        expect(res.body.data.getGroups.groups).toEqual([]);
+    });
+
+    test("single group", async () => {
+        /*let res = await sendGraphqlRequest(CreateSessionQuery).set(
+            "Cookie",
+            loginCookie
+        );*/
     });
 });
