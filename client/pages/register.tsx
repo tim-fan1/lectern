@@ -5,7 +5,6 @@ import { useMutation } from "urql";
 import Navigation from "../components/Navigation";
 import MessageBox from "../components/MessageBox";
 import InputPassword from "../components/InputPassword";
-import { validatePassword } from "../util";
 
 const MutationRegister = `
     mutation ($email: String!, $fname: String!, $lname: String!, $password: String!) {
