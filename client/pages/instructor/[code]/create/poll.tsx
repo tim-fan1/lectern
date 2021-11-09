@@ -23,7 +23,7 @@ const QuerySessionDetails = `
 
 const MutationCreateActivity = `
     mutation ($session_id: String!, $name: String!, $kind: String!) {
-        createActivity(session_id: $session_id, name: $name, kind: $kind) {
+        createActivity(sessionId: $session_id, name: $name, kind: $kind) {
             activity {
                 id
             }

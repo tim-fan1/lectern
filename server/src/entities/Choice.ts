@@ -1,9 +1,10 @@
-import { Field, Int, InterfaceType } from "type-graphql";
-import { Column, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Field, Int, ObjectType } from "type-graphql";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Activity } from "./entities";
 
-@InterfaceType()
-export default abstract class Choice {
+@ObjectType()
+@Entity()
+export default class Choice {
     @Field(() => Int)
     @PrimaryGeneratedColumn()
     id!: number;
@@ -12,13 +13,30 @@ export default abstract class Choice {
     @Column()
     name!: string;
 
-    @Field(() => Int)
-    @Column({ default: 0 })
-    votes!: number;
+    //DnD
 
-    @Field()
-    @Column({ default: false })
-    isCorrect!: boolean;
+    @Field({ nullable: true })
+    @Column()
+    DnDCorrectPosition?: number;
+
+    @Field(() => [Number], { nullable: true })
+    @Column("simple-array")
+    DnDVotes?: number[];
+
+    //Poll
+
+    @Field({ nullable: true })
+    @Column()
+    PollVotes?: number;
+
+    //Quiz
+    @Field({ nullable: true })
+    @Column()
+    isCorrect?: boolean;
+
+    @Field(() => Int, { nullable: true })
+    @Column()
+    QuizVotes?: number;
 
     /* Many choices belong to one activity. */
     @Field(() => Activity)

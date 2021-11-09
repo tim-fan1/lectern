@@ -13,6 +13,7 @@ import { Session, Choice } from "./entities";
 type ActivityState = "draft" | "open" | "archived";
 
 @ObjectType()
+@Entity()
 export default class Activity {
     @Field(() => Int)
     @PrimaryGeneratedColumn()

@@ -25,7 +25,6 @@ const QueryGetSessions = `
                     choices {
                         id,
                         name,
-                        votes
                     }
                 }
             }
@@ -72,7 +71,6 @@ const QuerySessionDetails = `
                     choices {
                         id,
                         name,
-                        votes
                     }
                 }
             }

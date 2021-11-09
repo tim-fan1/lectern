@@ -89,8 +89,9 @@ export default class SessionSubscriptionResolver {
                 const choice = activity.choices.find((c) => c.id === choiceId);
                 if (choice === undefined)
                     return left({ kind: SessionErrors.INVALID_CHOICE });
-
-                choice.votes++;
+                console.log(choice);
+                //TODO increment correctly by activity kind
+                // choice.votes++;
                 return right(session);
             }
         );
