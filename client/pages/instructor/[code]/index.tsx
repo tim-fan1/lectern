@@ -8,6 +8,7 @@ import Navigation from "../../../components/Navigation";
 import NavigationSession from "../../../components/NavigationSession";
 import styles from "../../../styles/manage.module.css";
 import { SessionActivity } from "../../../util";
+import csstyle from "../../../styles/CardSession.module.css";
 
 const QuerySessionDetails = `
     query ($code: String!) {
@@ -21,7 +22,13 @@ const QuerySessionDetails = `
                 endTime,
                 group,
                 name,
-                code
+                code,
+              	activities {
+                  id,
+                  name,
+                  state,
+                  kind
+                }
             }
             errors {
                 kind
@@ -83,7 +90,11 @@ export default function DashboardSession() {
         }
     };
 
-    const [result] = useQuery({ query: QuerySessionDetails, variables: { code } });
+    const [result] = useQuery({
+        query: QuerySessionDetails,
+        variables: { code: router.query.code },
+    });
+
     let { data, fetching } = result;
     let content;
     let session: QueriedSession;
@@ -95,6 +106,23 @@ export default function DashboardSession() {
         content = <p>An error happened! {data.sessionDetails.errors.toString()}</p>;
     } else {
         session = data.sessionDetails.session;
+        let memes = data.sessionDetails.session.activities;
+        console.log(memes);
+
+        let activities = memes.map((i: any) => {
+            if (i.kind === SessionActivity.toString(selectedActivity)) {
+                return (
+                    <div className={csstyle.container} key={i.id}>
+                        <h3 className={csstyle.name}>{i.name}</h3>
+                        <p className={csstyle.datetimes}>{i.state}</p>
+                        <div id={csstyle.container_actions}>
+                            <a>Close</a>
+                        </div>
+                    </div>
+                );
+            }
+        });
+
         content = (
             <>
                 <Link href="/instructor/dashboard">
@@ -124,6 +152,7 @@ export default function DashboardSession() {
                     />
                 </div>
                 {getActivityButtonCreate()}
+                {activities}
             </>
         );
     }

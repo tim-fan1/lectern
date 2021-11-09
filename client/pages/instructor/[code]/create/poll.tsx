@@ -104,6 +104,7 @@ export default function CreatePoll() {
 
                 router.push(`/instructor/${code}`);
             } else {
+                //error
                 console.log(result);
             }
         });
