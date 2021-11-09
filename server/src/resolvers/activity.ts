@@ -27,6 +27,32 @@ class ActivityArrResponse extends EndpointResponse {
     activities?: Activity[];
 }
 
+@ObjectType()
+class ActivityResultResponse extends EndpointResponse {
+    @Field({ nullable: true })
+    result?: PollResult | QuizResult | DnDResult | null;
+}
+
+type PollResult = {
+    kind: string;
+    result: { choice: string; votes: number }[];
+};
+
+type QuizResult = {
+    kind: string;
+    result: { choice: string; votes: number }[];
+    correctChoices: string[];
+};
+
+type DnDResult = {
+    kind: string;
+    result: {
+        position: number;
+        votes: { name: string; num: number }[];
+        correctChoice: string;
+    }[];
+};
+
 enum ActivityErrors {
     DB_ERROR = "DB_ERROR",
     USER_NOT_EXIST = "USER_NOT_EXIST", // shouldn't be possible but ts complains
@@ -67,16 +93,118 @@ export default class ActivityResolver {
 
     @CheckAuth(["sessions"])
     @Query()
-    getActivityResult(
-        @Arg("session_id") session_id: string,
-        @Arg("activity_id") activity_id: string,
-        @Ctx() { user, conn }: AuthedContext
-    ): number {
+    async getActivityResult(
+        @Arg("session_id") sessionId: number,
+        @Arg("activity_id") activity_id: number,
+        @Ctx() { user, openSessions }: AuthedContext
+    ): Promise<ActivityResultResponse> {
         // TODO
         // Get result for poll will return each choice and the number of votes for all
         // for quiz will return each choice, number of votes for all, and the correct answer
         // for drag and drop will return each "position" and how many voted a certain choice to be in that position
-        return 0;
+        const result = await getSession(openSessions, { id: sessionId });
+        if (result.isLeft)
+            return ActivityResultResponse.withErrors(result.data);
+        const session = result.data;
+
+        const activity = session.activities.find((i) => {
+            return i.id === activity_id;
+        });
+
+        if (!activity) {
+            return {
+                errors: [
+                    {
+                        kind: ActivityErrors.ACTIVITY_NOT_EXIST,
+                        msg: "Activity does not exist",
+                    },
+                ],
+            };
+        }
+
+        if (activity.kind === ActivityKinds.POLL) {
+            let activityResult: PollResult = {
+                kind: ActivityKinds.POLL,
+                result: [],
+            };
+
+            activity.choices.forEach((i) => {
+                if (i.PollVotes === undefined) {
+                    activityResult.result.push({
+                        choice: i.name,
+                        votes: 0,
+                    });
+                } else {
+                    activityResult.result.push({
+                        choice: i.name,
+                        votes: i.PollVotes,
+                    });
+                }
+            });
+            return { errors: [], result: activityResult };
+        }
+
+        if (activity.kind === ActivityKinds.QUIZ) {
+            let activityResult: QuizResult = {
+                kind: ActivityKinds.QUIZ,
+                result: [],
+                correctChoices: [],
+            };
+
+            activity.choices.forEach((i) => {
+                if (i.QuizVotes === undefined) {
+                    activityResult.result.push({
+                        choice: i.name,
+                        votes: 0,
+                    });
+                } else {
+                    activityResult.result.push({
+                        choice: i.name,
+                        votes: i.QuizVotes,
+                    });
+                }
+                if (i.QuizIsCorrect) {
+                    activityResult.correctChoices.push(i.name);
+                }
+            });
+            return { errors: [], result: activityResult };
+        }
+
+        if (activity.kind === ActivityKinds.DND) {
+            let activityResult: DnDResult = {
+                kind: ActivityKinds.DND,
+                result: [],
+            };
+
+            activity.choices.forEach((i) => {
+                if (i.DnDCorrectPosition && i.name) {
+                    activityResult.result.push({
+                        position: i.DnDCorrectPosition,
+                        votes: [],
+                        correctChoice: i.name,
+                    });
+                }
+            });
+
+            activity.choices.forEach((i) => {
+                let fuck = activityResult.result.find(
+                    (k) => k.position === i.DnDCorrectPosition
+                );
+
+                let index = activity.choices.indexOf(i);
+
+                if (fuck && i.DnDVotes) {
+                    fuck.votes[index] = {
+                        name: i.name,
+                        num: i.DnDVotes[index],
+                    };
+                }
+            });
+
+            return { errors: [], result: activityResult };
+        }
+
+        return { errors: [], result: null };
     }
 
     @CheckAuth(["sessions"])
