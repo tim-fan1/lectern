@@ -154,7 +154,8 @@ export default class ActivityResolver {
         @Arg("sessionId", () => Int) sessionId: number,
         @Arg("activityId", () => Int) activityId: number,
         @Arg("name") name: string,
-        @Ctx() { conn, user, openSessions }: AuthedContext
+        @Ctx() { conn, user, openSessions }: AuthedContext,
+        @Arg("QuizIsCorrect", { nullable: true }) QuizIsCorrect?: boolean
     ): Promise<ActivityResponse> {
         // TODO: if this is a dnd or a quiz make sure relevant "correct" fields are filled.
         const result = await modifySession(
@@ -184,17 +185,34 @@ export default class ActivityResolver {
                         kind: ActivityErrors.ACTIVITY_INVALID_STATE,
                     });
 
-                console.log(thisActivity.kind);
-
                 /* I won't add the check that name must be a unique choice,
                  * so that the instructor can make say a poll with all options
                  * being "Yes". This is peak comedy. */
-                thisActivity.choices.push(
-                    conn
-                        .getRepository(Choice)
-                        .create({ name: name, activity: thisActivity })
-                );
 
+                if (thisActivity.kind === ActivityKinds.POLL) {
+                    thisActivity.choices.push(
+                        conn.getRepository(Choice).create({
+                            name: name,
+                            activity: thisActivity,
+                            PollVotes: 0,
+                        })
+                    );
+                } else if (thisActivity.kind === ActivityKinds.QUIZ) {
+                    console.log(QuizIsCorrect);
+
+                    if (QuizIsCorrect === undefined) {
+                        QuizIsCorrect = false;
+                    }
+
+                    thisActivity.choices.push(
+                        conn.getRepository(Choice).create({
+                            name: name,
+                            activity: thisActivity,
+                            QuizVotes: 0,
+                            QuizIsCorrect: QuizIsCorrect,
+                        })
+                    );
+                }
                 return right(session);
             },
             ["author"],
@@ -218,7 +236,6 @@ export default class ActivityResolver {
         @Arg("activityId", () => Int) activityId: number,
         @Ctx() { user, openSessions }: AuthedContext
     ): Promise<ActivityResponse> {
-        // TODO declare int type in arg, fix up frontend
         const result = await modifySession(
             openSessions,
             { id: sessionId },
@@ -267,8 +284,8 @@ export default class ActivityResolver {
     @CheckAuth(["sessions"])
     @Mutation(() => ActivityResponse)
     async closeActivity(
-        @Arg("sessionId") sessionId: number,
-        @Arg("activityId") activityId: number,
+        @Arg("sessionId", () => Int) sessionId: number,
+        @Arg("activityId", () => Int) activityId: number,
         @Ctx() { user, openSessions }: AuthedContext
     ): Promise<ActivityResponse> {
         const result = await modifySession(

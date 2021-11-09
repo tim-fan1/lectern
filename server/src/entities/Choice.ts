@@ -32,7 +32,7 @@ export default class Choice {
     //Quiz
     @Field({ nullable: true })
     @Column({ nullable: true })
-    isCorrect?: boolean;
+    QuizIsCorrect?: boolean;
 
     @Field(() => Int, { nullable: true })
     @Column({ nullable: true })
