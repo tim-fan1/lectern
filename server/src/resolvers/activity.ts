@@ -63,7 +63,7 @@ enum ActivityErrors {
     ACTIVITY_NAME_ALREADY_EXIST = "ACTIVITY_NAME_ALREADY_EXIST",
 }
 
-enum ActivityKinds {
+export enum ActivityKinds {
     POLL = "POLL",
     QUIZ = "QUIZ",
     DND = "DND",
@@ -98,7 +98,7 @@ export default class ActivityResolver {
         @Arg("activity_id") activity_id: number,
         @Ctx() { user, openSessions }: AuthedContext
     ): Promise<ActivityResultResponse> {
-        // TODO
+        // TODO: verify this.
         // Get result for poll will return each choice and the number of votes for all
         // for quiz will return each choice, number of votes for all, and the correct answer
         // for drag and drop will return each "position" and how many voted a certain choice to be in that position

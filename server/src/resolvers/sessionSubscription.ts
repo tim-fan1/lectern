@@ -20,6 +20,7 @@ import CheckAuth from "../utils/authMiddleware";
 import LiveSession, { topic } from "../utils/liveSession";
 import { SessionErrors, SessionResponse } from "./session";
 import modifySession from "../utils/modifySession";
+import { ActivityKinds } from "./activity";
 
 @Resolver()
 export default class SessionSubscriptionResolver {
@@ -70,11 +71,12 @@ export default class SessionSubscriptionResolver {
     }
 
     @Mutation(() => EndpointResponse)
-    async pollVote(
+    async activityVote(
         @Arg("id", () => Int) id: number,
         @Arg("activityId", () => Int) activityId: number,
         @Arg("choiceId", () => Int) choiceId: number,
-        @Ctx() { openSessions }: Context
+        @Ctx() { openSessions }: Context,
+        @Arg("DnDPosition", () => Int) DnDPosition?: number
     ) {
         const result = await modifySession(
             openSessions,
@@ -91,7 +93,31 @@ export default class SessionSubscriptionResolver {
                     return left({ kind: SessionErrors.INVALID_CHOICE });
                 console.log(choice);
                 //TODO increment correctly by activity kind
-                // choice.votes++;
+
+                if (activity.kind === ActivityKinds.POLL) {
+                    if (!choice.PollVotes) {
+                        return left({ kind: SessionErrors.INVALID_CHOICE });
+                    }
+
+                    choice.PollVotes++;
+                }
+
+                if (activity.kind === ActivityKinds.QUIZ) {
+                    if (!choice.QuizVotes) {
+                        return left({ kind: SessionErrors.INVALID_CHOICE });
+                    }
+
+                    choice.QuizVotes++;
+                }
+
+                if (activity.kind === ActivityKinds.DND) {
+                    if (!choice.DnDVotes || !DnDPosition) {
+                        return left({ kind: SessionErrors.INVALID_CHOICE });
+                    }
+
+                    choice.DnDVotes[DnDPosition]++;
+                }
+
                 return right(session);
             }
         );
