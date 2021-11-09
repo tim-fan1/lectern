@@ -3,10 +3,11 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import LecternLogo from "../../components/LecternLogo";
 import Poll from "../../components/Poll";
+import MultipleChoiceQuiz from "../../components/MultipleChoiceQuiz";
+import DragAndDropQuiz from "../../components/DragAndDropQuiz";
 import styles from "../../styles/session.module.css";
 import { SessionActivity } from "../../util";
 import NavigationSession from "../../components/NavigationSession";
-import MultipleChoiceQuiz from "../../components/MultipleChoiceQuiz";
 const title = "What is the best web development software for complexity?";
 
 function getActivityElement(activity: SessionActivity) {
@@ -38,15 +39,16 @@ function getActivityElement(activity: SessionActivity) {
                             "All of the above",
                         ]}
                     />
-                    {/* <DragAndDropQuiz
+                    <hr />
+                    <DragAndDropQuiz
                         title={title}
-                        questions={[
+                        answers={[
                             "Package managers",
                             "JavaScript bundlers",
                             "Frameworks on top of frameworks (e.g. Next.js)",
                             "All of the above",
                         ]}
-                    /> */}
+                    />
                 </>
             );
 
