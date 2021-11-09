@@ -1,6 +1,7 @@
 import {
     Arg,
     ClassType,
+    createUnionType,
     Ctx,
     Field,
     Int,
@@ -28,30 +29,58 @@ class ActivityArrResponse extends EndpointResponse {
 }
 
 @ObjectType()
-class ActivityResultResponse extends EndpointResponse {
-    @Field({ nullable: true })
-    result?: PollResult | QuizResult | DnDResult | null;
+class ChoiceVote {
+    @Field()
+    choice!: string;
+    @Field()
+    votes!: number;
 }
 
-type PollResult = {
-    kind: string;
-    result: { choice: string; votes: number }[];
-};
+@ObjectType()
+class PollResult {
+    @Field()
+    kind!: string;
+    @Field(() => [ChoiceVote])
+    result!: ChoiceVote[];
+}
 
-type QuizResult = {
-    kind: string;
-    result: { choice: string; votes: number }[];
-    correctChoices: string[];
-};
+@ObjectType()
+class QuizResult {
+    @Field()
+    kind!: string;
+    @Field(() => [ChoiceVote])
+    result!: ChoiceVote[];
+    @Field(() => [String])
+    correctChoices!: string[];
+}
 
-type DnDResult = {
-    kind: string;
-    result: {
-        position: number;
-        votes: { name: string; num: number }[];
-        correctChoice: string;
-    }[];
-};
+@ObjectType()
+class PosVote {
+    @Field()
+    position!: number;
+    @Field(() => [ChoiceVote])
+    votes!: ChoiceVote[];
+    @Field()
+    correctChoice!: string;
+}
+@ObjectType()
+class DnDResult {
+    @Field()
+    kind!: string;
+    @Field(() => [PosVote])
+    result!: PosVote[];
+}
+
+const ActivityResultUnion = createUnionType({
+    name: "ActivityResult",
+    types: () => [PollResult, QuizResult, DnDResult],
+});
+
+@ObjectType()
+class ActivityResultResponse extends EndpointResponse {
+    @Field(() => ActivityResultUnion, { nullable: true })
+    result?: PollResult | QuizResult | DnDResult;
+}
 
 enum ActivityErrors {
     DB_ERROR = "DB_ERROR",
@@ -92,7 +121,7 @@ export default class ActivityResolver {
     }
 
     @CheckAuth(["sessions"])
-    @Query()
+    @Query(() => ActivityResultResponse)
     async getActivityResult(
         @Arg("session_id") sessionId: number,
         @Arg("activity_id") activity_id: number,
@@ -195,8 +224,8 @@ export default class ActivityResolver {
 
                 if (fuck && i.DnDVotes) {
                     fuck.votes[index] = {
-                        name: i.name,
-                        num: i.DnDVotes[index],
+                        choice: i.name,
+                        votes: i.DnDVotes[index],
                     };
                 }
             });
@@ -204,7 +233,7 @@ export default class ActivityResolver {
             return { errors: [], result: activityResult };
         }
 
-        return { errors: [], result: null };
+        return { errors: [], result: undefined };
     }
 
     @CheckAuth(["sessions"])
