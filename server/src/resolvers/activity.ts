@@ -140,9 +140,6 @@ export default class ActivityResolver {
             };
     }
 
-    // do we need to be able to move archived activities back to the draft phase
-    resetActivity() {}
-
     @CheckAuth(["sessions"])
     @Mutation(() => ActivityResponse)
     async addChoice(
@@ -379,6 +376,119 @@ export default class ActivityResolver {
                     });
 
                 thisActivity.state = "archived";
+                return right(session);
+            },
+            ["author"]
+        );
+
+        if (result.isLeft) return ActivityResponse.withErrors(result.data);
+        else
+            return {
+                errors: [],
+                activity: result.data.activities.find(
+                    (a) => a.id === activityId
+                ),
+            };
+    }
+
+    @CheckAuth(["sessions"])
+    @Mutation(() => ActivityResponse)
+    async resetActivity(
+        @Arg("sessionId", () => Int) sessionId: number,
+        @Arg("activityId", () => Int) activityId: number,
+        @Ctx() { user, openSessions }: AuthedContext
+    ): Promise<ActivityResponse> {
+        const result = await modifySession(
+            openSessions,
+            { id: sessionId },
+            (session) => {
+                /* Does the session pointed by id belong to user? */
+
+                if (session.author.id !== user.id)
+                    return left({
+                        kind: ActivityErrors.SESSION_NOT_EXIST,
+                        msg: "Session does not exist",
+                    });
+
+                /* Is there an activity with this id in the session? */
+                const thisActivity = session.activities.find(
+                    (a) => a.id === activityId
+                );
+                if (thisActivity === undefined)
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_NOT_EXIST,
+                        msg: "Activity does not exist",
+                    });
+
+                /* Is the activity in draft? */
+                if (thisActivity.state !== "archived")
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                    });
+
+                if (thisActivity.choices.length === 0) {
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                    });
+                }
+
+                if (thisActivity.kind === ActivityKinds.POLL) {
+                    thisActivity.choices.forEach((i) => {
+                        if (i.PollVotes === undefined || i.PollVotes === null) {
+                            return left({
+                                kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                            });
+                        }
+                        i.PollVotes = 0;
+                    });
+                }
+
+                if (thisActivity.kind === ActivityKinds.QUIZ) {
+                    thisActivity.choices.forEach((i) => {
+                        if (
+                            i.QuizIsCorrect === undefined ||
+                            i.QuizIsCorrect === null
+                        ) {
+                            return left({
+                                kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                            });
+                        }
+
+                        if (i.QuizVotes === undefined || i.QuizVotes === null) {
+                            return left({
+                                kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                            });
+                        }
+
+                        i.QuizVotes = 0;
+                    });
+                }
+
+                if (thisActivity.kind === ActivityKinds.DND) {
+                    thisActivity.choices.forEach((i) => {
+                        if (i.DnDVotes === undefined || i.DnDVotes === null) {
+                            return left({
+                                kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                            });
+                        }
+
+                        if (
+                            i.DnDCorrectPosition === undefined ||
+                            i.DnDCorrectPosition === null
+                        ) {
+                            return left({
+                                kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                            });
+                        }
+
+                        i.DnDVotes.forEach((j) => {
+                            j = 0;
+                        });
+                    });
+                }
+
+                thisActivity.state = "draft";
+
                 return right(session);
             },
             ["author"]
