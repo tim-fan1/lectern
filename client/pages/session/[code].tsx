@@ -8,6 +8,7 @@ import DragAndDropQuiz from "../../components/DragAndDropQuiz";
 import styles from "../../styles/session.module.css";
 import { SessionActivity } from "../../util";
 import NavigationSession from "../../components/NavigationSession";
+import { DragDropContext } from "react-beautiful-dnd";
 const title = "What is the best web development software for complexity?";
 
 function getActivityElement(activity: SessionActivity) {
@@ -27,11 +28,8 @@ function getActivityElement(activity: SessionActivity) {
         case SessionActivity.QUIZ:
             return (
                 <>
-                    <MultipleChoiceQuiz
+                    {/* <MultipleChoiceQuiz
                         title={"What is the best web development software for complexity?"}
-                        /* One of these answers is the correct answer. Of course, the client
-                         * won't know which one it is at this point. So really, this is just
-                         * the same as <Poll /> */
                         answers={[
                             "Package managers",
                             "JavaScript bundlers",
@@ -39,7 +37,7 @@ function getActivityElement(activity: SessionActivity) {
                             "All of the above",
                         ]}
                     />
-                    <hr />
+                    <hr /> */}
                     <DragAndDropQuiz
                         title={title}
                         answers={[
