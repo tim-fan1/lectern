@@ -15,17 +15,17 @@ export default class Choice {
 
     //DnD
 
-    @Field({ nullable: true })
+    @Field(() => Int, { nullable: true })
     @Column({ nullable: true })
     DnDCorrectPosition?: number;
 
-    @Field(() => [Number], { nullable: true })
+    @Field(() => [Int], { nullable: true })
     @Column("simple-array", { nullable: true })
     DnDVotes?: number[];
 
     //Poll
 
-    @Field({ nullable: true })
+    @Field(() => Int, { nullable: true })
     @Column({ nullable: true })
     PollVotes?: number;
 

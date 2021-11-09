@@ -140,11 +140,6 @@ export default class ActivityResolver {
             };
     }
 
-    // TODO: this needs to be implemented and checked before an activity is moved to open
-    isValidActivity() {
-        // peep what T is and do relevant checks
-        return false;
-    }
     // do we need to be able to move archived activities back to the draft phase
     resetActivity() {}
 
@@ -198,8 +193,6 @@ export default class ActivityResolver {
                         })
                     );
                 } else if (thisActivity.kind === ActivityKinds.QUIZ) {
-                    console.log(QuizIsCorrect);
-
                     if (QuizIsCorrect === undefined) {
                         QuizIsCorrect = false;
                     }
@@ -210,6 +203,15 @@ export default class ActivityResolver {
                             activity: thisActivity,
                             QuizVotes: 0,
                             QuizIsCorrect: QuizIsCorrect,
+                        })
+                    );
+                } else if (thisActivity.kind === ActivityKinds.DND) {
+                    thisActivity.choices.push(
+                        conn.getRepository(Choice).create({
+                            name: name,
+                            activity: thisActivity,
+                            DnDCorrectPosition: thisActivity.choices.length,
+                            DnDVotes: [],
                         })
                     );
                 }
@@ -241,7 +243,6 @@ export default class ActivityResolver {
             { id: sessionId },
             (session) => {
                 /* Does the session pointed by id belong to user? */
-                console.log("vibes?");
 
                 if (session.author.id !== user.id)
                     return left({
@@ -265,7 +266,69 @@ export default class ActivityResolver {
                         kind: ActivityErrors.ACTIVITY_INVALID_STATE,
                     });
 
+                if (thisActivity.choices.length === 0) {
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                    });
+                }
+
+                if (thisActivity.kind === ActivityKinds.POLL) {
+                    thisActivity.choices.forEach((i) => {
+                        if (i.PollVotes === undefined || i.PollVotes === null) {
+                            return left({
+                                kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                            });
+                        }
+                    });
+                }
+
+                if (thisActivity.kind === ActivityKinds.QUIZ) {
+                    thisActivity.choices.forEach((i) => {
+                        if (
+                            i.QuizIsCorrect === undefined ||
+                            i.QuizIsCorrect === null
+                        ) {
+                            return left({
+                                kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                            });
+                        }
+
+                        if (i.QuizVotes === undefined || i.QuizVotes === null) {
+                            return left({
+                                kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                            });
+                        }
+                    });
+                }
+
+                if (thisActivity.kind === ActivityKinds.DND) {
+                    thisActivity.choices.forEach((i) => {
+                        thisActivity.choices.forEach(() => {
+                            if (
+                                i.DnDVotes === undefined ||
+                                i.DnDVotes === null
+                            ) {
+                                return left({
+                                    kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                                });
+                            }
+
+                            if (
+                                i.DnDCorrectPosition === undefined ||
+                                i.DnDCorrectPosition === null
+                            ) {
+                                return left({
+                                    kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                                });
+                            }
+
+                            i.DnDVotes.push(0);
+                        });
+                    });
+                }
+
                 thisActivity.state = "open";
+
                 return right(session);
             },
             ["author"]
