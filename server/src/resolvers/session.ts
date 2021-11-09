@@ -49,6 +49,7 @@ export enum SessionErrors {
     SESSION_NAME_ALREADY_EXIST = "SESSION_NAME_ALREADY_EXIST",
     INVALID_CHOICE = "INVALID_CHOICE",
     INVALID_ACTIVITY = "INVALID_ACTIVITY", // TODO move to activity.ts
+    INVALID_ARGS = "INVALID_ARGS",
 }
 
 @Resolver()
@@ -283,10 +284,21 @@ export default class SessionResolver {
 
     @Query(() => SessionResponse)
     async sessionDetails(
-        @Arg("code") code: string,
+        @Arg("code", () => String, { nullable: true }) code: string | undefined,
+        @Arg("id", () => Int, { nullable: true }) id: number | undefined,
         @Ctx() { conn, openSessions }: Context
     ): Promise<SessionResponse> {
-        const result = await getSession(openSessions, { code: code });
+        if ((code === undefined && id === undefined) || (code && id))
+            return SessionResponse.withErrors({
+                kind: SessionErrors.INVALID_ARGS,
+            });
+
+        let where;
+        if (code !== undefined) where = { code: code };
+        else if (id !== undefined) where = { id: id };
+        else where = { code: "typescript is g" };
+
+        const result = await getSession(openSessions, where);
         if (result.isLeft) {
             return SessionResponse.withErrors(result.data);
         } else {
