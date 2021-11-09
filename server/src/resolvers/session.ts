@@ -189,7 +189,8 @@ export default class SessionResolver {
     @Mutation(() => SessionResponse)
     async startSession(
         @Arg("id", () => Int) id: number,
-        @Ctx() { user, openSessions }: AuthedContext
+        @Ctx() { conn, user, openSessions }: AuthedContext,
+        @PubSub() pubsub: PubSubEngine
     ): Promise<SessionResponse> {
         const result = await modifySession(
             openSessions,
@@ -228,7 +229,12 @@ export default class SessionResolver {
         );
 
         if (result.isLeft) return SessionResponse.withErrors(result.data);
-        else return { errors: [], session: result.data };
+
+        /* actually add this to open sessions lmao */
+        const newLive = new LiveSession(conn, pubsub, result.data);
+        openSessions.set(result.data.id, newLive);
+
+        return { errors: [], session: result.data };
     }
 
     @CheckAuth(["sessions"])
