@@ -16,26 +16,26 @@ export default class Choice {
     //DnD
 
     @Field({ nullable: true })
-    @Column()
+    @Column({ nullable: true })
     DnDCorrectPosition?: number;
 
     @Field(() => [Number], { nullable: true })
-    @Column("simple-array")
+    @Column("simple-array", { nullable: true })
     DnDVotes?: number[];
 
     //Poll
 
     @Field({ nullable: true })
-    @Column()
+    @Column({ nullable: true })
     PollVotes?: number;
 
     //Quiz
     @Field({ nullable: true })
-    @Column()
+    @Column({ nullable: true })
     isCorrect?: boolean;
 
     @Field(() => Int, { nullable: true })
-    @Column()
+    @Column({ nullable: true })
     QuizVotes?: number;
 
     /* Many choices belong to one activity. */

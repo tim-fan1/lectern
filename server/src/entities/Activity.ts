@@ -25,10 +25,6 @@ export default class Activity {
 
     @Field()
     @Column()
-    question!: string;
-
-    @Field()
-    @Column()
     kind!: string;
 
     /* Many activities belong to one session. */

@@ -22,7 +22,7 @@ const QuerySessionDetails = `
 `;
 
 const MutationCreateActivity = `
-    mutation ($sessionId: String!, $name: String!, $kind: String!) {
+    mutation ($sessionId: Int!, $name: String!, $kind: String!) {
         createActivity(sessionId: $sessionId, name: $name, kind: $kind) {
             activity {
                 id
@@ -36,7 +36,7 @@ const MutationCreateActivity = `
 `;
 
 const MutationPollAddChoice = `
-    mutation ($sessionId: String!, $activityId: String!, $name: String!) {
+    mutation ($sessionId: Int!, $activityId: Int!, $name: String!) {
         addChoice(sessionId: $sessionId, activityId: $activityId, name: $name) {
             errors {
                 kind
@@ -54,9 +54,9 @@ export default function CreatePoll() {
         variables: { code },
     });
 
-    let sessionId: string;
+    let sessionId: number;
     if (!result.fetching) {
-        sessionId = result.data.sessionDetails.session.id.toString();
+        sessionId = result.data.sessionDetails.session.id;
     }
 
     const [errors, setErrors] = useState([] as string[]);
@@ -71,7 +71,7 @@ export default function CreatePoll() {
     const [createActivityResult, createActivity] = useMutation(MutationCreateActivity);
     const [addChoiceResult, addChoice] = useMutation(MutationPollAddChoice);
 
-    const addChoiceMutation = (activityId: string, name: string) => {
+    const addChoiceMutation = (activityId: number, name: string) => {
         const variables = {
             sessionId: sessionId,
             activityId: activityId,
@@ -95,7 +95,7 @@ export default function CreatePoll() {
 
         createActivity(variables).then((result) => {
             if (result.data.createActivity.errors.length === 0) {
-                const activityId: string = result.data.createActivity.activity.id.toString();
+                const activityId: number = result.data.createActivity.activity.id;
 
                 if (optionA.length !== 0) addChoiceMutation(activityId, optionA);
                 if (optionB.length !== 0) addChoiceMutation(activityId, optionB);

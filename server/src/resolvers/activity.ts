@@ -84,7 +84,6 @@ export default class ActivityResolver {
     async createActivity(
         @Arg("sessionId", () => Int) sessionId: number,
         @Arg("name") name: string,
-        @Arg("question") question: string,
         @Arg("kind") kind: string,
         @Ctx() { conn, user, openSessions }: AuthedContext
     ): Promise<ActivityResponse> {
@@ -122,7 +121,6 @@ export default class ActivityResolver {
                     conn.getRepository(Activity).create({
                         kind: kind,
                         name: name,
-                        question: question,
                         session: session,
                         choices: [],
                     })
