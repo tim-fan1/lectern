@@ -9,6 +9,7 @@ export async function getSession(
     where: { id?: number; code?: string },
     relations: string[] = []
 ) {
+    console.log(where);
     return modifySession(opens, where, (s) => right(s), relations);
 }
 
