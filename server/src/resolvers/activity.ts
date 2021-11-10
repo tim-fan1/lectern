@@ -387,7 +387,6 @@ export default class ActivityResolver {
             };
     }
 
-    //needs testing
     @CheckAuth(["sessions"])
     @Mutation(() => ActivityResponse)
     async removeChoice(
@@ -418,13 +417,13 @@ export default class ActivityResolver {
                     });
 
                 /* Is the activity not yet archived? */
-                if (thisActivity.state === "archived")
+                if (thisActivity.state !== "draft")
                     return left({
                         kind: ActivityErrors.ACTIVITY_INVALID_STATE,
                     });
 
                 thisActivity.choices = thisActivity.choices.filter((i) => {
-                    return (i.id = choiceId);
+                    return i.id !== choiceId;
                 });
 
                 return right(session);
@@ -618,7 +617,6 @@ export default class ActivityResolver {
             };
     }
 
-    //needs testing
     @CheckAuth(["sessions"])
     @Mutation(() => ActivityResponse)
     async resetActivity(
@@ -648,7 +646,7 @@ export default class ActivityResolver {
                         msg: "Activity does not exist",
                     });
 
-                /* Is the activity in draft? */
+                /* Is the activity archived? */
                 if (thisActivity.state !== "archived")
                     return left({
                         kind: ActivityErrors.ACTIVITY_INVALID_STATE,
@@ -709,9 +707,7 @@ export default class ActivityResolver {
                             });
                         }
 
-                        i.DnDVotes.forEach((j) => {
-                            j = 0;
-                        });
+                        i.DnDVotes = [];
                     });
                 }
 
