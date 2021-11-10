@@ -1,3 +1,4 @@
+import { tr } from "date-fns/locale";
 import {
     Arg,
     ClassType,
@@ -32,7 +33,7 @@ class ActivityArrResponse extends EndpointResponse {
 class ChoiceVote {
     @Field()
     choice!: string;
-    @Field()
+    @Field(() => Int)
     votes!: number;
 }
 
@@ -59,7 +60,7 @@ class PosVote {
     @Field()
     position!: number;
     @Field(() => [ChoiceVote])
-    votes!: ChoiceVote[];
+    posVotes!: ChoiceVote[];
     @Field()
     correctChoice!: string;
 }
@@ -123,14 +124,10 @@ export default class ActivityResolver {
     @CheckAuth(["sessions"])
     @Query(() => ActivityResultResponse)
     async getActivityResult(
-        @Arg("session_id") sessionId: number,
-        @Arg("activity_id") activity_id: number,
+        @Arg("session_id", () => Int) sessionId: number,
+        @Arg("activity_id", () => Int) activity_id: number,
         @Ctx() { user, openSessions }: AuthedContext
     ): Promise<ActivityResultResponse> {
-        // TODO: verify this.
-        // Get result for poll will return each choice and the number of votes for all
-        // for quiz will return each choice, number of votes for all, and the correct answer
-        // for drag and drop will return each "position" and how many voted a certain choice to be in that position
         const result = await getSession(openSessions, { id: sessionId });
         if (result.isLeft)
             return ActivityResultResponse.withErrors(result.data);
@@ -151,11 +148,23 @@ export default class ActivityResolver {
             };
         }
 
-        if (activity.kind === ActivityKinds.POLL) {
-            let activityResult: PollResult = {
-                kind: ActivityKinds.POLL,
-                result: [],
+        if (activity.state !== "archived") {
+            return {
+                errors: [
+                    {
+                        kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                        msg: "Activity must be archived before you can get the result",
+                    },
+                ],
             };
+        }
+
+        //todo check if activity is archived
+
+        if (activity.kind === ActivityKinds.POLL) {
+            let activityResult: PollResult = new PollResult();
+            activityResult.kind = ActivityKinds.POLL;
+            activityResult.result = [];
 
             activity.choices.forEach((i) => {
                 if (i.PollVotes === undefined) {
@@ -174,11 +183,10 @@ export default class ActivityResolver {
         }
 
         if (activity.kind === ActivityKinds.QUIZ) {
-            let activityResult: QuizResult = {
-                kind: ActivityKinds.QUIZ,
-                result: [],
-                correctChoices: [],
-            };
+            let activityResult: QuizResult = new QuizResult();
+            activityResult.kind = ActivityKinds.QUIZ;
+            activityResult.result = [];
+            activityResult.correctChoices = [];
 
             activity.choices.forEach((i) => {
                 if (i.QuizVotes === undefined) {
@@ -200,33 +208,28 @@ export default class ActivityResolver {
         }
 
         if (activity.kind === ActivityKinds.DND) {
-            let activityResult: DnDResult = {
-                kind: ActivityKinds.DND,
-                result: [],
-            };
+            let activityResult: DnDResult = new DnDResult();
+            activityResult.kind = ActivityKinds.DND;
+            activityResult.result = [];
 
             activity.choices.forEach((i) => {
-                if (i.DnDCorrectPosition && i.name) {
+                if (i.DnDCorrectPosition !== undefined) {
                     activityResult.result.push({
                         position: i.DnDCorrectPosition,
-                        votes: [],
+                        posVotes: [],
                         correctChoice: i.name,
                     });
                 }
             });
 
             activity.choices.forEach((i) => {
-                let fuck = activityResult.result.find(
-                    (k) => k.position === i.DnDCorrectPosition
-                );
-
-                let index = activity.choices.indexOf(i);
-
-                if (fuck && i.DnDVotes) {
-                    fuck.votes[index] = {
-                        choice: i.name,
-                        votes: i.DnDVotes[index],
-                    };
+                if (i.DnDVotes) {
+                    for (let j = 0; j < i.DnDVotes?.length; j++) {
+                        activityResult.result[j].posVotes.push({
+                            votes: i.DnDVotes[j],
+                            choice: i.name,
+                        });
+                    }
                 }
             });
 
@@ -306,7 +309,6 @@ export default class ActivityResolver {
         @Ctx() { conn, user, openSessions }: AuthedContext,
         @Arg("QuizIsCorrect", { nullable: true }) QuizIsCorrect?: boolean
     ): Promise<ActivityResponse> {
-        // TODO: if this is a dnd or a quiz make sure relevant "correct" fields are filled.
         const result = await modifySession(
             openSessions,
             { id: sessionId },
@@ -437,6 +439,7 @@ export default class ActivityResolver {
                 }
 
                 if (thisActivity.kind === ActivityKinds.QUIZ) {
+                    let hasAnAnswer: boolean = false;
                     thisActivity.choices.forEach((i) => {
                         if (
                             i.QuizIsCorrect === undefined ||
@@ -452,7 +455,18 @@ export default class ActivityResolver {
                                 kind: ActivityErrors.ACTIVITY_INVALID_STATE,
                             });
                         }
+
+                        if (i.QuizIsCorrect === true) {
+                            hasAnAnswer = true;
+                        }
                     });
+
+                    if (!hasAnAnswer) {
+                        return left({
+                            kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                            msg: "Your quiz has no correct answer",
+                        });
+                    }
                 }
 
                 if (thisActivity.kind === ActivityKinds.DND) {

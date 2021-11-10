@@ -72,11 +72,11 @@ export default class SessionSubscriptionResolver {
 
     @Mutation(() => EndpointResponse)
     async activityVote(
-        @Arg("id", () => Int) id: number,
+        @Arg("sessionId", () => Int) id: number,
         @Arg("activityId", () => Int) activityId: number,
         @Arg("choiceId", () => Int) choiceId: number,
         @Ctx() { openSessions }: Context,
-        @Arg("DnDPosition", () => Int) DnDPosition?: number
+        @Arg("DnDPosition", () => Int, { nullable: true }) DnDPosition?: number
     ) {
         const result = await modifySession(
             openSessions,
@@ -88,14 +88,22 @@ export default class SessionSubscriptionResolver {
                 if (activity === undefined)
                     return left({ kind: SessionErrors.INVALID_ACTIVITY });
 
+                if (activity.state !== "open") {
+                    return left({
+                        kind: SessionErrors.INVALID_ACTIVITY,
+                        msg: "Activity state is not open for voting",
+                    });
+                }
+
                 const choice = activity.choices.find((c) => c.id === choiceId);
                 if (choice === undefined)
                     return left({ kind: SessionErrors.INVALID_CHOICE });
-                console.log(choice);
-                //TODO increment correctly by activity kind
 
                 if (activity.kind === ActivityKinds.POLL) {
-                    if (!choice.PollVotes) {
+                    if (
+                        choice.PollVotes === null ||
+                        choice.PollVotes === undefined
+                    ) {
                         return left({ kind: SessionErrors.INVALID_CHOICE });
                     }
 
@@ -103,7 +111,10 @@ export default class SessionSubscriptionResolver {
                 }
 
                 if (activity.kind === ActivityKinds.QUIZ) {
-                    if (!choice.QuizVotes) {
+                    if (
+                        choice.QuizVotes === null ||
+                        choice.QuizVotes === undefined
+                    ) {
                         return left({ kind: SessionErrors.INVALID_CHOICE });
                     }
 
@@ -111,8 +122,15 @@ export default class SessionSubscriptionResolver {
                 }
 
                 if (activity.kind === ActivityKinds.DND) {
-                    if (!choice.DnDVotes || !DnDPosition) {
-                        return left({ kind: SessionErrors.INVALID_CHOICE });
+                    if (
+                        choice.DnDVotes === undefined ||
+                        DnDPosition === undefined ||
+                        choice.DnDVotes.length <= DnDPosition
+                    ) {
+                        return left({
+                            kind: SessionErrors.INVALID_CHOICE,
+                            msg: "You may need to provide a DnDPosition",
+                        });
                     }
 
                     choice.DnDVotes[DnDPosition]++;
