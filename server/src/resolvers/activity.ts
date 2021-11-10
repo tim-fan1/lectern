@@ -387,6 +387,62 @@ export default class ActivityResolver {
             };
     }
 
+    //needs testing
+    @CheckAuth(["sessions"])
+    @Mutation(() => ActivityResponse)
+    async removeChoice(
+        @Arg("sessionId", () => Int) sessionId: number,
+        @Arg("activityId", () => Int) activityId: number,
+        @Arg("choiceId", () => Int) choiceId: number,
+        @Ctx() { conn, user, openSessions }: AuthedContext
+    ): Promise<ActivityResponse> {
+        const result = await modifySession(
+            openSessions,
+            { id: sessionId },
+            (session) => {
+                /* Does the session pointed by id belong to user? */
+                if (session.author.id !== user.id)
+                    return left({
+                        kind: ActivityErrors.SESSION_NOT_EXIST,
+                        msg: "Session does not exist",
+                    });
+
+                /* Is there an activity with this id in the session? */
+                const thisActivity = session.activities.find(
+                    (a) => a.id === activityId
+                );
+                if (thisActivity === undefined)
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_NOT_EXIST,
+                        msg: "Activity does not exist",
+                    });
+
+                /* Is the activity not yet archived? */
+                if (thisActivity.state === "archived")
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                    });
+
+                thisActivity.choices = thisActivity.choices.filter((i) => {
+                    return (i.id = choiceId);
+                });
+
+                return right(session);
+            },
+            ["author"],
+            true // set saveNow so the choice gets an ID generated
+        );
+
+        if (result.isLeft) return ActivityResponse.withErrors(result.data);
+        else
+            return {
+                errors: [],
+                activity: result.data.activities.find(
+                    (a) => a.id === activityId
+                ),
+            };
+    }
+
     @CheckAuth(["sessions"])
     @Mutation(() => ActivityResponse)
     async startActivity(
@@ -562,6 +618,7 @@ export default class ActivityResolver {
             };
     }
 
+    //needs testing
     @CheckAuth(["sessions"])
     @Mutation(() => ActivityResponse)
     async resetActivity(
