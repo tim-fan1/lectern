@@ -389,6 +389,128 @@ export default class ActivityResolver {
 
     @CheckAuth(["sessions"])
     @Mutation(() => ActivityResponse)
+    async editChoice(
+        @Arg("sessionId", () => Int) sessionId: number,
+        @Arg("activityId", () => Int) activityId: number,
+        @Arg("choiceId", () => Int) choiceId: number,
+        @Ctx() { conn, user, openSessions }: AuthedContext,
+        @Arg("name", { nullable: true }) name?: string,
+        @Arg("DnDCorrectPosition", () => Int, { nullable: true })
+        DnDCorrectPosition?: number,
+        @Arg("QuizIsCorrect", { nullable: true }) QuizIsCorrect?: boolean
+    ): Promise<ActivityResponse> {
+        const result = await modifySession(
+            openSessions,
+            { id: sessionId },
+            (session) => {
+                /* Does the session pointed by id belong to user? */
+                if (session.author.id !== user.id)
+                    return left({
+                        kind: ActivityErrors.SESSION_NOT_EXIST,
+                        msg: "Session does not exist",
+                    });
+
+                /* Is there an activity with this id in the session? */
+                const thisActivity = session.activities.find(
+                    (a) => a.id === activityId
+                );
+                if (thisActivity === undefined)
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_NOT_EXIST,
+                        msg: "Activity does not exist",
+                    });
+
+                const thisChoice = thisActivity.choices.find(
+                    (i) => i.id === choiceId
+                );
+                if (thisChoice === undefined)
+                    return left({
+                        kind: "CHOICE_DOES_NOT_EXIST",
+                        msg: "Activity does not exist",
+                    });
+
+                /* Is the activity not yet archived? */
+                if (thisActivity.state !== "draft")
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                    });
+
+                if (thisActivity.kind === ActivityKinds.POLL) {
+                    if (name === undefined) {
+                        return left({
+                            kind: "INVALID_REQUEST",
+                            msg: "Did not provide name",
+                        });
+                    } else {
+                        thisChoice.name = name;
+                    }
+                } else if (thisActivity.kind === ActivityKinds.QUIZ) {
+                    if (QuizIsCorrect === undefined && name === undefined) {
+                        return left({
+                            kind: "INVALID_REQUEST",
+                            msg: "Did not provide QuizIsCorrect or name",
+                        });
+                    }
+
+                    if (QuizIsCorrect !== undefined) {
+                        thisChoice.QuizIsCorrect = QuizIsCorrect;
+                    }
+
+                    if (name !== undefined) {
+                        thisChoice.name = name;
+                    }
+                } else if (thisActivity.kind === ActivityKinds.DND) {
+                    if (
+                        DnDCorrectPosition === undefined &&
+                        name === undefined
+                    ) {
+                        return left({
+                            kind: "INVALID_REQUEST",
+                            msg: "Did not provide DnDCorrectPosition or name",
+                        });
+                    }
+
+                    if (name !== undefined) {
+                        thisChoice.name = name;
+                    }
+
+                    if (
+                        name === undefined &&
+                        DnDCorrectPosition !== undefined
+                    ) {
+                        if (
+                            DnDCorrectPosition >= thisActivity.choices.length ||
+                            DnDCorrectPosition < 0
+                        ) {
+                            return left({
+                                kind: "INVALID_REQUEST",
+                                msg: "DnDCorrectPosition too big or too small",
+                            });
+                        }
+                    }
+
+                    if (DnDCorrectPosition !== undefined) {
+                        thisChoice.DnDCorrectPosition = DnDCorrectPosition;
+                    }
+                }
+                return right(session);
+            },
+            ["author"],
+            true // set saveNow so the choice gets an ID generated
+        );
+
+        if (result.isLeft) return ActivityResponse.withErrors(result.data);
+        else
+            return {
+                errors: [],
+                activity: result.data.activities.find(
+                    (a) => a.id === activityId
+                ),
+            };
+    }
+
+    @CheckAuth(["sessions"])
+    @Mutation(() => ActivityResponse)
     async removeChoice(
         @Arg("sessionId", () => Int) sessionId: number,
         @Arg("activityId", () => Int) activityId: number,
