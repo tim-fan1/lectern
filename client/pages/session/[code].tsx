@@ -6,6 +6,8 @@ import Poll from "../../components/Poll";
 import styles from "../../styles/session.module.css";
 import { SessionActivity } from "../../utils/util";
 import NavigationSession from "../../components/NavigationSession";
+import Qa from "../../components/Qa";
+import QaInput from "../../components/QaInput";
 
 const title = "What is the best web development software for complexity?";
 
@@ -22,6 +24,13 @@ function getActivityElement(activity: SessionActivity) {
                         "All of the above",
                     ]}
                 />
+            );
+        case SessionActivity.QA:
+            return (
+                <div>
+                    <QaInput name="Anonymous" />
+                    <Qa />
+                </div>
             );
         default:
             return <p>Coming soon™</p>;
@@ -42,8 +51,9 @@ export default function Session() {
                 <LecternLogo />
                 <NavigationSession selected={selectedActivity} setSelected={setSelectedActivity} />
                 <div id={styles.room_id_container}>
+                    {/* nocheckin: does this need to be here? */}
                     <span id={styles.room_id_room} className={styles.room_text}>
-                        Room:{" "}
+                        Session:{" "}
                     </span>
                     <span id={styles.room_id_hash} className={styles.room_text}>
                         #
