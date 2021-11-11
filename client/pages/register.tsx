@@ -5,6 +5,7 @@ import { useMutation } from "urql";
 import Navigation from "../components/Navigation";
 import MessageBox from "../components/MessageBox";
 import InputPassword from "../components/InputPassword";
+import styles from "../styles/register.module.css";
 
 const MutationRegister = `
     mutation ($email: String!, $fname: String!, $lname: String!, $password: String!) {
@@ -18,8 +19,8 @@ const MutationRegister = `
 `;
 
 export default function Register() {
-    const [fname, setFirstName] = useState("");
-    const [lname, setLastName] = useState("");
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -42,8 +43,8 @@ export default function Register() {
 
         const variables = {
             email: email,
-            fname: fname,
-            lname: lname,
+            fname: firstName,
+            lname: lastName,
             password: password,
         };
         register(variables).then((result) => {
@@ -75,9 +76,7 @@ export default function Register() {
                 {!registerSuccess && (
                     <form className="form" onSubmit={handleSubmit}>
                         <div className="container_input_label">
-                            <label className="label" htmlFor="">
-                                First Name
-                            </label>
+                            <label className="label">First Name</label>
                             <input
                                 className="input"
                                 type="text"
@@ -88,9 +87,7 @@ export default function Register() {
                             />
                         </div>
                         <div className="container_input_label">
-                            <label className="label" htmlFor="">
-                                Last Name
-                            </label>
+                            <label className="label">Last Name</label>
                             <input
                                 className="input"
                                 type="text"
@@ -101,9 +98,7 @@ export default function Register() {
                             />
                         </div>
                         <div className="container_input_label">
-                            <label className="label" htmlFor="">
-                                Email
-                            </label>
+                            <label className="label">Email</label>
                             <input
                                 className="input"
                                 id="email"
@@ -113,15 +108,14 @@ export default function Register() {
                             />
                         </div>
                         <div className="container_input_label">
-                            <label className="label" htmlFor="">
-                                Password
-                            </label>
+                            <label className="label">Password</label>
+                            <p id={styles.password_requirement}>
+                                Your password should be between 8 and 30 characters
+                            </p>
                             <InputPassword value={password} setValue={setPassword} />
                         </div>
                         <div className="container_input_label">
-                            <label className="label" htmlFor="">
-                                Confirm password
-                            </label>
+                            <label className="label">Confirm password</label>
                             <InputPassword value={passwordConfirm} setValue={setPasswordConfirm} />
                         </div>
                         <button className="btn btn_primary" type="submit">
