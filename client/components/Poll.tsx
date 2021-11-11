@@ -12,39 +12,39 @@ export default function Poll({ questions, title }: PollProps) {
     const submitPollAnswer = () => {
         // TODO
     };
+
     return (
-        <div className={styles.poll_box}>
-            <h2 className={styles.poll_question}>{title}</h2>
-            <form className={styles.poll_answer_container}>
+        <div className={styles.container_poll}>
+            <form className={`form`}>
+                <h2 className={styles.poll_question}>{title}</h2>
                 {questions.map((value, index) => {
-                    let className = styles.poll_button_button;
+                    let classNamePollOption = styles.poll_option;
                     if (index === selectedIndex) {
-                        className += " " + styles.poll_button_button_selected;
+                        classNamePollOption += " " + styles.poll_option_selected;
                     }
                     return (
                         <div
-                            className={styles.poll_button_container}
+                            className={classNamePollOption}
                             key={index}
-                            onClick={(e) => setSelectedIndex(index)}
+                            onClick={() => setSelectedIndex(index)}
                         >
                             <input
-                                type={"radio"}
-                                className={className}
-                                name={"pollRadio"}
+                                type="radio"
+                                className={styles.poll_option_radio_input}
+                                name="pollRadio"
                                 checked={index === selectedIndex}
-                                onChange={(e) => setSelectedIndex(index)}
+                                onChange={() => setSelectedIndex(index)}
                             />
                             <span>{value}</span>
                         </div>
                     );
                 })}
                 <input
-                    className={"btn btn_call_to_action"}
-                    type={"button"}
-                    value={"Submit"}
-                    onClick={(e) => submitPollAnswer()}
+                    className="btn btn_call_to_action"
+                    type="button"
+                    value="Submit"
+                    onClick={() => submitPollAnswer()}
                 />
-                <div className={styles.poll_answer_space} />
             </form>
         </div>
     );

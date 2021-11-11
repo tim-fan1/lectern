@@ -122,7 +122,7 @@ export default function CreatePoll() {
                     id={styles.input_poll_name}
                     type="text"
                     className="input"
-                    placeholder="Name of your poll"
+                    placeholder="What do you want to ask?"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
