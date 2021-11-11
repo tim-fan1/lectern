@@ -32,7 +32,7 @@ const QuerySessionDetails = `
 `;
 
 const MutationCloseSession = `
-    mutation ($id: Float!) {
+    mutation ($id: Int!) {
         closeSession(id: $id) {
             errors {
                 kind
