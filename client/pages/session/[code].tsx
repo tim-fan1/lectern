@@ -4,7 +4,7 @@ import { useState } from "react";
 import LecternLogo from "../../components/LecternLogo";
 import Poll from "../../components/Poll";
 import styles from "../../styles/session.module.css";
-import { SessionActivity } from "../../util";
+import { SessionActivity } from "../../utils/util";
 import NavigationSession from "../../components/NavigationSession";
 import { Activity } from "../../entities/entities";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";

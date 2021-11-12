@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Image from "next/image";
 import { FormEvent, useState } from "react";
 import { useMutation, useQuery } from "urql";
 import InputPassword from "../../components/InputPassword";
@@ -160,7 +161,13 @@ export default function Settings() {
                     <p>Loading...</p>
                 ) : (
                     <>
-                        <img style={{ borderRadius: "50%" }} src={data.userDetails.user.pic} />
+                        <Image
+                            id={styles.user_pic}
+                            width={80}
+                            height={80}
+                            src={data.userDetails.user.pic}
+                            alt={`${data.userDetails.user.name}'s profile picture'`}
+                        />
                         <h3>{data.userDetails.user.name}</h3>
                         <p>
                             {data.userDetails.user.bio.length === 0
@@ -203,15 +210,18 @@ export default function Settings() {
                     <h3>Change password</h3>
                     <div className="container_input_label">
                         <label className="label">Current password</label>
-                        <InputPassword setValue={setCurrentPassword} />
+                        <InputPassword value={currentPassword} setValue={setCurrentPassword} />
                     </div>
                     <div className="container_input_label">
                         <label className="label">New password</label>
-                        <InputPassword setValue={setNewPassword} />
+                        <InputPassword value={newPassword} setValue={setNewPassword} />
                     </div>
                     <div className="container_input_label">
                         <label className="label">Confirm new password</label>
-                        <InputPassword setValue={setNewPasswordConfirm} />
+                        <InputPassword
+                            value={newPasswordConfirm}
+                            setValue={setNewPasswordConfirm}
+                        />
                     </div>
                     {changePasswordErrors.map((error, i) => (
                         <p className="error" key={i}>

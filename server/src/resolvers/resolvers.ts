@@ -1,17 +1,12 @@
 /* i love typescript */
+/* I really love es6 exports */
+/* we export these in a "private" file so that we can re-export it
+   with an array containing all the value in different file
+ */
 
-import HelloResolver from "./hello";
-import SessionResolver from "./session";
-import UserResolver from "./user";
-import ActivityResolver from "./activity";
-import GroupResolver from "./group";
-import SessionSubscriptionResolver from "./sessionSubscription";
-
-export {
-    HelloResolver,
-    UserResolver,
-    SessionResolver,
-    ActivityResolver,
-    SessionSubscriptionResolver,
-    GroupResolver,
-};
+export { default as HelloResolver } from "./hello";
+export { default as SessionResolver } from "./session";
+export { default as UserResolver } from "./user";
+export { default as ActivityResolver } from "./activity";
+export { default as GroupResolver } from "./group";
+export { default as SessionSubscriptionResolver } from "./sessionSubscription";

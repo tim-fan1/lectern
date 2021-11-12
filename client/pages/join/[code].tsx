@@ -7,7 +7,7 @@ import Navigation from "../../components/Navigation";
 import { useAppDispatch } from "../../state/hooks";
 import { updateSession } from "../../state/sessionSlice";
 import styles from "../../styles/join.module.css";
-import { validateSessionCode } from "../../util";
+import { validateSessionCode } from "../../utils/util";
 import { useSessionDetailsQuery } from "../../utils/lecternApi";
 
 export default function Join() {

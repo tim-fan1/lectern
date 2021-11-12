@@ -1,6 +1,6 @@
 import { createConnection, getConnection } from "typeorm";
-import { buildSchema } from "type-graphql";
-import { HelloResolver, SessionResolver, UserResolver } from "../resolvers";
+import { buildSchema, NonEmptyArray } from "type-graphql";
+import * as resolvers from "../resolvers";
 import http from "http";
 import makeApp from "../../index";
 import supertest, { Test } from "supertest";
@@ -13,14 +13,14 @@ import { PubSub } from "graphql-subscriptions";
 jest.mock("../../utils/generateCode");
 // some funky type casting to allow ts to understand jest mock
 // https://stackoverflow.com/questions/48759035/mock-dependency-in-jest-with-typescript
-export const mockGenerateAlphanumCode =
-    generateAlphanumCode as jest.MockedFunction<typeof generateAlphanumCode>;
+export const mockGenerateAlphanumCode = generateAlphanumCode as jest.MockedFunction<
+    typeof generateAlphanumCode
+>;
 // now, generateAlphanumCode will be mocked with jest's default implementation
 // which is () => return undefined. Lets make it use our original implementation
 // we can override this in a test later
 mockGenerateAlphanumCode.mockImplementation(
-    jest.requireActual("../../utils/generateCode")
-        .default as typeof generateAlphanumCode
+    jest.requireActual("../../utils/generateCode").default as typeof generateAlphanumCode
 );
 
 let app: http.Server;
@@ -37,8 +37,8 @@ export const testGetAppSingleton = async () => {
         const ps = new PubSub();
 
         const schema = await buildSchema({
-            resolvers: [HelloResolver, UserResolver, SessionResolver],
-            pubSub: ps,
+            // I love typescript
+            resolvers: Object.values(resolvers) as unknown as NonEmptyArray<Function>,
         });
 
         app = http.createServer(await makeApp(schema, connection, ps));
@@ -173,12 +173,7 @@ export const registerUser = async (
     return res.body.data.register;
 };
 
-export const createUser = async (
-    email: string,
-    fname: string,
-    lname: string,
-    password: string
-) => {
+export const createUser = async (email: string, fname: string, lname: string, password: string) => {
     mockGenerateAlphanumCode.mockReturnValueOnce("owo");
     let response = await registerUser(fname, lname, email, password);
     let user = checkUserResponse(response, { email, fname, lname });

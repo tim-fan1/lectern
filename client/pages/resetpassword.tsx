@@ -4,7 +4,7 @@ import React, { FormEvent, useEffect, useState } from "react";
 import { useMutation } from "urql";
 import MessageBox from "../components/MessageBox";
 import Navigation from "../components/Navigation";
-import { login, selectIsAuthenticated } from "../state/authSlice";
+import { selectIsAuthenticated } from "../state/authSlice";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 
 const MutationReset = `
@@ -21,7 +21,6 @@ const MutationReset = `
 export default function ResetPassword() {
     const [_, gqlReset] = useMutation(MutationReset);
 
-    const dispatch = useAppDispatch();
     const router = useRouter();
     const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
@@ -73,7 +72,7 @@ export default function ResetPassword() {
                             />
                         </div>
                         <button className="btn btn_primary" type="submit">
-                            Reset
+                            Request password reset
                         </button>
                     </form>
                 </>

@@ -2,13 +2,12 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { useQuery, useMutation } from "urql";
+import { useMutation, useQuery } from "urql";
 import ButtonCreate from "../../../components/ButtonCreate";
 import Navigation from "../../../components/Navigation";
 import NavigationSession from "../../../components/NavigationSession";
 import styles from "../../../styles/manage.module.css";
-import { SessionActivity } from "../../../util";
-import csstyle from "../../../styles/CardSession.module.css";
+import { SessionActivity } from "../../../utils/util";
 
 const QuerySessionDetails = `
     query ($code: String!) {
@@ -39,7 +38,7 @@ const QuerySessionDetails = `
 `;
 
 const MutationCloseSession = `
-    mutation ($id: Float!) {
+    mutation ($id: Int!) {
         closeSession(id: $id) {
             errors {
                 kind
@@ -112,10 +111,10 @@ export default function DashboardSession() {
         let activities = memes.map((i: any) => {
             if (i.kind === SessionActivity.toString(selectedActivity)) {
                 return (
-                    <div className={csstyle.container} key={i.id}>
-                        <h3 className={csstyle.name}>{i.name}</h3>
-                        <p className={csstyle.datetimes}>{i.state}</p>
-                        <div id={csstyle.container_actions}>
+                    <div className={styles.container} key={i.id}>
+                        <h3 className={styles.name}>{i.name}</h3>
+                        <p className={styles.datetimes}>{i.state}</p>
+                        <div id={styles.container_actions}>
                             <a>Close</a>
                         </div>
                     </div>
