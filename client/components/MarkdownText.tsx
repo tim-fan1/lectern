@@ -2,6 +2,7 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 
 // need css for katex
@@ -20,13 +21,6 @@ export type TextProps = {
 // or as a <code> element </code> for inline code
 function code({ node, inline, className, children, ...props }: CodeProps) {
     const match = /language-(\w+)/.exec(className || "");
-    console.log("Code was called with ", children, "langauge:", match);
-    if (match) {
-        console.log(
-            "is supported",
-            SyntaxHighlighter.supportedLanguages.findIndex((e) => e === match[1])
-        );
-    }
     return !inline && match ? (
         <SyntaxHighlighter
             style={themes.pojoaque}
@@ -47,7 +41,7 @@ function code({ node, inline, className, children, ...props }: CodeProps) {
 export const MarkdownText = ({ text }: TextProps) => {
     return (
         <ReactMarkdown
-            remarkPlugins={[remarkMath]}
+            remarkPlugins={[remarkMath, remarkGfm]}
             rehypePlugins={[rehypeKatex]}
             components={{ code }}
         >

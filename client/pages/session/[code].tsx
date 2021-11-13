@@ -37,7 +37,17 @@ $$ ` +
     "\n" +
     String.raw`$$
 \text{another one}
-$$ `;
+$$ 
+
+we also autolink literals for funzys 
+www.google.com
+
+* [ ] to do
+* [x] done
+
+~~uwu~~
+
+`;
 
 function getActivityElement(activity: SessionActivity) {
     switch (activity) {
