@@ -16,6 +16,7 @@
         "@reduxjs/toolkit": "^1.6.2",
         "graphql": "^15.6.1",
         "graphql-ws": "^5.5.3",
+        "katex": "^0.15.1",
         "next": "^11.1.2",
         "qrcode.react": "^1.0.1",
         "react": "^17.0.2",
@@ -25,6 +26,7 @@
         "urql": "^2.0.5"
     },
     "devDependencies": {
+        "@types/katex": "^0.11.1",
         "@types/qrcode.react": "^1.0.2",
         "@types/react": "^17.0.27",
         "@types/react-dom": "^17.0.10",

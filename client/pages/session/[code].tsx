@@ -17,7 +17,7 @@ function getActivityElement(activity: SessionActivity) {
                     title={title}
                     questions={[
                         "Package managers",
-                        "JavaScript bundlers",
+                        "JavaScript `bundlers`",
                         "Frameworks on top of frameworks (e.g. Next.js)",
                         "All of the above",
                     ]}

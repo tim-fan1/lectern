@@ -1,5 +1,6 @@
 import styles from "../styles/Poll.module.css";
 import { useState } from "react";
+import { LatexRenderedText } from "./LatexRenderedText";
 
 export interface PollProps {
     title: string;
@@ -16,7 +17,9 @@ export default function Poll({ questions, title }: PollProps) {
     return (
         <div className={styles.container_poll}>
             <form className={`form`}>
-                <h2 className={styles.poll_question}>{title}</h2>
+                <h2 className={styles.poll_question}>
+                    <LatexRenderedText texts={[{ text: title, isLatex: true }]} />
+                </h2>
                 {questions.map((value, index) => {
                     let classNamePollOption = styles.poll_option;
                     if (index === selectedIndex) {
