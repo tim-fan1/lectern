@@ -7,7 +7,37 @@ import styles from "../../styles/session.module.css";
 import { SessionActivity } from "../../utils/util";
 import NavigationSession from "../../components/NavigationSession";
 
-const title = "What is the best web development software for complexity?";
+// man js strings SUCK for putting markdown in
+const title =
+    `What is the best web development software for complexity? It couldn't be 
+\`javascript\`, **markdown**, *italic*,  or, wowee might even be 
+\`\`\`cpp
+\#include <iostream>
+\#include <string>
+std::string bestLanguage() {
+    return "cpp";
+}
+\`\`\` 
+or
+~~~haskell
+main :: IO ()
+main = putStrLn "Hello, World!"
+~~~
+
+
+or maybe 
+` +
+    String.raw`$$
+c = \pm\sqrt{a^2 + b^2}
+$$ ` +
+    "\n" +
+    String.raw`$$
+c = S (ω)=1.466\, H_s^2 \,  \frac{ω_0^5}{ω^6 }  \, e^[-3^ { ω/(ω_0  )]^2}
+$$ ` +
+    "\n" +
+    String.raw`$$
+\text{another one}
+$$ `;
 
 function getActivityElement(activity: SessionActivity) {
     switch (activity) {
@@ -38,6 +68,7 @@ export default function Session() {
             <Head>
                 <title>lectern - Session {code}</title>
             </Head>
+
             <div className={styles.top_container}>
                 <LecternLogo />
                 <NavigationSession selected={selectedActivity} setSelected={setSelectedActivity} />

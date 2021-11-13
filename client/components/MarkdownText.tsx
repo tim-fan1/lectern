@@ -2,12 +2,12 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import SyntaxHighlighter from "react-syntax-highlighter";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 
 // need css for katex
 import "katex/dist/katex.min.css";
 import { CodeProps } from "react-markdown/lib/ast-to-react";
-import { dark } from "react-syntax-highlighter/dist/cjs/styles/hljs";
+import * as themes from "react-syntax-highlighter/dist/cjs/styles/prism";
 import SyntaxHighlighterProps from "react-syntax-highlighter";
 
 export type TextProps = {
@@ -20,11 +20,18 @@ export type TextProps = {
 // or as a <code> element </code> for inline code
 function code({ node, inline, className, children, ...props }: CodeProps) {
     const match = /language-(\w+)/.exec(className || "");
+    console.log("Code was called with ", children, "langauge:", match);
+    if (match) {
+        console.log(
+            "is supported",
+            SyntaxHighlighter.supportedLanguages.findIndex((e) => e === match[1])
+        );
+    }
     return !inline && match ? (
         <SyntaxHighlighter
-            style={dark}
+            style={themes.pojoaque}
             language={match[1]}
-            PreTag="div"
+            customStyle={{ textAlign: "left" }}
             // horrible bit of casting due to weirdly conflicting types :(
             {...(props as SyntaxHighlighterProps)}
         >
