@@ -40,6 +40,7 @@ $$ ` +
 $$ 
 
 we also autolink literals for funzys 
+
 www.google.com
 
 * [ ] to do
@@ -59,7 +60,7 @@ function getActivityElement(activity: SessionActivity) {
                         "Package managers",
                         "JavaScript `bundlers`",
                         "Frameworks on top of frameworks (e.g. Next.js)",
-                        "All of the above",
+                        "All of the above - brought to you by $\\LaTeX$",
                     ]}
                 />
             );

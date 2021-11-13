@@ -17,9 +17,9 @@ export default function Poll({ questions, title }: PollProps) {
     return (
         <div className={styles.container_poll}>
             <form className={`form`}>
-                <h2 className={styles.poll_question}>
+                <div className={styles.poll_question}>
                     <MarkdownText text={title} />
-                </h2>
+                </div>
                 {questions.map((value, index) => {
                     let classNamePollOption = styles.poll_option;
                     if (index === selectedIndex) {
@@ -38,7 +38,7 @@ export default function Poll({ questions, title }: PollProps) {
                                 checked={index === selectedIndex}
                                 onChange={() => setSelectedIndex(index)}
                             />
-                            <span>{value}</span>
+                            <MarkdownText text={value} className={styles.poll_option_text} />
                         </div>
                     );
                 })}

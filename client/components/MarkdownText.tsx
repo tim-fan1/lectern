@@ -13,6 +13,7 @@ import SyntaxHighlighterProps from "react-syntax-highlighter";
 
 export type TextProps = {
     text: string;
+    className?: string;
 };
 
 // library code from https://www.npmjs.com/package/react-markdown
@@ -38,12 +39,13 @@ function code({ node, inline, className, children, ...props }: CodeProps) {
     );
 }
 
-export const MarkdownText = ({ text }: TextProps) => {
+export const MarkdownText = ({ text, className }: TextProps) => {
     return (
         <ReactMarkdown
             remarkPlugins={[remarkMath, remarkGfm]}
             rehypePlugins={[rehypeKatex]}
             components={{ code }}
+            className={className}
         >
             {text}
         </ReactMarkdown>
