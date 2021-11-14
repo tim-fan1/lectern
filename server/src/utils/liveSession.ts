@@ -1,5 +1,8 @@
+import { PubSubEngine } from "graphql-subscriptions";
 import { Connection } from "typeorm";
 import { Session } from "../entities/entities";
+
+export const topic = (id: number): string => "SESSION_" + id.toString();
 
 /**
  * A LiveSession is a wrapper around the Session entity that provides methods
@@ -8,19 +11,29 @@ import { Session } from "../entities/entities";
  * but rather periodically (time interval or using heuristics).
  */
 export default class LiveSession {
-    readonly session: Session;
-    readonly _conn: Connection;
+    private session: Session;
+    private readonly _conn: Connection;
+    private readonly pubsub: PubSubEngine;
 
-    constructor(conn: Connection, sess: Session) {
+    constructor(conn: Connection, pubsub: PubSubEngine, sess: Session) {
         this.session = sess;
         this._conn = conn;
+        this.pubsub = pubsub;
     }
 
     /**
-     * Increment numJoined in the session.
+     * why the fuck did i just write a getter in javascript
      */
-    incrementCount() {
-        this.session.numJoined++;
+    getSession() {
+        return this.session;
+    }
+
+    /**
+     * Updates the internal in-memory session.
+     */
+    updateSession(s: Session) {
+        this.session = s;
+        this.tick();
     }
 
     /**
@@ -43,15 +56,29 @@ export default class LiveSession {
     }
 
     /**
+     * Everything that needs to be done whenever the in-memory session changes.
+     */
+    private async tick() {
+        this.pubsub.publish(topic(this.session.id), this);
+        /* TODO: write to database, sometimes */
+    }
+
+    /**
      * Create a LiveSession from the ID of a session. Looks it up in the db,
      * and throws an error if it can't find it
      * @param conn the current database connection
+     * @param pubsub a PubSubEngine instance (from @PubSub decorator)
      * @param id ID of the session to look up
      * @returns the created session isn't that obvious god i hate jsdoc
      */
-    static async fromId(conn: Connection, id: number): Promise<LiveSession> {
+    static async fromId(
+        conn: Connection,
+        pubsub: PubSubEngine,
+        id: number
+    ): Promise<LiveSession> {
         return new LiveSession(
             conn,
+            pubsub,
             await conn.getRepository(Session).findOneOrFail(id)
         );
     }

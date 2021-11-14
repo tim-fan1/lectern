@@ -1,14 +1,16 @@
 import styles from "../styles/Poll.module.css";
 import { useState } from "react";
 import { MarkdownText } from "./MarkdownText";
+import { Activity } from "../entities/entities";
 
 export interface PollProps {
-    title: string;
-    // require at least 1 question
-    questions: Array<string>;
+    // title: string;
+    // // require at least 1 question
+    // questions: Array<string>;
+    activity: Activity;
 }
 
-export default function Poll({ questions, title }: PollProps) {
+export default function Poll({ activity }: PollProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const submitPollAnswer = () => {
         // TODO
@@ -18,9 +20,9 @@ export default function Poll({ questions, title }: PollProps) {
         <div className={styles.container_poll}>
             <form className={`form`}>
                 <div className={styles.poll_question}>
-                    <MarkdownText text={title} />
+                    <MarkdownText text={activity.name} />
                 </div>
-                {questions.map((value, index) => {
+                {activity.choices.map((choice, index) => {
                     let classNamePollOption = styles.poll_option;
                     if (index === selectedIndex) {
                         classNamePollOption += " " + styles.poll_option_selected;
@@ -38,7 +40,7 @@ export default function Poll({ questions, title }: PollProps) {
                                 checked={index === selectedIndex}
                                 onChange={() => setSelectedIndex(index)}
                             />
-                            <MarkdownText text={value} className={styles.poll_option_text} />
+                            <MarkdownText text={choice.name} className={styles.poll_option_text} />
                         </div>
                     );
                 })}

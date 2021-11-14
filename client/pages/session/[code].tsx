@@ -6,6 +6,8 @@ import Poll from "../../components/Poll";
 import styles from "../../styles/session.module.css";
 import { SessionActivity } from "../../utils/util";
 import NavigationSession from "../../components/NavigationSession";
+import { Activity } from "../../entities/entities";
+import { useAppDispatch, useAppSelector } from "../../state/hooks";
 
 // man js strings SUCK for putting markdown in
 const title =
@@ -50,20 +52,10 @@ www.google.com
 
 `;
 
-function getActivityElement(activity: SessionActivity) {
-    switch (activity) {
+function getActivityElement(selection: SessionActivity, activity: Activity) {
+    switch (selection) {
         case SessionActivity.POLL:
-            return (
-                <Poll
-                    title={title}
-                    questions={[
-                        "Package managers",
-                        "JavaScript `bundlers`",
-                        "Frameworks on top of frameworks (e.g. Next.js)",
-                        "All of the above - brought to you by $\\LaTeX$",
-                    ]}
-                />
-            );
+            return <Poll activity={activity} />;
         default:
             return <p>Coming soon™</p>;
     }
@@ -72,8 +64,12 @@ function getActivityElement(activity: SessionActivity) {
 export default function Session() {
     const router = useRouter();
     const { code } = router.query;
-    const [selectedActivity, setSelectedActivity] = useState(SessionActivity.POLL);
-
+    const [selectedActivityKind, setSelectedActivityKind] = useState(SessionActivity.POLL);
+    const session = useAppSelector((s) => s.session.session);
+    const openActivity =
+        session !== undefined && session.activities !== undefined
+            ? session.activities.find((a) => a.state === "open")
+            : undefined;
     return (
         <div className={`container_center ${styles.root_container}`}>
             <Head>
@@ -82,7 +78,10 @@ export default function Session() {
 
             <div className={styles.top_container}>
                 <LecternLogo />
-                <NavigationSession selected={selectedActivity} setSelected={setSelectedActivity} />
+                <NavigationSession
+                    selected={selectedActivityKind}
+                    setSelected={setSelectedActivityKind}
+                />
                 <div id={styles.room_id_container}>
                     <span id={styles.room_id_room} className={styles.room_text}>
                         Room:{" "}
@@ -94,7 +93,9 @@ export default function Session() {
                 </div>
             </div>
             <div className={`"container_center" ${styles.content_container}`}>
-                {getActivityElement(selectedActivity)}
+                {openActivity !== undefined
+                    ? getActivityElement(selectedActivityKind, openActivity)
+                    : ""}
             </div>
         </div>
     );
