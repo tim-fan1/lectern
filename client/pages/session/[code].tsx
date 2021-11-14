@@ -9,6 +9,7 @@ import styles from "../../styles/session.module.css";
 import { SessionActivity } from "../../util";
 import NavigationSession from "../../components/NavigationSession";
 import { DragDropContext } from "react-beautiful-dnd";
+import MultipleChoiceQuizResults from "../../components/MultipleChoiceQuizResults";
 const title = "What is the best web development software for complexity?";
 
 function getActivityElement(activity: SessionActivity) {
@@ -28,7 +29,7 @@ function getActivityElement(activity: SessionActivity) {
         case SessionActivity.QUIZ:
             return (
                 <>
-                    {/* <MultipleChoiceQuiz
+                    <MultipleChoiceQuiz
                         title={"What is the best web development software for complexity?"}
                         answers={[
                             "Package managers",
@@ -37,7 +38,31 @@ function getActivityElement(activity: SessionActivity) {
                             "All of the above",
                         ]}
                     />
-                    <hr /> */}
+                    <MultipleChoiceQuizResults
+                        title={"What is the best web development software for complexity?"}
+                        results={[
+                            {
+                                optionName: "OPTION AAAAAAAAA",
+                                numberOfVotes: 9,
+                                isCorrectAnswer: false,
+                            },
+                            {
+                                optionName: "OPTION BB",
+                                numberOfVotes: 1,
+                                isCorrectAnswer: false,
+                            },
+                            {
+                                optionName: "OPTION C",
+                                numberOfVotes: 24,
+                                isCorrectAnswer: true,
+                            },
+                            {
+                                optionName: "OPTION DDDD",
+                                numberOfVotes: 13,
+                                isCorrectAnswer: false,
+                            },
+                        ]}
+                    />
                     <DragAndDropQuiz
                         title={title}
                         answers={[
