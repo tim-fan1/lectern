@@ -1,13 +1,6 @@
 #header_welcome {
     text-align: center;
-    margin: 2rem 5rem;
-}
-
-#form_join {
-    background-color: var(--c-background);
-    color: white;
-    box-shadow: none;
-    transition: all 0.2s;
+    margin: 4rem 5rem;
 }
 
 #input_code_container {
@@ -22,14 +15,9 @@
 }
 
 #input_code {
-    outline: none;
-    border: 3px solid var(--c-background-secondary);
-    background-color: var(--c-background);
-    color: white;
     text-align: center;
     font-size: 2.5rem;
     text-transform: uppercase;
-    transition: all 0.1s;
     padding: 1rem 1.5rem;
 }
 
@@ -37,11 +25,6 @@
     text-transform: none; /* We only want to make the user input uppercase, not the placeholder. */
     color: var(--c-grey);
     font-size: 1.75rem;
-}
-
-#input_code:active,
-#input_code:focus {
-    border: 3px solid var(--c-primary);
 }
 
 #btn_join {

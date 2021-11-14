@@ -88,7 +88,7 @@ export default function Login() {
                     </div>
                     <div className="container_input_label">
                         <label className="label">Password</label>
-                        <InputPassword setValue={setPassword} />
+                        <InputPassword value={password} setValue={setPassword} />
                     </div>
                     <button className="btn btn_primary" type="submit">
                         Log in

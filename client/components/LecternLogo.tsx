@@ -6,10 +6,10 @@ import Image from "next/image";
 export default function LecternLogo({ ...props }) {
     return (
         <Link href="/" passHref {...props}>
-            <div id={styles.logo}>
+            <a id={styles.logo}>
                 <Image src={favicon} alt={"lectern favicon"} width={32} height={32} />
                 <h1>lectern</h1>
-            </div>
+            </a>
         </Link>
     );
 }

@@ -33,13 +33,12 @@ function Home() {
             >
                 <h1>Join a session</h1>
                 <div id={styles.input_code_container}>
-                    <h1>#</h1>
                     <input
                         type="text"
                         id={styles.input_code}
+                        className="input"
                         minLength={6}
                         maxLength={6}
-                        size={8}
                         placeholder="e.g. 123ABC"
                         value={sessionCode}
                         onChange={(e) => setSessionCode(e.target.value)}

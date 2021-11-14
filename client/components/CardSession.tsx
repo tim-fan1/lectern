@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useMutation } from "urql";
 import styles from "../styles/CardSession.module.css";
-import { sessionDateToString, SessionState } from "../util";
+import { sessionDateToString, SessionState } from "../utils/util";
 import Modal from "./Modal";
 
 const MutationStartSession = `
@@ -157,17 +157,25 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
                                 <div className="container_center">
                                     <input
                                         className="input"
-                                        placeholder={"new name"}
+                                        value={modalDuplicateText}
+                                        placeholder={`${name} (duplicate)`}
                                         onChange={(e) =>
                                             setModalDuplicateText(e.currentTarget.value)
                                         }
+                                        required
                                     />
                                     <button
                                         className="btn btn_primary"
                                         onClick={async () => {
+                                            /* If we don't get an inputted name then we just take the placeholder. */
+                                            let duplicateName = modalDuplicateText;
+                                            if (modalDuplicateText.length === 0) {
+                                                duplicateName = `${name} (duplicate)`;
+                                            }
+
                                             const [success, errorMsg] = await submitDuplicate(
                                                 id,
-                                                modalDuplicateText
+                                                duplicateName
                                             );
                                             if (!success) {
                                                 setModalError(errorMsg!);
