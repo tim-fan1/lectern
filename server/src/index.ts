@@ -27,12 +27,15 @@ import cookieParser from "cookie-parser";
 import config from "./config";
 import LiveSession from "./utils/liveSession";
 import { PubSub, PubSubEngine } from "graphql-subscriptions";
+import QnA from "./entities/QnA";
 
 async function makeApp(
     schema: GraphQLSchema,
     connection: Connection,
     pubsub: PubSubEngine
 ): Promise<express.Express> {
+    console.log(new QnA());
+
     const app = express();
 
     const openSessions = await getOpenSessions(connection, pubsub);

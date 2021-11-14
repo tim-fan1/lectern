@@ -28,7 +28,7 @@ class Question {
 
     @Field(() => QnA)
     @ManyToOne(() => QnA, (qna) => qna.questions)
-    QnA!: QnA;
+    QnA!: any;
 }
 
 @ObjectType()
@@ -46,5 +46,5 @@ export default class QnA {
     })
     questions: Question[] = [];
     @Field()
-    open: boolean;
+    open!: boolean;
 }
