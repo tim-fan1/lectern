@@ -5,4 +5,5 @@ import Activity from "./Activity";
 import Choice from "./Choice";
 import QnA from "./QnA";
 
-export { User, LoginSession, Session, Activity, Choice, QnA };
+// NOTE QnA is not complete - add QnA to this list when ready
+export { User, LoginSession, Session, Activity, Choice };
