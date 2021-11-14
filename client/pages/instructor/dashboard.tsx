@@ -2,9 +2,10 @@ import Head from "next/head";
 import ButtonCreate from "../../components/ButtonCreate";
 import CardSession from "../../components/CardSession";
 import Navigation from "../../components/Navigation";
+import { Session } from "../../entities/entities";
 import styles from "../../styles/dashboard.module.css";
 import { sessionStateFromString } from "../../utils/util";
-import { useGetSessionsQuery, Session } from "../../utils/lecternApi";
+import { useGetSessionsQuery } from "../../utils/lecternApi";
 
 export default function Dashboard() {
     const { getData, fetching, errors } = useGetSessionsQuery();

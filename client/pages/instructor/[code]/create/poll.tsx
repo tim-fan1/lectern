@@ -22,8 +22,8 @@ const QuerySessionDetails = `
 `;
 
 const MutationCreateActivity = `
-    mutation ($session_id: String!, $name: String!, $kind: String!) {
-        createActivity(session_id: $session_id, name: $name, kind: $kind) {
+    mutation ($sessionId: Int!, $name: String!, $kind: String!) {
+        createActivity(sessionId: $sessionId, name: $name, kind: $kind) {
             activity {
                 id
             }
@@ -36,8 +36,8 @@ const MutationCreateActivity = `
 `;
 
 const MutationPollAddChoice = `
-    mutation ($session_id: String!, $activity_id: String!, $name: String!) {
-        addChoice(session_id: $session_id, activity_id: $activity_id, name: $name) {
+    mutation ($sessionId: Int!, $activityId: Int!, $name: String!) {
+        addChoice(sessionId: $sessionId, activityId: $activityId, name: $name) {
             errors {
                 kind
                 msg
@@ -54,9 +54,9 @@ export default function CreatePoll() {
         variables: { code },
     });
 
-    let session_id: string;
+    let sessionId: number;
     if (!result.fetching) {
-        session_id = result.data.sessionDetails.session.id.toString();
+        sessionId = result.data.sessionDetails.session.id;
     }
 
     const [errors, setErrors] = useState([] as string[]);
@@ -71,10 +71,10 @@ export default function CreatePoll() {
     const [createActivityResult, createActivity] = useMutation(MutationCreateActivity);
     const [addChoiceResult, addChoice] = useMutation(MutationPollAddChoice);
 
-    const addChoiceMutation = (activity_id: string, name: string) => {
+    const addChoiceMutation = (activityId: number, name: string) => {
         const variables = {
-            session_id: session_id,
-            activity_id: activity_id,
+            sessionId: sessionId,
+            activityId: activityId,
             name: name,
         };
         addChoice(variables).then((result) => {
@@ -88,22 +88,23 @@ export default function CreatePoll() {
         event.preventDefault();
 
         const variables = {
-            session_id: session_id,
+            sessionId: sessionId,
             name: name,
             kind: "POLL",
         };
 
         createActivity(variables).then((result) => {
             if (result.data.createActivity.errors.length === 0) {
-                const activity_id: string = result.data.createActivity.activity.id.toString();
+                const activityId: number = result.data.createActivity.activity.id;
 
-                if (optionA.length !== 0) addChoiceMutation(activity_id, optionA);
-                if (optionB.length !== 0) addChoiceMutation(activity_id, optionB);
-                if (optionC.length !== 0) addChoiceMutation(activity_id, optionC);
-                if (optionD.length !== 0) addChoiceMutation(activity_id, optionD);
+                if (optionA.length !== 0) addChoiceMutation(activityId, optionA);
+                if (optionB.length !== 0) addChoiceMutation(activityId, optionB);
+                if (optionC.length !== 0) addChoiceMutation(activityId, optionC);
+                if (optionD.length !== 0) addChoiceMutation(activityId, optionD);
 
                 router.push(`/instructor/${code}`);
             } else {
+                //error
                 console.log(result);
             }
         });

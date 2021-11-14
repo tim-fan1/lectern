@@ -1,13 +1,5 @@
 import { Field, Int, ObjectType } from "type-graphql";
-import {
-    Column,
-    CreateDateColumn,
-    Entity,
-    ManyToOne,
-    OneToMany,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
-} from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Activity } from "./entities";
 
 @ObjectType()
@@ -21,9 +13,30 @@ export default class Choice {
     @Column()
     name!: string;
 
-    @Field(() => Int)
-    @Column()
-    votes!: number;
+    //DnD
+
+    @Field(() => Int, { nullable: true })
+    @Column({ nullable: true })
+    DnDCorrectPosition?: number;
+
+    @Field(() => [Int], { nullable: true })
+    @Column("simple-array", { nullable: true })
+    DnDVotes?: number[];
+
+    //Poll
+
+    @Field(() => Int, { nullable: true })
+    @Column({ nullable: true })
+    PollVotes?: number;
+
+    //Quiz
+    @Field({ nullable: true })
+    @Column({ nullable: true })
+    QuizIsCorrect?: boolean;
+
+    @Field(() => Int, { nullable: true })
+    @Column({ nullable: true })
+    QuizVotes?: number;
 
     /* Many choices belong to one activity. */
     @Field(() => Activity)

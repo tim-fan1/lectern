@@ -52,8 +52,8 @@ interface Props {
     id: number;
     name: string;
     state: SessionState;
-    startTime?: string;
-    endTime?: string;
+    startTime?: Date;
+    endTime?: Date;
 }
 
 export default function CardSession({ code, id, name, state, startTime, endTime }: Props) {
