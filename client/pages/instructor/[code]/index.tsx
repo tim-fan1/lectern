@@ -4,10 +4,12 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation, useQuery } from "urql";
 import ButtonCreate from "../../../components/ButtonCreate";
+import CardActivity from "../../../components/CardActivity";
 import Navigation from "../../../components/Navigation";
 import NavigationSession from "../../../components/NavigationSession";
+import { Activity } from "../../../entities/entities";
 import styles from "../../../styles/manage.module.css";
-import { SessionActivity } from "../../../utils/util";
+import { activityStateFromString, SessionActivity } from "../../../utils/util";
 
 const QuerySessionDetails = `
     query ($code: String!) {
@@ -105,22 +107,22 @@ export default function DashboardSession() {
         content = <p>An error happened! {data.sessionDetails.errors.toString()}</p>;
     } else {
         session = data.sessionDetails.session;
-        let memes = data.sessionDetails.session.activities;
-        console.log(memes);
 
-        let activities = memes.map((i: any) => {
-            if (i.kind === SessionActivity.toString(selectedActivity)) {
+        let activities = data.sessionDetails.session.activities
+            .filter(
+                (activity: Activity) => activity.kind === SessionActivity.toString(selectedActivity)
+            )
+            .map((activity: Activity) => {
                 return (
-                    <div className={styles.container} key={i.id}>
-                        <h3 className={styles.name}>{i.name}</h3>
-                        <p className={styles.datetimes}>{i.state}</p>
-                        <div id={styles.container_actions}>
-                            <a>Close</a>
-                        </div>
-                    </div>
+                    <CardActivity
+                        key={activity.id}
+                        id={activity.id}
+                        sessionId={session.id}
+                        name={activity.name}
+                        state={activityStateFromString(activity.state)}
+                    />
                 );
-            }
-        });
+            });
 
         content = (
             <>

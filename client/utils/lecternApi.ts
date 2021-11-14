@@ -60,6 +60,7 @@ const QuerySessionDetails = `
     query ($code: String!) {
         sessionDetails(code: $code) {
             session {
+                id
                 name
                 author { name,pic,bio }
                 group
