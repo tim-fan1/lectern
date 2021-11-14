@@ -48,8 +48,8 @@ export default function Dashboard() {
                                             id={session.id}
                                             name={session.name}
                                             state={sessionStateFromString(session.state)}
-                                            startTime={session.startTime?.toString()}
-                                            endTime={session.endTime?.toString()}
+                                            startTime={session.startTime}
+                                            endTime={session.endTime}
                                         />
                                     ))}
                             </div>
@@ -76,8 +76,8 @@ export default function Dashboard() {
                             id={session.id}
                             name={session.name}
                             state={sessionStateFromString(session.state)}
-                            startTime={session.startTime?.toString()}
-                            endTime={session.endTime?.toString()}
+                            startTime={session.startTime}
+                            endTime={session.endTime}
                         />
                     ))}
             </>
