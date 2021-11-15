@@ -33,7 +33,7 @@ const MutationCloseSession = `
     }
 `;
 
-const MutationDuplicate = `
+const MutationDuplicateSession = `
 mutation($name: String!, $id: Int!) {
     duplicateSession(name: $name, id: $id) {
         errors {
@@ -59,10 +59,13 @@ interface Props {
 export default function CardSession({ code, id, name, state, startTime, endTime }: Props) {
     const [startSessionResult, startSession] = useMutation(MutationStartSession);
     const [closeSessionResult, closeSession] = useMutation(MutationCloseSession);
-    const [_, DuplicateMutation] = useMutation(MutationDuplicate);
+    const [_, duplicateSession] = useMutation(MutationDuplicateSession);
+
     const [showModal, setShowModal] = useState(false);
     const [modalError, setModalError] = useState("");
     const [modalDuplicateText, setModalDuplicateText] = useState("");
+
+    const [sessionState, setSessionState] = useState(state);
 
     // TODO: error handling could be done better here. Little information is given to the user, perhaps it's fine though?
     const [error, setError] = useState("");
@@ -71,7 +74,7 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
         startSession({ id: id }).then((result) => {
             if (result.data.startSession.errors.length === 0) {
                 setError("");
-                state = SessionState.OPEN;
+                setSessionState(SessionState.OPEN);
                 /* startSession generates a code, so we set that prop since it previously didn't exist .*/
                 code = result.data.startSession.session.code;
             } else {
@@ -84,7 +87,7 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
         closeSession({ id: id }).then((result) => {
             if (result.data.closeSession.errors.length === 0) {
                 setError("");
-                state = SessionState.ARCHIVED;
+                setSessionState(SessionState.ARCHIVED);
                 endTime = result.data.closeSession.session.endTime;
             } else {
                 setError(`Could not close session "${name}". Please try again.`);
@@ -100,7 +103,7 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
         id: number,
         modalDuplicateText: string
     ): Promise<[true, null] | [false, string]> => {
-        const res = await DuplicateMutation({ id: id, name: modalDuplicateText });
+        const res = await duplicateSession({ id: id, name: modalDuplicateText });
         if (res.error) {
             return [false, res.error.message];
         } else if (res.data.duplicateSession.errors.length !== 0) {
@@ -111,11 +114,7 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
 
     return (
         <div>
-            {error && (
-                <p id={styles.error} className="error">
-                    {error}
-                </p>
-            )}
+            {error && <p className="error">{error}</p>}
             <div className={styles.container}>
                 <h3 className={styles.name}>{name}</h3>
                 <div className={styles.datetimes}>
@@ -125,14 +124,16 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
                 <div id={styles.container_actions}>
                     <a
                         onClick={
-                            state === SessionState.DRAFT ? handleStartSession : handleCloseSession
+                            sessionState === SessionState.DRAFT
+                                ? handleStartSession
+                                : handleCloseSession
                         }
                     >
-                        {state === SessionState.DRAFT && "Start"}
-                        {state === SessionState.OPEN && "Close"}
+                        {sessionState === SessionState.DRAFT && "Open"}
+                        {sessionState === SessionState.OPEN && "Close"}
                     </a>
                     {/* We have the invariant that if the session state is in open, then we will have a non-null code. */}
-                    {state === SessionState.OPEN && (
+                    {sessionState === SessionState.OPEN && (
                         <>
                             <Link href={`/instructor/${code}/present`}>
                                 <a>Present</a>
@@ -143,7 +144,7 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
                             </Link>
                         </>
                     )}
-                    {state !== SessionState.OPEN && (
+                    {sessionState !== SessionState.OPEN && (
                         <>
                             <Modal
                                 show={showModal}

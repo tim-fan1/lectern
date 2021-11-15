@@ -1,10 +1,9 @@
 .container {
     background-color: var(--c-background-secondary);
-    width: 100%;
     min-width: 50rem;
     display: flex;
     padding: 1rem 2rem;
-    margin: 1rem 0;
+    margin: 0.75rem 0;
     align-items: center;
     justify-content: space-between;
     transition: all 0.2s;
