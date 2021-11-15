@@ -81,13 +81,17 @@ export default async function modifySession(
 
     /* Commit it */
     if (live !== undefined) {
-        live.updateSession(session);
-        if (saveNow) await live.save();
+        try {
+            await live.updateSession(session, saveNow);
+        } catch (e: any) {
+            return left({ kind: SessionErrors.DB_ERROR, msg: e.toString() });
+        }
+        session = live.getSession();
     } else
         try {
             session = await getRepository(Session).save(session);
-        } catch (e) {
-            return left({ kind: SessionErrors.DB_ERROR });
+        } catch (e: any) {
+            return left({ kind: SessionErrors.DB_ERROR, msg: e.toString() });
         }
 
     return right(session);

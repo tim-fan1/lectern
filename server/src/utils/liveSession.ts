@@ -31,17 +31,20 @@ export default class LiveSession {
     /**
      * Updates the internal in-memory session.
      */
-    updateSession(s: Session) {
+    async updateSession(s: Session, saveNow: boolean = false) {
         this.session = s;
+        if (saveNow) await this.save();
         this.tick();
     }
 
     /**
      * Save the current state of the session to the database. Throws an error
-     * if something hecks up.
+     * if something hecks up. Immediately gets the session again too.
      */
     async save() {
-        await this._conn.getRepository(Session).save(this.session);
+        this.session = await this._conn
+            .getRepository(Session)
+            .save(this.session);
     }
 
     /**
