@@ -1,11 +1,22 @@
 import { Activity } from "./entities";
 
-export default class Choice {
-    id!: number;
-
+export class InputChoice {
     name!: string;
 
-    votes!: number;
+    //DnD
+    DnDCorrectPosition?: number;
+    DnDVotes?: number[];
+
+    //Poll
+    PollVotes?: number;
+
+    //Quiz
+    QuizIsCorrect?: boolean;
+    QuizVotes?: number;
+}
+
+export default class Choice extends InputChoice {
+    id!: number;
 
     /* Many choices belong to one activity. */
     activity!: Activity;
