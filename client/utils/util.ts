@@ -28,6 +28,24 @@ export function sessionStateFromString(str: SessionStateString): SessionState {
     }
 }
 
+export type ActivityStateString = "draft" | "open" | "archived";
+export enum ActivityState {
+    DRAFT,
+    OPEN,
+    ARCHIVED,
+}
+
+export function activityStateFromString(str: ActivityStateString): ActivityState {
+    switch (str) {
+        case "draft":
+            return ActivityState.DRAFT;
+        case "open":
+            return ActivityState.OPEN;
+        case "archived":
+            return ActivityState.ARCHIVED;
+    }
+}
+
 export function sessionDateToString(date: Date): string {
     /* E.g: 16:30 29th Sept */
     let timeDateString = "";
