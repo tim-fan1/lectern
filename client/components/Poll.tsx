@@ -1,5 +1,6 @@
 import styles from "../styles/Poll.module.css";
 import { useState } from "react";
+import { MarkdownText } from "./MarkdownText";
 import { Activity } from "../entities/entities";
 
 export interface PollProps {
@@ -18,7 +19,9 @@ export default function Poll({ activity }: PollProps) {
     return (
         <div className={styles.container_poll}>
             <form className={`form`}>
-                <h2 className={styles.poll_question}>{activity.name}</h2>
+                <div className={styles.poll_question}>
+                    <MarkdownText text={activity.name} />
+                </div>
                 {activity.choices.map((choice, index) => {
                     let classNamePollOption = styles.poll_option;
                     if (index === selectedIndex) {
@@ -37,7 +40,7 @@ export default function Poll({ activity }: PollProps) {
                                 checked={index === selectedIndex}
                                 onChange={() => setSelectedIndex(index)}
                             />
-                            <span>{choice.name}</span>
+                            <MarkdownText text={choice.name} className={styles.poll_option_text} />
                         </div>
                     );
                 })}

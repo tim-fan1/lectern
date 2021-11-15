@@ -202,7 +202,7 @@ export default class UserResolver {
         if (!user.verified) {
             return EndpointResponse.withErrors({
                 kind: UserError.USER_UNVERIFIED,
-                msg: "User not verified",
+                msg: `The email ${email} is not a verified account`,
             });
         }
 

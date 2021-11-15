@@ -66,7 +66,7 @@ describe("graphql user detail tests", () => {
             errors: [
                 {
                     kind: "USER_UNVERIFIED",
-                    msg: "User not verified",
+                    msg: `The email ${email} is not a verified account`,
                 },
             ],
         });
