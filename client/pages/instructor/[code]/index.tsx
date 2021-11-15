@@ -153,7 +153,7 @@ export default function DashboardSession() {
                     />
                 </div>
                 {getActivityButtonCreate()}
-                {activities}
+                <div id={styles.container_activities}>{activities}</div>
             </>
         );
     }
