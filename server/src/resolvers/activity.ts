@@ -349,7 +349,6 @@ export default class ActivityResolver {
                     switch (thisActivity.kind as ActivityKinds) {
                         case ActivityKinds.POLL:
                             thisPartial = {
-                                name: thisChoice.name,
                                 PollVotes: 0,
                             };
                             break;
