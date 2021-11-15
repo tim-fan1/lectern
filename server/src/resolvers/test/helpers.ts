@@ -1,6 +1,7 @@
 import { createConnection, getConnection } from "typeorm";
 import { buildSchema, NonEmptyArray } from "type-graphql";
 import * as resolvers from "../resolvers";
+import * as entities from "../../entities/entities";
 import http from "http";
 import makeApp from "../../index";
 import supertest, { Test } from "supertest";
@@ -29,7 +30,7 @@ export const testGetAppSingleton = async () => {
         const connection = await createConnection({
             type: "sqlite",
             database: ":memory:",
-            entities: ["src/entities/*.ts"],
+            entities: Object.values(entities),
             synchronize: true,
             dropSchema: true,
         });
@@ -39,6 +40,7 @@ export const testGetAppSingleton = async () => {
         const schema = await buildSchema({
             // I love typescript
             resolvers: Object.values(resolvers) as unknown as NonEmptyArray<Function>,
+            pubSub: ps,
         });
 
         app = http.createServer(await makeApp(schema, connection, ps));

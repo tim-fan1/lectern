@@ -58,7 +58,7 @@ export default class SessionResolver {
     @Query(() => SessionArrResponse)
     async getSessions(
         @Ctx() { user }: AuthedContext,
-        @Arg("id", { nullable: true }) id: string
+        @Arg("id", () => Int, { nullable: true }) id: number
     ): Promise<SessionArrResponse> {
         /* Hopefully i understood authedcontext correctly when i did this merge main kek. */
         return {
@@ -66,9 +66,7 @@ export default class SessionResolver {
             sessions:
                 id === undefined
                     ? user.sessions
-                    : user.sessions.filter(
-                          (session) => session.id === parseInt(id, 10)
-                      ),
+                    : user.sessions.filter((session) => session.id === id),
         };
     }
 

@@ -2,31 +2,20 @@ import path from "path";
 import cors from "cors";
 import express from "express";
 import { graphqlHTTP } from "express-graphql";
-import { buildSchema } from "type-graphql";
+import { buildSchema, NonEmptyArray } from "type-graphql";
 import { Connection, createConnection } from "typeorm";
 import { WebSocketServer } from "ws";
 import { GraphQLSchema } from "graphql";
 import { useServer } from "graphql-ws/lib/use/ws";
 
-import {
-    HelloResolver,
-    UserResolver,
-    SessionResolver,
-    ActivityResolver,
-    SessionSubscriptionResolver,
-    GroupResolver,
-} from "./resolvers/resolvers";
-import {
-    User,
-    LoginSession,
-    Session,
-    Activity,
-    Choice,
-} from "./entities/entities";
 import cookieParser from "cookie-parser";
 import config from "./config";
 import LiveSession from "./utils/liveSession";
 import { PubSub, PubSubEngine } from "graphql-subscriptions";
+
+import { Session } from "./entities/entities";
+import * as entities from "./entities/entities";
+import * as resolvers from "./resolvers/resolvers";
 
 async function makeApp(
     schema: GraphQLSchema,
@@ -89,21 +78,18 @@ if (require.main === module) {
             // replace this with ormconfig.json later (tm)
             type: "sqlite",
             database: "owo.db",
-            entities: [User, LoginSession, Session, Activity, Choice],
+            entities: Object.values(entities),
         });
 
         /* manually create the pubsub here so we can use it in getOpenSessions */
         const pubsub = new PubSub();
 
         const schema = await buildSchema({
-            resolvers: [
-                HelloResolver,
-                UserResolver,
-                SessionResolver,
-                SessionSubscriptionResolver,
-                ActivityResolver,
-                GroupResolver,
-            ],
+            // hacky way of letting typescript know
+            // that resolvers is not empty
+            resolvers: Object.values(
+                resolvers
+            ) as unknown as NonEmptyArray<Function>,
             emitSchemaFile: path.resolve(__dirname, "schema.gql"),
             pubSub: pubsub,
         });
