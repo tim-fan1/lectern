@@ -96,7 +96,7 @@ export default function CreatePoll() {
         createActivity(variables).then((result) => {
             if (result.data.createActivity.errors.length === 0) {
                 const activityId: number = result.data.createActivity.activity.id;
-
+                // TODO: change this to be unlimited tm options.
                 if (optionA.length !== 0) addChoiceMutation(activityId, optionA);
                 if (optionB.length !== 0) addChoiceMutation(activityId, optionB);
                 if (optionC.length !== 0) addChoiceMutation(activityId, optionC);
