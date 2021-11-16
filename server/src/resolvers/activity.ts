@@ -582,11 +582,16 @@ export default class ActivityResolver {
             { id: sessionId },
             (session) => {
                 /* Does the session pointed by id belong to user? */
-
                 if (session.author.id !== user.id)
                     return left({
                         kind: ActivityErrors.SESSION_NOT_EXIST,
                         msg: "Session does not exist",
+                    });
+
+                /* Has the session been started? */
+                if (session.state !== "open")
+                    return left({
+                        kind: ActivityErrors.SESSION_NOT_EXIST,
                     });
 
                 /* Is there an activity with this id in the session? */
