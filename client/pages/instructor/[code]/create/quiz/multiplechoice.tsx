@@ -3,13 +3,38 @@ import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
 import Navigation from "../../../../../components/Navigation";
 import styles from "../../../../../styles/createPoll.module.css";
-import { useQuery } from "urql";
+import { useQuery, useMutation } from "urql";
 const QuerySessionDetails = `
     query ($code: String!) {
         sessionDetails(code: $code) {
             session {
                 id
             }
+            errors {
+                kind
+                msg
+            }
+        }
+    }
+`;
+
+const MutationCreateActivity = `
+    mutation ($sessionId: Int!, $name: String!, $kind: String!) {
+        createActivity(sessionId: $sessionId, name: $name, kind: $kind) {
+            activity {
+                id
+            }
+            errors {
+                kind
+                msg
+            }
+        }
+    }
+`;
+
+const MutationAddChoice = `
+    mutation ($sessionId: Int!, $activityId: Int!, $name: String!) {
+        addChoice(sessionId: $sessionId, activityId: $activityId, name: $name) {
             errors {
                 kind
                 msg
@@ -33,11 +58,36 @@ export default function CreateMultipleChoiceQuiz() {
     const [name, setName] = useState("");
     const [options, setOptions] = useState([""]);
     const [nAnswers, setNAnswers] = useState(1);
-
+    const [errors, setErrors] = useState([] as string[]);
+    const [createActivityResult, createActivity] = useMutation(MutationCreateActivity);
+    const [addChoiceResult, addChoice] = useMutation(MutationAddChoice);
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         console.log("submitting multiple choice");
-        console.log(options);
+        const variables = {
+            sessionId: sessionId,
+            name: name,
+            kind: "QUIZ",
+        };
+        createActivity(variables).then((result) => {
+            if (result.data.createActivity.errors.length === 0) {
+                const activityId: number = result.data.createActivity.activity.id;
+                for (const option of options) {
+                    addChoiceMutation(activityId, option);
+                }
+                router.push(`/instructor/${code}`);
+            } else {
+                setErrors([result.data.createActivity.errors[0].msg]);
+            }
+        });
+    }
+    function addChoiceMutation(activityId: number, name: string) {
+        const variables = {
+            sessionId: sessionId,
+            activityId: activityId,
+            name: name,
+        };
+        addChoice(variables);
     }
     function updateOptions(i: number, newOption: string) {
         let optionsCopy = [...options];
@@ -100,12 +150,12 @@ export default function CreateMultipleChoiceQuiz() {
                         Add quiz to session
                     </button>
                 </div>
+                {errors.map((error, i) => (
+                    <p key={i} className="error">
+                        {error}
+                    </p>
+                ))}
             </form>
-            {/* {errors.map((error, i) => (
-                <p key={i} className="error">
-                    {error}
-                </p>
-            ))} */}
         </div>
     );
 }
