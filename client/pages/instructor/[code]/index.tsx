@@ -211,6 +211,20 @@ export default function DashboardSession() {
         }
     };
 
+    /* Returns the current activity for a particular kind, if there is one open */
+    const getCurrentActivityElem = (session: Session, kind: SessionActivity) => {
+        switch (kind) {
+            case SessionActivity.QA:
+                return <Qa qna={session.qna} />;
+            case SessionActivity.POLL:
+                const currentPoll = session.activities.find(
+                    (a) => a.kind === SessionActivity.POLL && a.state === "open"
+                );
+                if (currentPoll === undefined) return <></>;
+                return <p>Coming soon™</p>;
+        }
+    };
+
     let content;
 
     if (!session) {
@@ -223,7 +237,7 @@ export default function DashboardSession() {
         let activities: React.ReactNode[];
 
         if (SessionActivity.toString(selectedActivity) !== "QA") {
-            activities = data.sessionDetails.session.activities
+            activities = session.activities
                 .filter(
                     (activity: Activity) =>
                         activity.kind === SessionActivity.toString(selectedActivity)
@@ -275,10 +289,10 @@ export default function DashboardSession() {
                     />
                 </div>
                 {getActivityButtonCreate(session)}
+                {getCurrentActivityElem(session, selectedActivity)}
                 {selectedActivity !== "QA" && (
                     <div id={styles.container_activities}>{activities}</div>
                 )}
-                {session.qna && selectedActivity === "QA" && <Qa qna={session.qna} />}
             </>
         );
     }
