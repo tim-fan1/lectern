@@ -238,10 +238,16 @@ export default function DashboardSession() {
 
         if (SessionActivity.toString(selectedActivity) !== "QA") {
             activities = session.activities
-                .filter(
-                    (activity: Activity) =>
-                        activity.kind === SessionActivity.toString(selectedActivity)
-                )
+                .filter((activity: Activity) => {
+                    /* POLL matches with POLL, QUIZ matches with QUIZ, etc.*/
+                    if (activity.kind === SessionActivity.toString(selectedActivity)) return true;
+                    if (SessionActivity.toString(selectedActivity) === "QUIZ") {
+                        /* user selected quiz, but activity is not "quiz".
+                         * check if activity is instead a dnd. if it is we should display it. */
+                        if (activity.kind === "DND") return true;
+                    }
+                    return false;
+                })
                 .map((activity: Activity) => {
                     return (
                         <CardActivity
