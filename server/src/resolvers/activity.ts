@@ -307,7 +307,9 @@ export default class ActivityResolver {
         @Arg("activityId", () => Int) activityId: number,
         @Arg("name") name: string,
         @Ctx() { conn, user, openSessions }: AuthedContext,
-        @Arg("QuizIsCorrect", { nullable: true }) QuizIsCorrect?: boolean
+        @Arg("QuizIsCorrect", { nullable: true }) QuizIsCorrect?: boolean,
+        @Arg("DnDCorrectPosition", () => Int, { nullable: true })
+        DndCorrectPosition?: number
     ): Promise<ActivityResponse> {
         const result = await modifySession(
             openSessions,
@@ -366,7 +368,7 @@ export default class ActivityResolver {
                         conn.getRepository(Choice).create({
                             name: name,
                             activity: thisActivity,
-                            DnDCorrectPosition: thisActivity.choices.length,
+                            DnDCorrectPosition: DndCorrectPosition,
                             DnDVotes: [],
                         })
                     );
