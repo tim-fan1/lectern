@@ -7,7 +7,7 @@ export interface QuizProps {
 }
 export default function Quiz({ activity, setHasVotedQuizState }: QuizProps) {
     return (
-        <div>
+        <div style={{ width: "80%", display: "flex", justifyContent: "center" }}>
             {activity.kind === "QUIZ" ? (
                 <MultipleChoiceQuiz
                     activity={activity}

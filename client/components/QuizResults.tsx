@@ -6,11 +6,12 @@ export interface QuizResultProps {
 }
 export default function QuizResult({ activity }: QuizResultProps) {
     return (
-        <div>
+        <div style={{ width: "80%", display: "flex", justifyContent: "center" }}>
             {activity.kind === "QUIZ" ? (
                 <MultipleChoiceQuizResults activity={activity} />
             ) : (
-                <DragAndDropQuizResults activity={activity} />
+                // <DragAndDropQuizResults activity={activity} />
+                <div>hello</div>
             )}
         </div>
     );
