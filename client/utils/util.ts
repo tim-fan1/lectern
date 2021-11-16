@@ -1,8 +1,14 @@
 export enum SessionActivity {
-    POLL,
-    QA,
-    QUIZ,
-    POLL_RESULT,
+    POLL = "POLL",
+    QA = "QA",
+    QUIZ = "QUIZ",
+    DND = "DND",
+}
+
+export namespace SessionActivity {
+    export function toString(sa: SessionActivity): string {
+        return SessionActivity[sa];
+    }
 }
 
 export type SessionStateString = "draft" | "open" | "archived";
@@ -20,6 +26,24 @@ export function sessionStateFromString(str: SessionStateString): SessionState {
             return SessionState.OPEN;
         case "archived":
             return SessionState.ARCHIVED;
+    }
+}
+
+export type ActivityStateString = "draft" | "open" | "archived";
+export enum ActivityState {
+    DRAFT,
+    OPEN,
+    ARCHIVED,
+}
+
+export function activityStateFromString(str: ActivityStateString): ActivityState {
+    switch (str) {
+        case "draft":
+            return ActivityState.DRAFT;
+        case "open":
+            return ActivityState.OPEN;
+        case "archived":
+            return ActivityState.ARCHIVED;
     }
 }
 
@@ -75,7 +99,6 @@ export function indexToMonth(index: number): string {
     return "";
 }
 
-/* TODO: make this constraint consistent with server, should we check for non-alphanumeric chars? */
 export function validateSessionCode(code?: string): boolean {
     return code !== undefined && code.length === 6;
 }

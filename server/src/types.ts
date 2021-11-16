@@ -89,3 +89,18 @@ export class RespError {
         };
     }
 }
+
+/**
+ * Convention, left (first type arg) is for errors
+ */
+export type Either<T, U> =
+    | { isLeft: true; data: T }
+    | { isLeft: false; data: U };
+
+export function left<T, U>(data: T): Either<T, U> {
+    return { isLeft: true, data: data };
+}
+
+export function right<T, U>(data: U): Either<T, U> {
+    return { isLeft: false, data: data };
+}

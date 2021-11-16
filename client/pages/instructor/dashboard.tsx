@@ -1,11 +1,11 @@
 import Head from "next/head";
-import { useQuery } from "urql";
 import ButtonCreate from "../../components/ButtonCreate";
 import CardSession from "../../components/CardSession";
 import Navigation from "../../components/Navigation";
+import { Session } from "../../entities/entities";
 import styles from "../../styles/dashboard.module.css";
-import { sessionStateFromString, SessionStateString } from "../../util";
-import { useGetSessionsQuery, Session } from "../../utils/lecternApi";
+import { sessionStateFromString } from "../../utils/util";
+import { useGetSessionsQuery } from "../../utils/lecternApi";
 
 export default function Dashboard() {
     const { getData, fetching, errors } = useGetSessionsQuery();
@@ -100,16 +100,3 @@ export default function Dashboard() {
         </div>
     );
 }
-// data.getSessions.sessions
-//     .reverse()
-//     .map((session: Session) => (
-//         <CardSession
-//             key={session.id}
-//             code={session.code}
-//             id={session.id}
-//             name={session.name}
-//             state={sessionStateFromString(session.state)}
-//             startTime={session.startTime}
-//             endTime={session.endTime}
-//         />
-//     ))}

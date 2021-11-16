@@ -2,38 +2,29 @@ import path from "path";
 import cors from "cors";
 import express from "express";
 import { graphqlHTTP } from "express-graphql";
-import { buildSchema } from "type-graphql";
+import { buildSchema, NonEmptyArray } from "type-graphql";
 import { Connection, createConnection } from "typeorm";
 import { WebSocketServer } from "ws";
 import { GraphQLSchema } from "graphql";
 import { useServer } from "graphql-ws/lib/use/ws";
 
-import {
-    HelloResolver,
-    UserResolver,
-    SessionResolver,
-    ActivityResolver,
-    SessionSubscriptionResolver,
-    GroupResolver,
-} from "./resolvers/resolvers";
-import {
-    User,
-    LoginSession,
-    Session,
-    Activity,
-    Choice,
-} from "./entities/entities";
 import cookieParser from "cookie-parser";
 import config from "./config";
 import LiveSession from "./utils/liveSession";
+import { PubSub, PubSubEngine } from "graphql-subscriptions";
+
+import { Session } from "./entities/entities";
+import * as entities from "./entities/entities";
+import * as resolvers from "./resolvers/resolvers";
 
 async function makeApp(
     schema: GraphQLSchema,
-    connection: Connection
+    connection: Connection,
+    pubsub: PubSubEngine
 ): Promise<express.Express> {
     const app = express();
 
-    const openSessions = await getOpenSessions(connection);
+    const openSessions = await getOpenSessions(connection, pubsub);
 
     // add apollo studio when not in production mode
     const corsOrigins = config.isProduction
@@ -87,25 +78,25 @@ if (require.main === module) {
             // replace this with ormconfig.json later (tm)
             type: "sqlite",
             database: "owo.db",
-            entities: [User, LoginSession, Session, Activity, Choice],
+            entities: Object.values(entities),
         });
 
+        /* manually create the pubsub here so we can use it in getOpenSessions */
+        const pubsub = new PubSub();
+
         const schema = await buildSchema({
-            resolvers: [
-                HelloResolver,
-                UserResolver,
-                SessionResolver,
-                SessionSubscriptionResolver,
-                ActivityResolver,
-                GroupResolver,
-            ],
+            // hacky way of letting typescript know
+            // that resolvers is not empty
+            resolvers: Object.values(
+                resolvers
+            ) as unknown as NonEmptyArray<Function>,
             emitSchemaFile: path.resolve(__dirname, "schema.gql"),
-            authChecker: () => false, // TODO: this is to filter auth'd eps, remove later
+            pubSub: pubsub,
         });
 
         // real fudge - will create tables, kinda bad though in production
         await connection.synchronize();
-        const app = await makeApp(schema, connection);
+        const app = await makeApp(schema, connection, pubsub);
 
         const server = app.listen(config.serverPort, () => {
             // Set up the WebSocket for handling GraphQL subscriptions.
@@ -124,13 +115,16 @@ if (require.main === module) {
 /* Gets all the sessions that are currently open from the database, and returns
  * an in-mem map of them all (mostly useful for debugging, but maybe prod too) */
 async function getOpenSessions(
-    conn: Connection
+    conn: Connection,
+    pubsub: PubSubEngine
 ): Promise<Map<number, LiveSession>> {
     const map = new Map();
     await conn
         .getRepository(Session)
         .find({ where: { state: "open" }, relations: ["author"] })
-        .then((ss) => ss.map((s) => map.set(s.id, new LiveSession(conn, s))));
+        .then((ss) =>
+            ss.map((s) => map.set(s.id, new LiveSession(conn, pubsub, s)))
+        );
     return map;
 }
 

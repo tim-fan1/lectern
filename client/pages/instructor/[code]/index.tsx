@@ -2,12 +2,14 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { useQuery, useMutation } from "urql";
+import { useMutation, useQuery } from "urql";
 import ButtonCreate from "../../../components/ButtonCreate";
+import CardActivity from "../../../components/CardActivity";
 import Navigation from "../../../components/Navigation";
 import NavigationSession from "../../../components/NavigationSession";
+import { Activity } from "../../../entities/entities";
 import styles from "../../../styles/manage.module.css";
-import { SessionActivity } from "../../../util";
+import { activityStateFromString, SessionActivity } from "../../../utils/util";
 
 const QuerySessionDetails = `
     query ($code: String!) {
@@ -21,7 +23,13 @@ const QuerySessionDetails = `
                 endTime,
                 group,
                 name,
-                code
+                code,
+              	activities {
+                  id,
+                  name,
+                  state,
+                  kind
+                }
             }
             errors {
                 kind
@@ -32,7 +40,7 @@ const QuerySessionDetails = `
 `;
 
 const MutationCloseSession = `
-    mutation ($id: Float!) {
+    mutation ($id: Int!) {
         closeSession(id: $id) {
             errors {
                 kind
@@ -79,11 +87,26 @@ export default function DashboardSession() {
             case SessionActivity.QA:
                 return <ButtonCreate href={`/instructor/${code}/create/qa`} text="Create Q&A" />;
             case SessionActivity.QUIZ:
-                return <ButtonCreate href={`/instructor/${code}/create/qa`} text="Create quiz" />;
+                return (
+                    <div style={{ display: "flex", flexDirection: "row", gap: "30px" }}>
+                        <ButtonCreate
+                            href={`/instructor/${code}/create/quiz/multiplechoice`}
+                            text="Create a multiple choice quiz"
+                        />
+                        <ButtonCreate
+                            href={`/instructor/${code}/create/quiz/draganddrop`}
+                            text="Create a drag and drop quiz"
+                        />
+                    </div>
+                );
         }
     };
 
-    const [result] = useQuery({ query: QuerySessionDetails, variables: { code } });
+    const [result] = useQuery({
+        query: QuerySessionDetails,
+        variables: { code: router.query.code },
+    });
+
     let { data, fetching } = result;
     let content;
     let session: QueriedSession;
@@ -95,6 +118,23 @@ export default function DashboardSession() {
         content = <p>An error happened! {data.sessionDetails.errors.toString()}</p>;
     } else {
         session = data.sessionDetails.session;
+
+        let activities = data.sessionDetails.session.activities
+            .filter(
+                (activity: Activity) => activity.kind === SessionActivity.toString(selectedActivity)
+            )
+            .map((activity: Activity) => {
+                return (
+                    <CardActivity
+                        key={activity.id}
+                        id={activity.id}
+                        sessionId={session.id}
+                        name={activity.name}
+                        state={activityStateFromString(activity.state)}
+                    />
+                );
+            });
+
         content = (
             <>
                 <Link href="/instructor/dashboard">
@@ -124,6 +164,7 @@ export default function DashboardSession() {
                     />
                 </div>
                 {getActivityButtonCreate()}
+                <div id={styles.container_activities}>{activities}</div>
             </>
         );
     }

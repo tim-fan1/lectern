@@ -9,13 +9,19 @@ import {
     PubSubEngine,
     Int,
 } from "type-graphql";
-import { AuthedContext, Context, EndpointResponse } from "../types";
+import {
+    AuthedContext,
+    Context,
+    EndpointResponse,
+    left,
+    right,
+} from "../types";
 import CheckAuth from "../utils/authMiddleware";
-import LiveSession from "../utils/liveSession";
+import LiveSession, { topic } from "../utils/liveSession";
 import { SessionErrors, SessionResponse } from "./session";
-
-/* Function to convert an id to a topic string */
-const topic = (id: number): string => "SESSION_" + id.toString();
+import modifySession from "../utils/modifySession";
+import ActivityResolver, { ActivityKinds } from "./activity";
+import Session from "../entities/Session";
 
 @Resolver()
 export default class SessionSubscriptionResolver {
@@ -32,12 +38,12 @@ export default class SessionSubscriptionResolver {
         // just found out that this'll still sub to a topic, but if nothing
         // is broadcast the client will be left hanging. that should be fine
         // since the actual frontend will get valid ids from sessionDetails
-        if (payload.session.state === "archived")
+        if (payload.getSession().state === "archived")
             return SessionResponse.withErrors({
                 kind: SessionErrors.SESSION_CLOSED,
             });
 
-        return { errors: [], session: payload.session };
+        return { errors: [], session: payload.getSession() };
     }
 
     /* example of an interaction that works on live sessions -- increments the
@@ -46,24 +52,97 @@ export default class SessionSubscriptionResolver {
     @Mutation(() => EndpointResponse)
     async testInteraction(
         @Arg("id", () => Int) id: number,
-        @Ctx() { openSessions }: Context,
-        @PubSub() pubsub: PubSubEngine
+        @Ctx() { openSessions }: Context
     ): Promise<EndpointResponse> {
-        /* look for this session in openSessions from the context (not db) */
-        const thisLive = openSessions.get(id);
-        if (thisLive === undefined)
-            return SessionResponse.withErrors({
-                kind: SessionErrors.SESSION_NOT_EXIST,
-            });
+        /* use modifySession to make necessary changes (see its jsdoc) */
+        const result = await modifySession(
+            openSessions,
+            { id: id },
+            /* the third argument is a function which returns a modified sess */
+            (session) => {
+                session.numJoined++;
+                return right(session);
+            }
+        );
 
-        /* call the relevant LiveSession method (all live ops should be
-         * abstracted in this way) */
-        thisLive.incrementCount();
-
-        /* publish the entire LiveSession on the relevant topic with this id */
-        pubsub.publish(topic(id), thisLive);
+        /* see Either docs in types.ts; left means there was an error */
+        if (result.isLeft) return EndpointResponse.withErrors(result.data);
 
         return EndpointResponse.withErrors();
+    }
+
+    @Mutation(() => EndpointResponse)
+    async activityVote(
+        @Arg("sessionId", () => Int) id: number,
+        @Arg("activityId", () => Int) activityId: number,
+        @Arg("choiceId", () => Int) choiceId: number,
+        @Ctx() { openSessions }: Context,
+        @Arg("DnDPosition", () => Int, { nullable: true }) DnDPosition?: number
+    ) {
+        const result = await modifySession(
+            openSessions,
+            { id: id },
+            (session) => {
+                const activity = session.activities.find(
+                    (a) => a.id === activityId
+                );
+                if (activity === undefined)
+                    return left({ kind: SessionErrors.INVALID_ACTIVITY });
+
+                if (activity.state !== "open") {
+                    return left({
+                        kind: SessionErrors.INVALID_ACTIVITY,
+                        msg: "Activity state is not open for voting",
+                    });
+                }
+
+                const choice = activity.choices.find((c) => c.id === choiceId);
+                if (choice === undefined)
+                    return left({ kind: SessionErrors.INVALID_CHOICE });
+
+                if (activity.kind === ActivityKinds.POLL) {
+                    if (
+                        choice.PollVotes === null ||
+                        choice.PollVotes === undefined
+                    ) {
+                        return left({ kind: SessionErrors.INVALID_CHOICE });
+                    }
+
+                    choice.PollVotes++;
+                }
+
+                if (activity.kind === ActivityKinds.QUIZ) {
+                    if (
+                        choice.QuizVotes === null ||
+                        choice.QuizVotes === undefined
+                    ) {
+                        return left({ kind: SessionErrors.INVALID_CHOICE });
+                    }
+
+                    choice.QuizVotes++;
+                }
+
+                if (activity.kind === ActivityKinds.DND) {
+                    if (
+                        choice.DnDVotes === undefined ||
+                        DnDPosition === undefined ||
+                        choice.DnDVotes.length <= DnDPosition
+                    ) {
+                        return left({
+                            kind: SessionErrors.INVALID_CHOICE,
+                            msg: "You may need to provide a DnDPosition",
+                        });
+                    }
+
+                    choice.DnDVotes[DnDPosition]++;
+                }
+
+                return right(session);
+            }
+        );
+
+        if (result.isLeft) return EndpointResponse.withErrors(result.data);
+        else return EndpointResponse.withErrors();
     }
 
     @CheckAuth()
@@ -73,8 +152,33 @@ export default class SessionSubscriptionResolver {
         @Ctx() { openSessions, user }: AuthedContext,
         @PubSub() pubsub: PubSubEngine
     ): Promise<SessionResponse> {
+        const result = await modifySession(
+            openSessions,
+            { id: id },
+            (session) => {
+                if (session.author.id !== user.id)
+                    return left({
+                        kind: SessionErrors.SESSION_NOT_EXIST,
+                    });
+                if (session.state !== "open")
+                    return left({
+                        kind: SessionErrors.SESSION_INVALID_STATE,
+                    });
+
+                /* Close all activities within the session */
+                for (let activity of session.activities) {
+                    if (activity.state === "open") activity.state = "archived";
+                }
+
+                return right(session);
+            },
+            ["author"]
+        );
+
+        if (result.isLeft) return SessionResponse.withErrors(result.data);
+
         const thisLive = openSessions.get(id);
-        if (thisLive === undefined || thisLive.session.author.id != user.id)
+        if (thisLive === undefined)
             return SessionResponse.withErrors({
                 kind: SessionErrors.SESSION_NOT_EXIST,
             });
@@ -84,6 +188,6 @@ export default class SessionSubscriptionResolver {
 
         pubsub.publish(topic(id), thisLive);
 
-        return { errors: [], session: thisLive.session };
+        return { errors: [], session: thisLive.getSession() };
     }
 }

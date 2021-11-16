@@ -1,13 +1,10 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
-import { useMutation, useQuery } from "urql";
-import Navigation from "../../../../components/Navigation";
-import { InputChoice } from "../../../../entities/Choice";
-import styles from "../../../../styles/createPoll.module.css";
-
-// TODO: this whole page is a mess and needs to be revisited.
-
+import Navigation from "../../../../../components/Navigation";
+import styles from "../../../../../styles/createPoll.module.css";
+import { useQuery, useMutation } from "urql";
+import { InputChoice } from "../../../../../entities/Choice";
 const QuerySessionDetails = `
     query ($code: String!) {
         sessionDetails(code: $code) {
@@ -36,7 +33,7 @@ const MutationCreateActivity = `
     }
 `;
 
-const MutationPollAddChoices = `
+const MutationAddChoices = `
     mutation ($sessionId: Int!, $activityId: Int!, $choices: [InputChoice!]!) {
         addChoices(sessionId: $sessionId, activityId: $activityId, choices: $choices) {
             errors {
@@ -47,7 +44,7 @@ const MutationPollAddChoices = `
     }
 `;
 
-export default function CreatePoll() {
+export default function CreateMultipleChoiceQuiz() {
     const router = useRouter();
     const code = router.query.code;
     const [result] = useQuery({
@@ -59,51 +56,32 @@ export default function CreatePoll() {
     if (!result.fetching) {
         sessionId = result.data.sessionDetails.session.id;
     }
-
-    const [errors, setErrors] = useState([] as string[]);
-
-    // TODO: this is not a good way to do this.
     const [name, setName] = useState("");
     const [options, setOptions] = useState([""]);
+    const [correctOptionIndex, setCorrectOptionIndex] = useState(0);
     const [nAnswers, setNAnswers] = useState(1);
-
+    const [errors, setErrors] = useState([] as string[]);
     const [createActivityResult, createActivity] = useMutation(MutationCreateActivity);
-    const [addChoicesResult, addChoices] = useMutation(MutationPollAddChoices);
-
-    const addChoicesMutation = (activityId: number, choices: InputChoice[]) => {
-        const variables = {
-            sessionId: sessionId,
-            activityId: activityId,
-            choices: choices,
-        };
-        addChoices(variables).then((result) => {
-            if (result.data.addChoices.errors.length !== 0) {
-                console.log(result);
-            }
-        });
-    };
-
-    function updateOptions(i: number, newOption: string) {
-        let optionsCopy = [...options];
-        optionsCopy[i] = newOption;
-        setOptions(optionsCopy);
-    }
-
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const [addChoicesResult, addChoices] = useMutation(MutationAddChoices);
+    function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-
         const variables = {
             sessionId: sessionId,
             name: name,
-            kind: "POLL",
+            kind: "QUIZ",
         };
-
         createActivity(variables).then((result) => {
             if (result.data.createActivity.errors.length === 0) {
                 const activityId: number = result.data.createActivity.activity.id;
                 let choices: InputChoice[] = [];
+                // array.entries() didn't work so i didn't bother.
+                let i = 0;
                 for (const option of options) {
-                    choices.push({ name: option });
+                    choices.push({
+                        name: option,
+                        QuizIsCorrect: correctOptionIndex === i,
+                    });
+                    i++;
                 }
                 addChoicesMutation(activityId, choices);
                 router.push(`/instructor/${code}`);
@@ -111,16 +89,27 @@ export default function CreatePoll() {
                 setErrors([result.data.createActivity.errors[0].msg]);
             }
         });
-    };
-
+    }
+    function addChoicesMutation(activityId: number, choices: InputChoice[]) {
+        const variables = {
+            sessionId: sessionId,
+            activityId: activityId,
+            choices: choices,
+        };
+        addChoices(variables);
+    }
+    function updateOptions(i: number, newOption: string) {
+        let optionsCopy = [...options];
+        optionsCopy[i] = newOption;
+        setOptions(optionsCopy);
+    }
     return (
         <div className="container_center">
             <Head>
-                <title>lectern - Create poll</title>
+                <title>lectern - Create a multiple choice quiz</title>
             </Head>
             <Navigation />
-            <h1>Create a poll</h1>
-            {/* TODO: want a back to dashboard or whatever here */}
+            <h1>Create a multiple choice quiz</h1>
             <form className="form" onSubmit={handleSubmit}>
                 <input
                     id={styles.input_poll_name}
@@ -132,7 +121,7 @@ export default function CreatePoll() {
                     required
                 />
                 <div id={styles.container_input_poll_option} style={{ marginBottom: "1rem" }}>
-                    <h3>Poll possible answers</h3>
+                    <h3>Multiple choice quiz possible answers</h3>
                 </div>
                 {[...Array(nAnswers)].map((val, i) => {
                     return (
@@ -149,6 +138,15 @@ export default function CreatePoll() {
                                 onChange={(e) => updateOptions(i, e.target.value)}
                                 required
                             />
+                            {i !== correctOptionIndex && (
+                                <button
+                                    onClick={() => setCorrectOptionIndex(i)}
+                                    type="button"
+                                    className="btn btn_secondary"
+                                >
+                                    Mark as correct
+                                </button>
+                            )}
                         </div>
                     );
                 })}
@@ -167,7 +165,7 @@ export default function CreatePoll() {
                         Cancel
                     </button>
                     <button type="submit" className="btn btn_primary">
-                        Add poll to session
+                        Add quiz to session
                     </button>
                 </div>
                 {errors.map((error, i) => (

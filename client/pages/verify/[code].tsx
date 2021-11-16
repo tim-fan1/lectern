@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useMutation } from "urql";
 import MessageBox from "../../components/MessageBox";
 import Navigation from "../../components/Navigation";
@@ -20,21 +20,20 @@ export default function VerifyEmail() {
     const router = useRouter();
     const [_, gqlVerifyEmail] = useMutation(MutationVerifyEmail);
 
-    const [verifyFinished, setVerifyFinished] = useState(false);
-    const [verifySuccess, setVerifySuccess] = useState(false);
-
+    const [message, setMessage] = useState("");
     useEffect(() => {
-        const variables = {
-            verification_code: `${router.query.code}`,
-        };
-        gqlVerifyEmail(variables).then((result) => {
-            setVerifyFinished(true);
-            if (result.data.verifyEmail.errors.length === 0) {
-                setVerifySuccess(true);
-            } else {
-                setVerifySuccess(false);
-            }
-        });
+        if (router.isReady) {
+            const variables = {
+                verification_code: `${router.query.code}`,
+            };
+            gqlVerifyEmail(variables).then((result) => {
+                if (result.data.verifyEmail.errors.length === 0) {
+                    setMessage("You've been verified!");
+                } else {
+                    setMessage("Unfortunately, we could not verify your email.");
+                }
+            });
+        }
     }, [router, router.isReady, gqlVerifyEmail]);
 
     return (
@@ -45,10 +44,7 @@ export default function VerifyEmail() {
             <Navigation />
             <MessageBox>
                 <h1>Hi, we are verifying your account now...</h1>
-                {verifyFinished && verifySuccess && <h2>You&apos;ve been verified!</h2>}
-                {verifyFinished && !verifySuccess && (
-                    <h2>Unfortunately, we could not verify your email.</h2>
-                )}
+                <h2>{message}</h2>
             </MessageBox>
         </div>
     );
