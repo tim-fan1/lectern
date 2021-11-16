@@ -23,4 +23,6 @@
 .name {
     max-width: 20rem;
     word-wrap: break-word;
+    font-weight: 650;
+    margin: 0 1.5rem
 }

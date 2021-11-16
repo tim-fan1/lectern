@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation } from "urql";
 import { ActivityState } from "../utils/util";
 import styles from "../styles/CardActivity.module.css";
+import { MarkdownText } from "./MarkdownText";
 
 const MutationStartActivity = `
     mutation ($sessionId: Int!, $activityId: Int!) {
@@ -69,7 +70,7 @@ export default function CardActivity({ id, sessionId, name, state }: Props) {
             {error && <p className="error">{error}</p>}
 
             <div className={styles.container}>
-                <h3 className={styles.name}>{name}</h3>
+                <MarkdownText className={styles.name} text={name} />
                 {activityState === ActivityState.DRAFT && <a onClick={handleStartActivity}>Open</a>}
                 {activityState === ActivityState.OPEN && <a onClick={handleCloseActivity}>Close</a>}
                 {activityState === ActivityState.ARCHIVED && <p>Archived</p>}
