@@ -55,7 +55,7 @@ export default class LiveSession {
     async close() {
         this.session.state = "archived";
         this.session.endTime = new Date();
-        this.save();
+        await this.save();
     }
 
     /**
