@@ -8,6 +8,7 @@
     transition: all 0.2s;
     border: 3px solid var(--c-background-tertiary);
     min-height: 5rem;
+    min-width: 20rem;
 }
 
 .container:hover {

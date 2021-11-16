@@ -1,60 +1,57 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSubscription } from "urql";
 import LecternLogo from "../../components/LecternLogo";
 import Poll from "../../components/Poll";
 import MultipleChoiceQuiz from "../../components/MultipleChoiceQuiz";
 import DragAndDropQuiz from "../../components/DragAndDropQuiz";
 import styles from "../../styles/session.module.css";
-import { SessionActivity } from "../../utils/util";
+import { SessionActivity, validateSessionCode } from "../../utils/util";
 import NavigationSession from "../../components/NavigationSession";
-import { DragDropContext } from "react-beautiful-dnd";
+import { Activity, Session as SessionEntity } from "../../entities/entities";
 import MultipleChoiceQuizResults from "../../components/MultipleChoiceQuizResults";
-import { Activity } from "../../entities/entities";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
+import {
+    selectSession,
+    updateSessionState,
+    updateSessionActivities,
+    updateSession,
+} from "../../state/sessionSlice";
+import { useSessionDetailsQuery } from "../../utils/lecternApi";
 
-// man js strings SUCK for putting markdown in
-const title =
-    `What is the best web development software for complexity? It couldn't be 
-\`javascript\`, **markdown**, *italic*,  or, wowee might even be 
-\`\`\`cpp
-\#include <iostream>
-\#include <string>
-std::string bestLanguage() {
-    return "cpp";
-}
-\`\`\` 
-or
-~~~haskell
-main :: IO ()
-main = putStrLn "Hello, World!"
-~~~
-
-
-or maybe 
-` +
-    String.raw`$$
-c = \pm\sqrt{a^2 + b^2}
-$$ ` +
-    "\n" +
-    String.raw`$$
-c = S (ω)=1.466\, H_s^2 \,  \frac{ω_0^5}{ω^6 }  \, e^[-3^ { ω/(ω_0  )]^2}
-$$ ` +
-    "\n" +
-    String.raw`$$
-\text{another one}
-$$ 
-
-we also autolink literals for funzys 
-
-www.google.com
-
-* [ ] to do
-* [x] done
-
-~~uwu~~
-
+const updatedSession = `
+    subscription SessionSub($id: Int!) {
+        sessionSubscription(id: $id) {
+            session {
+                state,
+                activities {
+                    id,
+                    name,
+                    state,
+                    choices {
+                        id,
+                        name,
+                    }
+                }
+            }
+            errors {
+                kind
+                msg
+            }
+        }
+    }
 `;
+
+interface SessionSubQuery {
+    sessionSubscription: {
+        session: SessionEntity;
+        errors: {
+            kind: string;
+            msg: string;
+        }[];
+    };
+}
 
 function getActivityElement(selection: SessionActivity, activity: Activity) {
     switch (selection) {
@@ -98,7 +95,7 @@ function getActivityElement(selection: SessionActivity, activity: Activity) {
                         ]}
                     />
                     <DragAndDropQuiz
-                        title={title}
+                        title={"DRAGANDDROP"}
                         answers={[
                             "Package managers",
                             "JavaScript bundlers",
@@ -115,19 +112,83 @@ function getActivityElement(selection: SessionActivity, activity: Activity) {
 
 export default function Session() {
     const router = useRouter();
-    const { code } = router.query;
+    const { code } = router.query as { code?: string };
+
+    const dispatch = useAppDispatch();
+    const session = useAppSelector(selectSession);
+    const sessionState = useAppSelector((state) => state.session.session?.state);
+    const sessionActivities = useAppSelector((state) => state.session.session?.activities);
+
     const [selectedActivityKind, setSelectedActivityKind] = useState(SessionActivity.POLL);
-    const session = useAppSelector((s) => s.session.session);
-    const openActivity =
-        session !== undefined && session.activities !== undefined
-            ? session.activities.find((a) => a.state === "open")
-            : undefined;
+    const openActivity = sessionActivities?.find((a) => a.state === "open");
+
+    let error;
+    const handleSessionSub = (
+        oldSubQuery = [] as SessionSubQuery[],
+        newSubQuery: SessionSubQuery
+    ) => {
+        if (newSubQuery.sessionSubscription.errors.length !== 0) {
+            const errors = newSubQuery.sessionSubscription.errors;
+            if (errors.some((e) => e.kind === "SESSION_CLOSED")) {
+                error = "The session has now been closed.";
+                dispatch(updateSessionState("archived"));
+            } else {
+                error = "We couldn't connect to the session. Please check the code and try again.";
+            }
+        } else {
+            const updatedSession = newSubQuery.sessionSubscription.session;
+            // TODO: the backend returns null if we add a poll so we check that here so we don't end up accessing
+            // null state
+            if (updatedSession !== null) {
+                /* The subscription only gives us an updated state and activities so we dispatch those individually
+                   rather than the whole session so that we don't invalidate other fields. */
+                dispatch(updateSessionState(updatedSession.state));
+                dispatch(updateSessionActivities(updatedSession.activities));
+            }
+        }
+
+        return [newSubQuery];
+    };
+
+    /* We have to consider that the user has entered an invalid session code by entering it in the URL,
+     * even though there are checks on the join form. */
+    const isValidCode = validateSessionCode(code);
+    /* In the case session is not in the store, we query it. */
+    const sessionDetailsPaused = session !== undefined || !router.isReady;
+    const sessionDetailsResult = useSessionDetailsQuery({
+        variables: { code: code! },
+        pause: sessionDetailsPaused,
+    });
+
+    /* Note here that if we do setError then we pause the subscription as there doesn't seem to be a way to
+     * cancel it. */
+    const [sessionSubResult] = useSubscription(
+        {
+            query: updatedSession,
+            variables: { id: session?.id },
+        },
+        handleSessionSub
+    );
+
+    if (!router.isReady) {
+        // do nothing for now
+    } else if (!isValidCode) {
+        error = "Invalid code given";
+    } else if (session !== undefined && sessionState !== "open") {
+        error = "This session is not open";
+    } else if (!sessionDetailsResult.fetching && !sessionDetailsPaused) {
+        if (sessionDetailsResult.errors.length === 0) {
+            dispatch(updateSession(sessionDetailsResult.getData()));
+        } else {
+            error = "We couldn't connect to the session. Please check the code and try again.";
+        }
+    }
+
     return (
         <div className={`container_center ${styles.root_container}`}>
             <Head>
                 <title>lectern - Session {code}</title>
             </Head>
-
             <div className={styles.top_container}>
                 <LecternLogo />
                 <NavigationSession
@@ -136,7 +197,7 @@ export default function Session() {
                 />
                 <div id={styles.room_id_container}>
                     <span id={styles.room_id_room} className={styles.room_text}>
-                        Room:{" "}
+                        Session:{" "}
                     </span>
                     <span id={styles.room_id_hash} className={styles.room_text}>
                         #
@@ -144,10 +205,9 @@ export default function Session() {
                     <span className={styles.room_text}>{code}</span>
                 </div>
             </div>
+            {error && <p className="error">{error}</p>}
             <div className={`"container_center" ${styles.content_container}`}>
-                {openActivity !== undefined
-                    ? getActivityElement(selectedActivityKind, openActivity)
-                    : ""}
+                {openActivity && getActivityElement(selectedActivityKind, openActivity)}
             </div>
         </div>
     );

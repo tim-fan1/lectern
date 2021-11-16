@@ -306,7 +306,7 @@ export default class SessionResolver {
         else if (id !== undefined) where = { id: id };
         else where = { code: "typescript is g" };
 
-        const result = await getSession(openSessions, where);
+        const result = await getSession(openSessions, where, ["author"]);
         if (result.isLeft) {
             return SessionResponse.withErrors(result.data);
         } else {
