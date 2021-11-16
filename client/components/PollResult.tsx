@@ -17,7 +17,6 @@ export const PollResult = ({ activity }: PollResultProps) => {
             numberOfVotes: choice.PollVotes,
         });
     }
-    console.log(results);
     let totalVotes = results.reduce((a, b) => a + b.numberOfVotes, 0);
     let highestVote = results.reduce((a, b) => Math.max(a, b.numberOfVotes), 0);
     return (
