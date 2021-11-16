@@ -1,5 +1,6 @@
 import { Activity } from "../entities/entities";
 import styles from "../styles/PollResult.module.css";
+import { MarkdownText } from "./MarkdownText";
 
 interface Result {
     optionName: string;
@@ -23,7 +24,7 @@ export const PollResult = ({ activity }: PollResultProps) => {
         <div className={`${styles.main_container} container_center`}>
             <div className={styles.top_header_container}>
                 <h2 className={styles.top_header_q}>Q:</h2>
-                <h2 className={styles.top_header_text}>{activity.name}</h2>
+                <MarkdownText className={styles.top_header_text} text={activity.name} />
             </div>
             <hr id={styles.poll_result_break} />
             <h3 className={styles.vote_count}>
@@ -47,7 +48,7 @@ export const PollResult = ({ activity }: PollResultProps) => {
 
                     return (
                         <div key={i}>
-                            <p className={styles.bar_label}>{result.optionName}</p>
+                            <MarkdownText className={styles.bar_label} text={result.optionName} />
                             <div className={styles.bar_container}>
                                 <div className={styles.bar_coloured} style={shownBarStyle} />
                                 <span className={votePercentStyle}>

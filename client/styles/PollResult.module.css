@@ -1,6 +1,6 @@
 .bar_container {
     width: 100%;
-    height: 2rem;
+    height: 1.75rem;
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
