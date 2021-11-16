@@ -20,7 +20,8 @@ import CheckAuth from "../utils/authMiddleware";
 import LiveSession, { topic } from "../utils/liveSession";
 import { SessionErrors, SessionResponse } from "./session";
 import modifySession from "../utils/modifySession";
-import { ActivityKinds } from "./activity";
+import ActivityResolver, { ActivityKinds } from "./activity";
+import Session from "../entities/Session";
 
 @Resolver()
 export default class SessionSubscriptionResolver {
@@ -151,11 +152,33 @@ export default class SessionSubscriptionResolver {
         @Ctx() { openSessions, user }: AuthedContext,
         @PubSub() pubsub: PubSubEngine
     ): Promise<SessionResponse> {
+        const result = await modifySession(
+            openSessions,
+            { id: id },
+            (session) => {
+                if (session.author.id !== user.id)
+                    return left({
+                        kind: SessionErrors.SESSION_NOT_EXIST,
+                    });
+                if (session.state !== "open")
+                    return left({
+                        kind: SessionErrors.SESSION_INVALID_STATE,
+                    });
+
+                /* Close all activities within the session */
+                for (let activity of session.activities) {
+                    if (activity.state === "open") activity.state = "archived";
+                }
+
+                return right(session);
+            },
+            ["author"]
+        );
+
+        if (result.isLeft) return SessionResponse.withErrors(result.data);
+
         const thisLive = openSessions.get(id);
-        if (
-            thisLive === undefined ||
-            thisLive.getSession().author.id != user.id
-        )
+        if (thisLive === undefined)
             return SessionResponse.withErrors({
                 kind: SessionErrors.SESSION_NOT_EXIST,
             });

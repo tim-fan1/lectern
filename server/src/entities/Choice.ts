@@ -1,14 +1,16 @@
-import { Field, Int, ObjectType } from "type-graphql";
+import { Field, InputType, Int, ObjectType } from "type-graphql";
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Activity } from "./entities";
 
+/**
+ * InputChoice has the subset of fields in Choice that we can expect users to
+ * submit when they're using the addChoices endpoint. This still has the
+ * Entity and ObjectType decorators since Choice inherits these fields.
+ */
+@InputType()
 @ObjectType()
 @Entity()
-export default class Choice {
-    @Field(() => Int)
-    @PrimaryGeneratedColumn()
-    id!: number;
-
+export class InputChoice {
     @Field()
     @Column()
     name!: string;
@@ -37,6 +39,14 @@ export default class Choice {
     @Field(() => Int, { nullable: true })
     @Column({ nullable: true })
     QuizVotes?: number;
+}
+
+@ObjectType()
+@Entity()
+export default class Choice extends InputChoice {
+    @Field(() => Int)
+    @PrimaryGeneratedColumn()
+    id!: number;
 
     /* Many choices belong to one activity. */
     @Field(() => Activity)

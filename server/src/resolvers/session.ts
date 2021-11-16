@@ -11,7 +11,7 @@ import {
     PubSubEngine,
 } from "type-graphql";
 import * as df from "date-fns";
-import { Activity, Session, User } from "../entities/entities";
+import { Activity, Session, User, Choice } from "../entities/entities";
 import {
     AuthedContext,
     Context,
@@ -244,9 +244,15 @@ export default class SessionResolver {
         @Ctx() { conn, user }: AuthedContext
     ): Promise<SessionResponse> {
         newName = newName.trim();
-        const srcSess = user.sessions.find((s) => s.id === id);
+        const result = await getSession(new Map(), { id: id }, ["author"]);
+        if (result.isLeft)
+            return SessionResponse.withErrors({
+                kind: SessionErrors.SESSION_NOT_EXIST,
+            });
+
+        const srcSess = result.data;
         /* for now, only allow duplication of draft or archived sessions */
-        if (srcSess === undefined || srcSess.state === "open")
+        if (srcSess.author.id !== user.id || srcSess.state === "open")
             return SessionResponse.withErrors({
                 kind: SessionErrors.SESSION_NOT_EXIST,
             });
@@ -257,25 +263,29 @@ export default class SessionResolver {
         }
 
         /* Clone the relevant fields from the session as a TypeORM DeepPartial */
-        const newSessPartial: DeepPartial<Session> = {
+        const newSess = conn.getRepository(Session).create({
             name: newName,
             author: user,
             group: srcSess.group,
             activities: srcSess.activities.map((a) => {
-                return {
+                return conn.getRepository(Activity).create({
                     name: a.name,
                     kind: a.kind,
-                    session: newSess,
+                    // session: newSess,
                     state: "draft",
-                    choices: a.choices.map((c) => {
-                        return { name: c.name };
-                    }),
-                };
+                    choices: a.choices.map((c) =>
+                        conn.getRepository(Choice).create({
+                            name: c.name,
+                            DnDCorrectPosition: c.DnDCorrectPosition,
+                            QuizIsCorrect: c.QuizIsCorrect,
+                        })
+                    ),
+                });
             }),
-        };
+        });
 
         /* Save to session repo (hope the cascades work!) */
-        const newSess = await conn.getRepository(Session).save(newSessPartial);
+        await conn.getRepository(Session).save(newSess);
 
         return { errors: [], session: newSess };
     }
