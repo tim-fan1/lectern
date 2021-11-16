@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import Navigation from "../../../../../components/Navigation";
 import styles from "../../../../../styles/createPoll.module.css";
 import { useQuery, useMutation } from "urql";
+import { InputChoice } from "../../../../../entities/Choice";
 const QuerySessionDetails = `
     query ($code: String!) {
         sessionDetails(code: $code) {
@@ -32,9 +33,9 @@ const MutationCreateActivity = `
     }
 `;
 
-const MutationAddChoice = `
-    mutation ($sessionId: Int!, $activityId: Int!, $name: String!, $QuizIsCorrect: Boolean) {
-        addChoice(sessionId: $sessionId, activityId: $activityId, name: $name, QuizIsCorrect: $QuizIsCorrect) {
+const MutationAddChoices = `
+    mutation ($sessionId: Int!, $activityId: Int!, $choices: [InputChoice!]!) {
+        addChoices(sessionId: $sessionId, activityId: $activityId, choices: $choices) {
             errors {
                 kind
                 msg
@@ -61,7 +62,7 @@ export default function CreateMultipleChoiceQuiz() {
     const [nAnswers, setNAnswers] = useState(1);
     const [errors, setErrors] = useState([] as string[]);
     const [createActivityResult, createActivity] = useMutation(MutationCreateActivity);
-    const [addChoiceResult, addChoice] = useMutation(MutationAddChoice);
+    const [addChoicesResult, addChoices] = useMutation(MutationAddChoices);
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         const variables = {
@@ -72,25 +73,30 @@ export default function CreateMultipleChoiceQuiz() {
         createActivity(variables).then((result) => {
             if (result.data.createActivity.errors.length === 0) {
                 const activityId: number = result.data.createActivity.activity.id;
+                let choices: InputChoice[] = [];
+                // array.entries() didn't work so i didn't bother.
                 let i = 0;
                 for (const option of options) {
-                    addChoiceMutation(activityId, option, i);
+                    choices.push({
+                        name: option,
+                        QuizIsCorrect: correctOptionIndex === i,
+                    });
                     i++;
                 }
+                addChoicesMutation(activityId, choices);
                 router.push(`/instructor/${code}`);
             } else {
                 setErrors([result.data.createActivity.errors[0].msg]);
             }
         });
     }
-    function addChoiceMutation(activityId: number, name: string, index: number) {
+    function addChoicesMutation(activityId: number, choices: InputChoice[]) {
         const variables = {
             sessionId: sessionId,
             activityId: activityId,
-            name: name,
-            QuizIsCorrect: index === correctOptionIndex,
+            choices: choices,
         };
-        addChoice(variables);
+        addChoices(variables);
     }
     function updateOptions(i: number, newOption: string) {
         let optionsCopy = [...options];
