@@ -9,7 +9,7 @@ import DragAndDropQuiz from "../../components/DragAndDropQuiz";
 import styles from "../../styles/session.module.css";
 import { SessionActivity, validateSessionCode } from "../../utils/util";
 import NavigationSession from "../../components/NavigationSession";
-import { Activity, Session as SessionEntity } from "../../entities/entities";
+import { Choice, Activity, Session as SessionEntity } from "../../entities/entities";
 import MultipleChoiceQuizResults from "../../components/MultipleChoiceQuizResults";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import {
@@ -19,7 +19,7 @@ import {
     updateSession,
 } from "../../state/sessionSlice";
 import { useSessionDetailsQuery } from "../../utils/lecternApi";
-
+import { PollResult } from "../../components/PollResult";
 const updatedSession = `
     subscription SessionSub($id: Int!) {
         sessionSubscription(id: $id) {
@@ -32,6 +32,11 @@ const updatedSession = `
                     choices {
                         id,
                         name,
+                        PollVotes,
+                        DnDVotes,
+                        QuizVotes,
+                        DnDCorrectPosition,
+                        QuizIsCorrect,
                     },
                     kind
                 }
@@ -52,17 +57,6 @@ interface SessionSubQuery {
             msg: string;
         }[];
     };
-}
-
-function getActivityElement(selection: SessionActivity, activity: Activity) {
-    switch (selection) {
-        case SessionActivity.POLL:
-            return <Poll activity={activity} />;
-        case SessionActivity.QUIZ:
-            return <MultipleChoiceQuiz activity={activity} />;
-        default:
-            return <p>Coming soon™</p>;
-    }
 }
 
 export default function Session() {
@@ -126,6 +120,37 @@ export default function Session() {
         },
         handleSessionSub
     );
+
+    const [hasVotedPollId, setHasVotedPollId] = useState(-1);
+    const [hasVotedPoll, setHasVotedPoll] = useState(false);
+    if (hasVotedPoll) {
+        /* find hasVotedPollId in session.activities. */
+        const poll = session?.activities.find((a) => a.id === hasVotedPollId && a.kind === "POLL");
+        if (poll?.state !== "open") {
+            /* This poll has been closed. Reset hasVotedPoll and hasVotedPollid. */
+            setHasVotedPoll(false);
+            setHasVotedPollId(-1);
+        }
+    }
+    function getActivityElement(selection: SessionActivity, activity: Activity) {
+        switch (selection) {
+            case SessionActivity.POLL:
+                return !hasVotedPoll ? (
+                    <Poll
+                        activity={activity}
+                        setHasVotedPoll={setHasVotedPoll}
+                        setHasVotedPollId={setHasVotedPollId}
+                    />
+                ) : (
+                    // <h1>About to list results of poll id {hasVotedPollId}</h1>
+                    <PollResult activity={activity} />
+                );
+            case SessionActivity.QUIZ:
+                return <MultipleChoiceQuiz activity={activity} />;
+            default:
+                return <p>Coming soon™</p>;
+        }
+    }
 
     if (!router.isReady) {
         // do nothing for now

@@ -1,3 +1,4 @@
+import { Activity } from "../entities/entities";
 import styles from "../styles/PollResult.module.css";
 
 interface Result {
@@ -5,17 +6,25 @@ interface Result {
     numberOfVotes: number;
 }
 interface PollResultProps {
-    title: string;
-    results: Result[];
+    activity: Activity;
 }
-export const PollResult = ({ title, results }: PollResultProps) => {
+export const PollResult = ({ activity }: PollResultProps) => {
+    const results = [] as Result[];
+    for (const choice of activity.choices) {
+        if (choice.PollVotes === undefined) continue;
+        results.push({
+            optionName: choice.name,
+            numberOfVotes: choice.PollVotes,
+        });
+    }
+    console.log(results);
     let totalVotes = results.reduce((a, b) => a + b.numberOfVotes, 0);
     let highestVote = results.reduce((a, b) => Math.max(a, b.numberOfVotes), 0);
     return (
         <div className={`${styles.main_container} container_center`}>
             <div className={styles.top_header_container}>
                 <h2 className={styles.top_header_q}>Q:</h2>
-                <h2 className={styles.top_header_text}>{title}</h2>
+                <h2 className={styles.top_header_text}>{activity.name}</h2>
             </div>
             <hr id={styles.poll_result_break} />
             <h3 className={styles.vote_count}>
@@ -23,7 +32,10 @@ export const PollResult = ({ title, results }: PollResultProps) => {
             </h3>
             <div className={styles.all_bars_container}>
                 {results.map((result, i) => {
-                    const votePercent = Math.round((result.numberOfVotes / totalVotes) * 100) + "%";
+                    const votePercent =
+                        (totalVotes === 0
+                            ? 0
+                            : Math.round((result.numberOfVotes / totalVotes) * 100)) + "%";
                     let votePercentStyle = "";
                     let shownBarStyle = {
                         width: votePercent,
