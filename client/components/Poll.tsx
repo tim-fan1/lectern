@@ -13,7 +13,7 @@ export interface PollProps {
 export default function Poll({ activity }: PollProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const submitPollAnswer = () => {
-        // TODO
+        // TODO:
     };
 
     return (

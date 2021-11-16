@@ -87,7 +87,7 @@ export default function DashboardSession() {
             case SessionActivity.QA:
                 return <ButtonCreate href={`/instructor/${code}/create/qa`} text="Create Q&A" />;
             case SessionActivity.QUIZ:
-                return <ButtonCreate href={`/instructor/${code}/create/qa`} text="Create quiz" />;
+                return <ButtonCreate href={`/instructor/${code}/create/quiz`} text="Create quiz" />;
         }
     };
 
