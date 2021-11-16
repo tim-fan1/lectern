@@ -121,26 +121,22 @@ export default function Session() {
         handleSessionSub
     );
 
-    const [hasVotedPollId, setHasVotedPollId] = useState(-1);
-    const [hasVotedPoll, setHasVotedPoll] = useState(false);
+    const [hasVotedPollState, setHasVotedStatePoll] = useState([false, -1] as [boolean, number]);
+
+    const [hasVotedPoll, hasVotedPollId] = hasVotedPollState;
     if (hasVotedPoll) {
         /* find hasVotedPollId in session.activities. */
         const poll = session?.activities.find((a) => a.id === hasVotedPollId && a.kind === "POLL");
         if (poll?.state !== "open") {
             /* This poll has been closed. Reset hasVotedPoll and hasVotedPollid. */
-            setHasVotedPoll(false);
-            setHasVotedPollId(-1);
+            setHasVotedStatePoll([false, -1]);
         }
     }
-    function getActivityElement(selection: SessionActivity, activity: Activity) {
+    const getActivityElement = (selection: SessionActivity, activity: Activity) => {
         switch (selection) {
             case SessionActivity.POLL:
                 return !hasVotedPoll ? (
-                    <Poll
-                        activity={activity}
-                        setHasVotedPoll={setHasVotedPoll}
-                        setHasVotedPollId={setHasVotedPollId}
-                    />
+                    <Poll activity={activity} setHasVotedPollState={setHasVotedStatePoll} />
                 ) : (
                     // <h1>About to list results of poll id {hasVotedPollId}</h1>
                     <PollResult activity={activity} />
@@ -150,7 +146,7 @@ export default function Session() {
             default:
                 return <p>Coming soon™</p>;
         }
-    }
+    };
 
     if (!router.isReady) {
         // do nothing for now
@@ -188,7 +184,7 @@ export default function Session() {
                 </div>
             </div>
             {error && <p className="error">{error}</p>}
-            <div className={`"container_center" ${styles.content_container}`}>
+            <div className={`container_center ${styles.content_container}`}>
                 {openActivity && getActivityElement(selectedActivityKind, openActivity)}
                 {!openActivity &&
                     `A ${

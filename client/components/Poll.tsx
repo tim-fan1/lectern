@@ -23,11 +23,10 @@ interface Props {
     // // require at least 1 question
     // questions: Array<string>;
     activity: Activity;
-    setHasVotedPoll: Function;
-    setHasVotedPollId: Function;
+    setHasVotedPollState: Function;
 }
 
-export default function Poll({ activity, setHasVotedPoll, setHasVotedPollId }: Props) {
+export default function Poll({ activity, setHasVotedPollState }: Props) {
     /* If we've gotten to this point we can assume that the session is not-null and valid. */
     const session = useAppSelector(selectSession)!;
 
@@ -37,7 +36,6 @@ export default function Poll({ activity, setHasVotedPoll, setHasVotedPollId }: P
 
     const handleSubmitPollVote = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-
         const variables = {
             sessionId: session.id,
             activityId: activity.id,
@@ -45,8 +43,7 @@ export default function Poll({ activity, setHasVotedPoll, setHasVotedPollId }: P
         };
         pollVote(variables).then((result) => {
             if (result.data.activityVote.errors.length === 0) {
-                setHasVotedPoll(true);
-                setHasVotedPollId(activity.id);
+                setHasVotedPollState([true, activity.id]);
             } else {
                 setError("Could not submit poll vote.");
             }
