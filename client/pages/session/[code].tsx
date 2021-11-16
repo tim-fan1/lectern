@@ -152,7 +152,7 @@ export default function Session() {
         /* Handle Q&A as a special case, since it's not an activity */
         if (selection === SessionActivity.QA)
             if (sessionQnA === undefined || !sessionQnA.open)
-                return <p>This session does not have a Q&amp;A</p>;
+                return <p>Q&amp;A is not enabled for this session.</p>;
             else
                 return (
                     <div>

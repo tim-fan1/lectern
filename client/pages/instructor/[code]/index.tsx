@@ -2,7 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useState, MouseEvent, ChangeEvent } from "react";
-import { useMutation, useQuery } from "urql";
+import { useMutation, useQuery, useSubscription } from "urql";
 import ButtonCreate from "../../../components/ButtonCreate";
 import CardActivity from "../../../components/CardActivity";
 import Navigation from "../../../components/Navigation";
@@ -11,41 +11,60 @@ import { Activity, Session } from "../../../entities/entities";
 import styles from "../../../styles/manage.module.css";
 import { activityStateFromString, SessionActivity } from "../../../utils/util";
 import Qa from "../../../components/Qa";
+import { useAppDispatch, useAppSelector } from "../../../state/hooks";
+import {
+    selectSession,
+    updateSession,
+    updateSessionQna,
+    updateSessionState,
+} from "../../../state/sessionSlice";
+
+const SessionFields = `
+    session {
+        id,
+        created,
+        updated,
+        state,
+        startTime,
+        endTime,
+        group,
+        name,
+        code,
+        activities {
+        id,
+        name,
+        state,
+        kind
+        },
+        qna {
+            open,
+            questions {
+                id,
+                authorName,
+                question,
+                read,
+                created
+            }
+        }
+    }
+`;
 
 const QuerySessionDetails = `
     query ($code: String!) {
         sessionDetails(code: $code) {
-            session {
-                id,
-                created,
-                updated,
-                state,
-                startTime,
-                endTime,
-                group,
-                name,
-                code,
-              	activities {
-                  id,
-                  name,
-                  state,
-                  kind
-                },
-                qna {
-                    open,
-                    questions {
-                        id,
-                        authorName,
-                        question,
-                        read,
-                        created
-                    }
-                }
-            }
+            ${SessionFields}
             errors {
                 kind
                 msg
             }
+        }
+    }
+`;
+
+const SubscriptionSession = `
+    subscription ($id: Int!) {
+        sessionSubscription(id: $id) {
+            ${SessionFields}
         }
     }
 `;
@@ -81,6 +100,16 @@ interface QueriedSession {
     code?: String;
 }
 
+interface SessionSubQuery {
+    sessionSubscription: {
+        session: Session;
+        errors: {
+            kind: string;
+            msg: string;
+        }[];
+    };
+}
+
 export default function DashboardSession() {
     const router = useRouter();
     const code = router.query.code;
@@ -101,17 +130,47 @@ export default function DashboardSession() {
     const [toggleQnaEnabled, setToggleQnaEnabled] = useState(true);
     const handleToggleQna = (event: ChangeEvent<HTMLInputElement>) => {
         setToggleQnaEnabled(false);
-        toggleQna({ id: session.id, open: event.target.checked }).then(() =>
+        toggleQna({ id: session?.id, open: event.target.checked }).then(() =>
             setToggleQnaEnabled(true)
         );
     };
 
     const [selectedActivity, setSelectedActivity] = useState(SessionActivity.POLL);
 
+    const dispatch = useAppDispatch();
+    const session = useAppSelector(selectSession);
+    let errors = [];
+
+    const pauseDetails = session !== undefined;
+
     const [result] = useQuery({
         query: QuerySessionDetails,
         variables: { code: router.query.code },
+        pause: pauseDetails,
     });
+
+    /* Dispatch the session (update it in Redux store) when the sessionDetails
+     * query comes back */
+    const { data, fetching } = result;
+    if (!fetching && !pauseDetails) {
+        if (data.sessionDetails.errors.length === 0)
+            dispatch(updateSession(data.sessionDetails.session));
+        else errors = data.sessionDetails.errors;
+    }
+
+    /* Set up the subscription using the ID from the query, to dispatch the
+     * entire session every time we receive new data. */
+    useSubscription(
+        { query: SubscriptionSession, variables: { id: session?.id } },
+        (_, newSubQuery: SessionSubQuery) => {
+            const updatedSession = newSubQuery.sessionSubscription.session;
+            if (updatedSession !== null) {
+                dispatch(updateSession(updatedSession));
+            }
+
+            return newSubQuery;
+        }
+    );
 
     const getActivityButtonCreate = (session: Session) => {
         switch (selectedActivity) {
@@ -152,19 +211,15 @@ export default function DashboardSession() {
         }
     };
 
-    let { data, fetching } = result;
     let content;
-    let session: Session;
 
-    if (fetching) {
+    if (!session) {
         content = <p>I&apos;m loading</p>;
-    } else if (data.sessionDetails.errors.length !== 0) {
+    } else if (errors.length !== 0) {
         // error happened - maybe no auth?
         console.log("error?", data.sessionDetails);
-        content = <p>An error happened! {data.sessionDetails.errors.toString()}</p>;
+        content = <p>An error happened! {errors.toString()}</p>;
     } else {
-        session = data.sessionDetails.session;
-
         let activities: React.ReactNode[];
 
         if (SessionActivity.toString(selectedActivity) !== "QA") {
@@ -188,6 +243,8 @@ export default function DashboardSession() {
             // Q&A
             activities = [<p key={0}>Put the activity here</p>];
         }
+
+        console.log(session);
 
         content = (
             <>
@@ -221,7 +278,7 @@ export default function DashboardSession() {
                 {selectedActivity !== "QA" && (
                     <div id={styles.container_activities}>{activities}</div>
                 )}
-                {selectedActivity === "QA" && <Qa qna={session.qna} />}
+                {session.qna && selectedActivity === "QA" && <Qa qna={session.qna} />}
             </>
         );
     }
