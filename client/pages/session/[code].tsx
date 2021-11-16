@@ -9,7 +9,9 @@ import DragAndDropQuiz from "../../components/DragAndDropQuiz";
 import styles from "../../styles/session.module.css";
 import { SessionActivity, validateSessionCode } from "../../utils/util";
 import NavigationSession from "../../components/NavigationSession";
-import { Choice, Activity, Session as SessionEntity } from "../../entities/entities";
+import Qa from "../../components/Qa";
+import QaInput from "../../components/QaInput";
+import { Choice, Activity, Session as SessionEntity, QnA } from "../../entities/entities";
 import MultipleChoiceQuizResults from "../../components/MultipleChoiceQuizResults";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import {
@@ -17,6 +19,7 @@ import {
     updateSessionState,
     updateSessionActivities,
     updateSession,
+    updateSessionQna,
 } from "../../state/sessionSlice";
 import { useSessionDetailsQuery } from "../../utils/lecternApi";
 import { PollResult } from "../../components/PollResult";
@@ -39,6 +42,16 @@ const updatedSession = `
                         QuizIsCorrect,
                     },
                     kind
+                },
+                qna {
+                    open,
+                    questions {
+                        id,
+                        authorName,
+                        question,
+                        read,
+                        created
+                    }
                 }
             }
             errors {
@@ -67,6 +80,7 @@ export default function Session() {
     const session = useAppSelector(selectSession);
     const sessionState = useAppSelector((state) => state.session.session?.state);
     const sessionActivities = useAppSelector((state) => state.session.session?.activities);
+    const sessionQnA = useAppSelector((state) => state.session.session?.qna);
 
     const [selectedActivityKind, setSelectedActivityKind] = useState(SessionActivity.POLL);
     const openActivity = sessionActivities?.find(
@@ -95,6 +109,8 @@ export default function Session() {
                    rather than the whole session so that we don't invalidate other fields. */
                 dispatch(updateSessionState(updatedSession.state));
                 dispatch(updateSessionActivities(updatedSession.activities));
+                dispatch(updateSessionQna(updatedSession.qna));
+                // dispatch(updateSession(updatedSession));
             }
         }
 
@@ -132,7 +148,24 @@ export default function Session() {
             setHasVotedStatePoll([false, -1]);
         }
     }
-    const getActivityElement = (selection: SessionActivity, activity: Activity) => {
+    const getActivityElement = (selection: SessionActivity, activity: Activity | undefined) => {
+        /* Handle Q&A as a special case, since it's not an activity */
+        if (selection === SessionActivity.QA)
+            if (sessionQnA === undefined || !sessionQnA.open)
+                return <p>This session does not have a Q&amp;A</p>;
+            else
+                return (
+                    <div>
+                        <QaInput sessionId={session?.id ? session?.id : 42069} />
+                        <Qa qna={sessionQnA} />
+                    </div>
+                );
+
+        if (activity === undefined)
+            return `A ${
+                selection.charAt(0).toUpperCase() + selection.toLowerCase().slice(1)
+            } has not been started yet...`;
+
         switch (selection) {
             case SessionActivity.POLL:
                 return !hasVotedPoll ? (
@@ -174,6 +207,7 @@ export default function Session() {
                     setSelected={setSelectedActivityKind}
                 />
                 <div id={styles.room_id_container}>
+                    {/* nocheckin: does this need to be here? */}
                     <span id={styles.room_id_room} className={styles.room_text}>
                         Session:{" "}
                     </span>
@@ -185,12 +219,7 @@ export default function Session() {
             </div>
             {error && <p className="error">{error}</p>}
             <div className={`container_center ${styles.content_container}`}>
-                {openActivity && getActivityElement(selectedActivityKind, openActivity)}
-                {!openActivity &&
-                    `A ${
-                        selectedActivityKind.charAt(0).toUpperCase() +
-                        selectedActivityKind.toLowerCase().slice(1)
-                    } has not been started yet...`}
+                {getActivityElement(selectedActivityKind, openActivity)}
             </div>
         </div>
     );

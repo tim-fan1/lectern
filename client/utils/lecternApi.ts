@@ -75,6 +75,16 @@ const QuerySessionDetails = `
                         id,
                         name,
                     }
+                },
+                qna {
+                    open,
+                    questions {
+                        id,
+                        authorName,
+                        question,
+                        read,
+                        created
+                    }
                 }
             }
             errors {

@@ -1,15 +1,16 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useState, MouseEvent, ChangeEvent } from "react";
 import { useMutation, useQuery } from "urql";
 import ButtonCreate from "../../../components/ButtonCreate";
 import CardActivity from "../../../components/CardActivity";
 import Navigation from "../../../components/Navigation";
 import NavigationSession from "../../../components/NavigationSession";
-import { Activity } from "../../../entities/entities";
+import { Activity, Session } from "../../../entities/entities";
 import styles from "../../../styles/manage.module.css";
 import { activityStateFromString, SessionActivity } from "../../../utils/util";
+import Qa from "../../../components/Qa";
 
 const QuerySessionDetails = `
     query ($code: String!) {
@@ -29,6 +30,16 @@ const QuerySessionDetails = `
                   name,
                   state,
                   kind
+                },
+                qna {
+                    open,
+                    questions {
+                        id,
+                        authorName,
+                        question,
+                        read,
+                        created
+                    }
                 }
             }
             errors {
@@ -50,6 +61,14 @@ const MutationCloseSession = `
     }
 `;
 
+const MutationQnaState = `
+    mutation ($id: Int!, $open: Boolean!) {
+        toggleQnA(id: $id, open: $open) {
+            errors { kind, msg }
+        }
+    }
+`;
+
 interface QueriedSession {
     id: number;
     created: Date;
@@ -61,11 +80,6 @@ interface QueriedSession {
     name: String;
     code?: String;
 }
-
-const hasQNA = (session: any): boolean => {
-    // STUB  - TODO
-    return false;
-};
 
 export default function DashboardSession() {
     const router = useRouter();
@@ -83,6 +97,15 @@ export default function DashboardSession() {
         });
     };
 
+    const [toggleQnaResult, toggleQna] = useMutation(MutationQnaState);
+    const [toggleQnaEnabled, setToggleQnaEnabled] = useState(true);
+    const handleToggleQna = (event: ChangeEvent<HTMLInputElement>) => {
+        setToggleQnaEnabled(false);
+        toggleQna({ id: session.id, open: event.target.checked }).then(() =>
+            setToggleQnaEnabled(true)
+        );
+    };
+
     const [selectedActivity, setSelectedActivity] = useState(SessionActivity.POLL);
 
     const [result] = useQuery({
@@ -90,17 +113,29 @@ export default function DashboardSession() {
         variables: { code: router.query.code },
     });
 
-    const getActivityButtonCreate = () => {
+    const getActivityButtonCreate = (session: Session) => {
         switch (selectedActivity) {
             case SessionActivity.POLL:
                 return <ButtonCreate href={`/instructor/${code}/create/poll`} text="Create poll" />;
             case SessionActivity.QA:
-                if (!hasQNA(session)) {
-                    return (
-                        <ButtonCreate href={`/instructor/${code}/create/qa`} text="Create Q&A" />
-                    );
-                }
-                break;
+                return (
+                    <div
+                        className={
+                            styles.qna_toggle_container +
+                            " " +
+                            (toggleQnaEnabled ? "" : styles.disabled)
+                        }
+                    >
+                        <label htmlFor="openQna">Enable Q&amp;A</label>
+                        <input
+                            name="openQna"
+                            type="checkbox"
+                            defaultChecked={session.qna.open}
+                            disabled={!toggleQnaEnabled}
+                            onChange={handleToggleQna}
+                        />
+                    </div>
+                );
             case SessionActivity.QUIZ:
                 return (
                     <div style={{ display: "flex", flexDirection: "row", gap: "30px" }}>
@@ -119,7 +154,7 @@ export default function DashboardSession() {
 
     let { data, fetching } = result;
     let content;
-    let session: QueriedSession;
+    let session: Session;
 
     if (fetching) {
         content = <p>I&apos;m loading</p>;
@@ -182,8 +217,11 @@ export default function DashboardSession() {
                         setSelected={setSelectedActivity}
                     />
                 </div>
-                {getActivityButtonCreate()}
-                <div id={styles.container_activities}>{activities}</div>
+                {getActivityButtonCreate(session)}
+                {selectedActivity !== "QA" && (
+                    <div id={styles.container_activities}>{activities}</div>
+                )}
+                {selectedActivity === "QA" && <Qa qna={session.qna} />}
             </>
         );
     }

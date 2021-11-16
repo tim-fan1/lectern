@@ -1,35 +1,14 @@
 import { Field, Int, ObjectType } from "type-graphql";
 import {
     Column,
+    CreateDateColumn,
     Entity,
     ManyToOne,
     OneToMany,
+    OneToOne,
     PrimaryGeneratedColumn,
 } from "typeorm";
-
-@ObjectType()
-@Entity()
-class Question {
-    @Field(() => Int)
-    @PrimaryGeneratedColumn()
-    id!: number;
-
-    @Field()
-    @Column()
-    question!: string;
-
-    @Field()
-    @Column()
-    read!: boolean;
-
-    @Field()
-    @Column()
-    authorName!: string;
-
-    @Field(() => QnA)
-    @ManyToOne(() => QnA, (qna) => qna.questions)
-    QnA!: any;
-}
+import { Session, Question } from "./entities";
 
 @ObjectType()
 @Entity()
@@ -38,13 +17,20 @@ export default class QnA {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Field(() => Question)
+    @Field(() => Session)
+    @OneToOne(() => Session, (session) => session.qna)
+    session!: Session;
+
+    @Field(() => [Question])
     @OneToMany(() => Question, (question) => question.QnA, {
         orphanedRowAction: "delete",
         cascade: true,
         nullable: false,
+        eager: true,
     })
-    questions: Question[] = [];
+    questions!: Question[];
+
     @Field()
-    open!: boolean;
+    @Column()
+    open: boolean = false;
 }

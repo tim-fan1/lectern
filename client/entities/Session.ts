@@ -1,4 +1,4 @@
-import { User, Activity } from "./entities";
+import { User, Activity, QnA } from "./entities";
 
 export type SessionState = "draft" | "open" | "archived";
 
@@ -22,6 +22,8 @@ export default class Session {
     /* One session contains many activities. */
 
     activities!: Activity[];
+
+    qna!: QnA;
 
     group?: string;
 

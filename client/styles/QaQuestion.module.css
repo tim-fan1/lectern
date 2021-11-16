@@ -1,0 +1,24 @@
+.container {
+    background-color: var(--c-background-secondary);
+    padding: 1.5rem 2rem;
+    margin: 1rem 0;
+    box-shadow: 5px 5px 0 1px var(--c-background-tertiary);
+    width: 30rem;
+    transition: all 0.2s;
+}
+
+.container:hover {
+    box-shadow: 5px 5px 0 1px var(--c-secondary);
+    padding: 1.5rem 3rem;
+}
+
+.container h3 {
+    color: var(--c-light-grey);
+    font-size: 1em;
+}
+
+.container p {
+    width: 25rem;
+    margin: 0.5rem 0;
+    overflow-wrap: break-word;
+}

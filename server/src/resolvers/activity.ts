@@ -13,8 +13,14 @@ import {
 } from "type-graphql";
 import { DeepPartial, getRepository } from "typeorm";
 import { InputChoice } from "../entities/Choice";
-import { Activity, Session, Choice } from "../entities/entities";
-import { EndpointResponse, AuthedContext, left, right } from "../types";
+import { Activity, Question, Choice } from "../entities/entities";
+import {
+    EndpointResponse,
+    AuthedContext,
+    left,
+    right,
+    Context,
+} from "../types";
 import CheckAuth from "../utils/authMiddleware";
 import modifySession, { getSession } from "../utils/modifySession";
 
@@ -92,6 +98,8 @@ enum ActivityErrors {
     KIND_NOT_EXIST = "KIND_NOT_EXIST",
     ACTIVITY_INVALID_STATE = "ACTIVITY_INVALID_STATE",
     ACTIVITY_NAME_ALREADY_EXIST = "ACTIVITY_NAME_ALREADY_EXIST",
+    INVALID_INPUT = "INVALID_INPUT",
+    QUESTION_NOT_EXIST = "QUESTION_NOT_EXIST",
 }
 
 export enum ActivityKinds {
@@ -859,5 +867,112 @@ export default class ActivityResolver {
                     (a) => a.id === activityId
                 ),
             };
+    }
+
+    /* QnA endpoints */
+
+    @CheckAuth()
+    @Mutation(() => EndpointResponse)
+    async toggleQnA(
+        @Arg("id", () => Int) id: number,
+        @Arg("open") open: boolean,
+        @Ctx() { user, openSessions }: AuthedContext
+    ): Promise<EndpointResponse> {
+        const result = await modifySession(
+            openSessions,
+            { id: id },
+            (session) => {
+                if (session.author.id !== user.id || session.state !== "open")
+                    return left({ kind: ActivityErrors.SESSION_NOT_EXIST });
+
+                session.qna.open = open;
+
+                return right(session);
+            },
+            ["author"]
+        );
+
+        if (result.isLeft) return EndpointResponse.withErrors(result.data);
+        else return EndpointResponse.withErrors();
+    }
+
+    @Mutation(() => EndpointResponse)
+    async submitQuestion(
+        @Arg("sessionId", () => Int) sessionId: number,
+        @Arg("question") question: string,
+        @Arg("name", { nullable: true }) name: string,
+        @Ctx() { openSessions, conn }: Context
+    ): Promise<EndpointResponse> {
+        question = question.trim();
+        if (question.length === 0)
+            return EndpointResponse.withErrors({
+                kind: ActivityErrors.INVALID_INPUT,
+            });
+
+        const result = await modifySession(
+            openSessions,
+            { id: sessionId },
+            (session) => {
+                if (session.state !== "open")
+                    return left({ kind: ActivityErrors.SESSION_NOT_EXIST });
+                if (!session.qna.open)
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                        msg: "Q&A is not available for this session",
+                    });
+
+                session.qna.questions.push(
+                    conn.getRepository(Question).create({
+                        question: question,
+                        read: false,
+                        authorName: name,
+                    })
+                );
+
+                return right(session);
+            },
+            [],
+            true
+        );
+
+        if (result.isLeft) return EndpointResponse.withErrors(result.data);
+        else return EndpointResponse.withErrors();
+    }
+
+    @CheckAuth()
+    @Mutation(() => EndpointResponse)
+    async markQuestion(
+        @Arg("sessionId", () => Int) sessionId: number,
+        @Arg("questionId", () => Int) questionId: number,
+        @Arg("isRead") isRead: boolean,
+        @Ctx() { openSessions, user }: AuthedContext
+    ): Promise<EndpointResponse> {
+        const result = await modifySession(
+            openSessions,
+            { id: sessionId },
+            (session) => {
+                if (session.author.id !== user.id || session.state !== "open")
+                    return left({ kind: ActivityErrors.SESSION_NOT_EXIST });
+                if (!session.qna.open)
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                        msg: "Q&A is not available for this session",
+                    });
+
+                const qn = session.qna.questions.find(
+                    (q) => q.id === questionId
+                );
+                if (qn === undefined)
+                    return left({ kind: ActivityErrors.QUESTION_NOT_EXIST });
+                qn.read = isRead;
+
+                return right(session);
+            },
+            ["author"],
+            true
+        );
+
+        if (result.isLeft) return EndpointResponse.withErrors(result.data);
+        else return EndpointResponse.withErrors();
     }
 }

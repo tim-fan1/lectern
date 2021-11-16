@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Session, Activity } from "../entities/entities";
+import { Session, Activity, QnA } from "../entities/entities";
 import { RootState } from "./store";
 import { SessionState as SessionActiveState } from "../entities/Session";
 
@@ -29,10 +29,14 @@ const sessionSlice = createSlice({
             console.assert(state.session !== undefined);
             state.session!.activities = newActivities.payload;
         },
+        updateSessionQna: (state, newQna: PayloadAction<QnA>) => {
+            state.session!.qna = newQna.payload;
+        },
     },
 });
 
-export const { updateSession, updateSessionState, updateSessionActivities } = sessionSlice.actions;
+export const { updateSession, updateSessionState, updateSessionActivities, updateSessionQna } =
+    sessionSlice.actions;
 
 export const selectSession = (state: RootState) => state.session.session;
 

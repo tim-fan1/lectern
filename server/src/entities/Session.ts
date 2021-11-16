@@ -3,12 +3,14 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinColumn,
     ManyToOne,
     OneToMany,
+    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from "typeorm";
-import { User, Activity } from "./entities";
+import { User, Activity, QnA } from "./entities";
 
 type SessionState = "draft" | "open" | "archived";
 
@@ -53,6 +55,16 @@ export default class Session {
         nullable: false,
     })
     activities!: Activity[];
+
+    @Field(() => QnA)
+    @OneToOne(() => QnA, (qa) => qa.session, {
+        eager: true,
+        orphanedRowAction: "delete",
+        nullable: false,
+        cascade: true,
+    })
+    @JoinColumn()
+    qna!: QnA;
 
     @Field({ nullable: true })
     @Column({ nullable: true })
