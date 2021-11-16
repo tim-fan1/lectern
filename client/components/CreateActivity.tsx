@@ -1,44 +1,11 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { FormEvent, useState } from "react";
-import { useMutation, useQuery } from "urql";
+import { useMutation } from "urql";
 import Navigation from "./Navigation";
-import { InputChoice } from "../entities/Choice";
 import styles from "../styles/CreateActivityTop.module.css";
 import { useSessionDetailsQuery } from "../utils/lecternApi";
 import Link from "next/link";
-import { lecternCheckForError } from "../utils/lecternApiHooks";
-import { getEnabledCategories } from "trace_events";
-import Activity from "../entities/Activity";
-import { handle } from "mdast-util-to-markdown/lib/handle";
-
-const QuerySessionDetails = `
-    query ($code: String!) {
-        sessionDetails(code: $code) {
-            session {
-                id
-            }
-            errors {
-                kind
-                msg
-            }
-        }
-    }
-`;
-
-const MutationCreateActivity = `
-    mutation ($sessionId: Int!, $name: String!, $kind: String!) {
-        createActivity(sessionId: $sessionId, name: $name, kind: $kind) {
-            activity {
-                id
-            }
-            errors {
-                kind
-                msg
-            }
-        }
-    }
-`;
 
 export type CreateProps = {
     pageTitle: string; // the <Title>
@@ -82,8 +49,6 @@ export default function CreateActivity({
     const [errors, setErrors] = useState([] as string[]);
 
     const [name, setName] = useState("");
-
-    const [createActivityResult, createActivity] = useMutation(MutationCreateActivity);
 
     let sessionId = -1;
     if (fetching) {
