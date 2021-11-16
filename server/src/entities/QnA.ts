@@ -21,7 +21,7 @@ export default class QnA {
     @OneToOne(() => Session, (session) => session.qna)
     session!: Session;
 
-    @Field(() => Question)
+    @Field(() => [Question])
     @OneToMany(() => Question, (question) => question.QnA, {
         orphanedRowAction: "delete",
         cascade: true,

@@ -3,6 +3,7 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinColumn,
     ManyToOne,
     OneToMany,
     OneToOne,
@@ -62,6 +63,7 @@ export default class Session {
         nullable: false,
         cascade: true,
     })
+    @JoinColumn()
     qna!: QnA;
 
     @Field({ nullable: true })
