@@ -128,7 +128,7 @@ export default function DashboardSession() {
                     >
                         <label htmlFor="openQna">Enable Q&amp;A</label>
                         <input
-                            name="openQna"
+                            id="openQna"
                             type="checkbox"
                             defaultChecked={session.qna.open}
                             disabled={!toggleQnaEnabled}
