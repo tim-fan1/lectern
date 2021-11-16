@@ -33,8 +33,8 @@ const MutationCreateActivity = `
 `;
 
 const MutationAddChoice = `
-    mutation ($sessionId: Int!, $activityId: Int!, $name: String!) {
-        addChoice(sessionId: $sessionId, activityId: $activityId, name: $name) {
+    mutation ($sessionId: Int!, $activityId: Int!, $name: String!, $QuizIsCorrect: Boolean) {
+        addChoice(sessionId: $sessionId, activityId: $activityId, name: $name, QuizIsCorrect: $QuizIsCorrect) {
             errors {
                 kind
                 msg
@@ -57,13 +57,13 @@ export default function CreateMultipleChoiceQuiz() {
     }
     const [name, setName] = useState("");
     const [options, setOptions] = useState([""]);
+    const [correctOptionIndex, setCorrectOptionIndex] = useState(0);
     const [nAnswers, setNAnswers] = useState(1);
     const [errors, setErrors] = useState([] as string[]);
     const [createActivityResult, createActivity] = useMutation(MutationCreateActivity);
     const [addChoiceResult, addChoice] = useMutation(MutationAddChoice);
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        console.log("submitting multiple choice");
         const variables = {
             sessionId: sessionId,
             name: name,
@@ -72,8 +72,10 @@ export default function CreateMultipleChoiceQuiz() {
         createActivity(variables).then((result) => {
             if (result.data.createActivity.errors.length === 0) {
                 const activityId: number = result.data.createActivity.activity.id;
+                let i = 0;
                 for (const option of options) {
-                    addChoiceMutation(activityId, option);
+                    addChoiceMutation(activityId, option, i);
+                    i++;
                 }
                 router.push(`/instructor/${code}`);
             } else {
@@ -81,11 +83,12 @@ export default function CreateMultipleChoiceQuiz() {
             }
         });
     }
-    function addChoiceMutation(activityId: number, name: string) {
+    function addChoiceMutation(activityId: number, name: string, index: number) {
         const variables = {
             sessionId: sessionId,
             activityId: activityId,
             name: name,
+            QuizIsCorrect: index === correctOptionIndex,
         };
         addChoice(variables);
     }
@@ -129,6 +132,15 @@ export default function CreateMultipleChoiceQuiz() {
                                 onChange={(e) => updateOptions(i, e.target.value)}
                                 required
                             />
+                            {i !== correctOptionIndex && (
+                                <button
+                                    onClick={() => setCorrectOptionIndex(i)}
+                                    type="button"
+                                    className="btn btn_secondary"
+                                >
+                                    Mark as correct
+                                </button>
+                            )}
                         </div>
                     );
                 })}
