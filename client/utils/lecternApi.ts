@@ -82,7 +82,8 @@ const QuerySessionDetails = `
                         id,
                         authorName,
                         question,
-                        read
+                        read,
+                        created
                     }
                 }
             }

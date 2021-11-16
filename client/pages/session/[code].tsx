@@ -49,7 +49,8 @@ const updatedSession = `
                         id,
                         authorName,
                         question,
-                        read
+                        read,
+                        created
                     }
                 }
             }

@@ -3,7 +3,7 @@ import { QnA } from "./entities";
 export default class Question {
     id!: number;
 
-    created!: Date;
+    created!: string;
 
     question!: string;
 
