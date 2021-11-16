@@ -63,10 +63,8 @@ export default function CreatePoll() {
 
     // TODO: this is not a good way to do this.
     const [name, setName] = useState("");
-    const [optionA, setOptionA] = useState("");
-    const [optionB, setOptionB] = useState("");
-    const [optionC, setOptionC] = useState("");
-    const [optionD, setOptionD] = useState("");
+    const [options, setOptions] = useState([""]);
+    const [nAnswers, setNAnswers] = useState(1);
 
     const [createActivityResult, createActivity] = useMutation(MutationCreateActivity);
     const [addChoiceResult, addChoice] = useMutation(MutationPollAddChoice);
@@ -84,6 +82,12 @@ export default function CreatePoll() {
         });
     };
 
+    function updateOptions(i: number, newOption: string) {
+        let optionsCopy = [...options];
+        optionsCopy[i] = newOption;
+        setOptions(optionsCopy);
+    }
+
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -96,16 +100,12 @@ export default function CreatePoll() {
         createActivity(variables).then((result) => {
             if (result.data.createActivity.errors.length === 0) {
                 const activityId: number = result.data.createActivity.activity.id;
-                // TODO: change this to be unlimited tm options.
-                if (optionA.length !== 0) addChoiceMutation(activityId, optionA);
-                if (optionB.length !== 0) addChoiceMutation(activityId, optionB);
-                if (optionC.length !== 0) addChoiceMutation(activityId, optionC);
-                if (optionD.length !== 0) addChoiceMutation(activityId, optionD);
-
+                for (const option of options) {
+                    addChoiceMutation(activityId, option);
+                }
                 router.push(`/instructor/${code}`);
             } else {
-                //error
-                console.log(result);
+                setErrors([result.data.createActivity.errors[0].msg]);
             }
         });
     };
@@ -128,58 +128,51 @@ export default function CreatePoll() {
                     onChange={(e) => setName(e.target.value)}
                     required
                 />
-                <div id={styles.container_input_poll_option}>
-                    <h3>Poll options</h3>
-                    <div id={styles.container_input_label_poll_option}>
-                        <label>(a)</label>
-                        <input
-                            type="text"
-                            placeholder="Add option"
-                            className={`input ${styles.input_poll_option}`}
-                            onChange={(e) => setOptionA(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div id={styles.container_input_label_poll_option}>
-                        <label>(b)</label>
-                        <input
-                            type="text"
-                            placeholder="Add option"
-                            className={`input ${styles.input_poll_option}`}
-                            onChange={(e) => setOptionB(e.target.value)}
-                        />
-                    </div>
-                    <div id={styles.container_input_label_poll_option}>
-                        <label>(c)</label>
-                        <input
-                            type="text"
-                            placeholder="Add option"
-                            className={`input ${styles.input_poll_option}`}
-                            onChange={(e) => setOptionC(e.target.value)}
-                        />
-                    </div>
-                    <div id={styles.container_input_label_poll_option}>
-                        <label>(d)</label>
-                        <input
-                            type="text"
-                            placeholder="Add option"
-                            className={`input ${styles.input_poll_option}`}
-                            onChange={(e) => setOptionD(e.target.value)}
-                        />
-                    </div>
+                <div id={styles.container_input_poll_option} style={{ marginBottom: "1rem" }}>
+                    <h3>Poll possible answers</h3>
                 </div>
+                {[...Array(nAnswers)].map((val, i) => {
+                    return (
+                        <div
+                            key={i}
+                            id={styles.container_input_label_poll_option}
+                            style={{ marginBottom: "1rem" }}
+                        >
+                            <label>({i + 1})</label>
+                            <input
+                                type="text"
+                                placeholder="Insert possible answer here"
+                                className={`input ${styles.input_poll_option}`}
+                                onChange={(e) => updateOptions(i, e.target.value)}
+                                required
+                            />
+                        </div>
+                    );
+                })}
+                <button
+                    type="button"
+                    className="btn btn_primary"
+                    onClick={() => {
+                        setNAnswers(nAnswers + 1);
+                        setOptions([...options, ""]);
+                    }}
+                >
+                    Add option
+                </button>
                 <div className="form_container_btn">
                     <button className="btn btn_secondary" onClick={() => router.back()}>
                         Cancel
                     </button>
-                    <button className="btn btn_primary">Add poll to session</button>
+                    <button type="submit" className="btn btn_primary">
+                        Add poll to session
+                    </button>
                 </div>
+                {errors.map((error, i) => (
+                    <p key={i} className="error">
+                        {error}
+                    </p>
+                ))}
             </form>
-            {errors.map((error, i) => (
-                <p key={i} className="error">
-                    {error}
-                </p>
-            ))}
         </div>
     );
 }
