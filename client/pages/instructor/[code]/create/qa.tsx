@@ -49,13 +49,14 @@ const MutationPollAddChoices = `
 
 export default function CreateQA() {
     const router = useRouter();
+    const code = router.query.code;
 
     const [errors, setErrors] = useState([] as string[]);
 
     const handleSubmit = async (sessionId: number) => {
         // TODO - create a Q&A here using some mutation
         // you can use setErrors and LecternCheckForError() on the mutation result
-        await router.push(`/instructor/{code}`);
+        await router.push(`/instructor/${code}`);
     };
 
     return (
