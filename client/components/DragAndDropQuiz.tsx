@@ -2,17 +2,37 @@ import { useState } from "react";
 import styles from "../styles/Poll.module.css";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { StyledComponent } from "styled-components";
+import { Activity } from "../entities/entities";
 export interface DragAndDropProps {
-    title: string;
-    answers: Array<string>;
+    activity: Activity;
+    setHasVotedQuizState: Function;
 }
-export default function DragAndDropQuiz({ title, answers: _answers }: DragAndDropProps) {
-    const [selectedIndex, setSelectedIndex] = useState(0);
+interface Answer {
+    name: string;
+    choiceId: number;
+}
+export interface thing {
+    title: string;
+    answers: Answer[];
+}
+export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: DragAndDropProps) {
     const submitSelectedAnswer = () => {
         // TODO:
         console.log(answers);
     };
-    const [answers, setAnswers] = useState(_answers);
+    const title = activity.name;
+    const [answers, setAnswers] = useState(() => {
+        const ret = [] as Answer[];
+        for (const choice of activity.choices) {
+            ret.push({
+                choiceId: choice.id,
+                name: choice.name,
+            });
+        }
+        ret.sort(() => Math.random() - 0.5);
+        console.log("newAnswers", ret);
+        return ret;
+    });
     return (
         <>
             <DragDropContext
@@ -83,7 +103,7 @@ export default function DragAndDropQuiz({ title, answers: _answers }: DragAndDro
                                                                 fontWeight: 400,
                                                             }}
                                                         >
-                                                            {answer}
+                                                            {answer.name}
                                                         </div>
                                                     </div>
                                                 )}

@@ -1,45 +1,60 @@
+import { Activity } from "../entities/entities";
+import styles from "../styles/PollResult.module.css";
+import { MarkdownText } from "./MarkdownText";
+
 interface Result {
     optionName: string;
     numberOfVotes: number;
     isCorrectAnswer: boolean;
 }
 interface MultipleChoiceQuizResultsProps {
-    title: string;
-    results: Result[];
+    activity: Activity;
 }
-export default function MultipleChoiceQuizResults({
-    title,
-    results,
-}: MultipleChoiceQuizResultsProps) {
+export default function MultipleChoiceQuizResults({ activity }: MultipleChoiceQuizResultsProps) {
+    const results = [] as Result[];
+    for (const choice of activity.choices) {
+        if (choice.QuizVotes === undefined) continue;
+        if (choice.QuizIsCorrect === undefined) continue;
+        results.push({
+            optionName: choice.name,
+            numberOfVotes: choice.QuizVotes,
+            isCorrectAnswer: choice.QuizIsCorrect,
+        });
+    }
+    console.log("results", results);
     let totalVotes = results.reduce((acc, item) => acc + item.numberOfVotes, 0);
+    console.log("totalvotes", totalVotes);
     return (
-        <div>
-            <div>
-                <h2>Q:</h2>
-                <h2>{title}</h2>
+        <div className={`${styles.main_container} container_center`}>
+            <div className={styles.top_header_container}>
+                <h2 className={styles.top_header_q}>Q:</h2>
+                <MarkdownText className={styles.top_header_text} text={activity.name} />
             </div>
-            <h3>
+            <hr id={styles.poll_result_break} />
+            <h3 className={styles.vote_count}>
                 <b>{totalVotes}</b> answers
             </h3>
-            <div>
+            <div className={styles.all_bars_container}>
                 {results.map((result, i) => {
-                    const votePercent = Math.round((result.numberOfVotes / totalVotes) * 100) + "%";
+                    const votePercent =
+                        (totalVotes === 0
+                            ? 0
+                            : Math.round((result.numberOfVotes / totalVotes) * 100)) + "%";
+                    let votePercentStyle = "";
                     let shownBarStyle = {
-                        height: "50px",
                         width: votePercent,
                         backgroundColor: "",
                     };
                     if (result.isCorrectAnswer) {
                         shownBarStyle.backgroundColor = "var(--c-primary)";
-                    } else {
-                        shownBarStyle.backgroundColor = "var(--c-text)";
+                        votePercentStyle = styles.vote_highest_label;
                     }
                     return (
                         <div key={i}>
-                            <p>{result.optionName}</p>
-                            <div>
-                                <div style={shownBarStyle} />
-                                <span>
+                            <MarkdownText className={styles.bar_label} text={result.optionName} />
+                            <div className={styles.bar_container}>
+                                <div className={styles.bar_coloured} style={shownBarStyle} />
+                                <span className={votePercentStyle}>
                                     {votePercent} ({result.numberOfVotes})
                                 </span>
                             </div>
