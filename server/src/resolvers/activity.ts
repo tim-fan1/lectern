@@ -11,7 +11,8 @@ import {
     Query,
     Resolver,
 } from "type-graphql";
-import { getRepository } from "typeorm";
+import { DeepPartial, getRepository } from "typeorm";
+import { InputChoice } from "../entities/Choice";
 import { Activity, Session, Choice } from "../entities/entities";
 import { EndpointResponse, AuthedContext, left, right } from "../types";
 import CheckAuth from "../utils/authMiddleware";
@@ -302,12 +303,13 @@ export default class ActivityResolver {
 
     @CheckAuth(["sessions"])
     @Mutation(() => ActivityResponse)
-    async addChoice(
+    async addChoices(
         @Arg("sessionId", () => Int) sessionId: number,
         @Arg("activityId", () => Int) activityId: number,
-        @Arg("name") name: string,
-        @Ctx() { conn, user, openSessions }: AuthedContext,
-        @Arg("QuizIsCorrect", { nullable: true }) QuizIsCorrect?: boolean
+        @Arg("choices", () => [InputChoice]) choices: InputChoice[],
+        // @Arg("name") name: string,
+        // @Arg("QuizIsCorrect", { nullable: true }) QuizIsCorrect?: boolean
+        @Ctx() { conn, user, openSessions }: AuthedContext
     ): Promise<ActivityResponse> {
         const result = await modifySession(
             openSessions,
@@ -340,37 +342,41 @@ export default class ActivityResolver {
                  * so that the instructor can make say a poll with all options
                  * being "Yes". This is peak comedy. */
 
-                if (thisActivity.kind === ActivityKinds.POLL) {
-                    thisActivity.choices.push(
-                        conn.getRepository(Choice).create({
-                            name: name,
-                            activity: thisActivity,
-                            PollVotes: 0,
-                        })
-                    );
-                } else if (thisActivity.kind === ActivityKinds.QUIZ) {
-                    if (QuizIsCorrect === undefined) {
-                        QuizIsCorrect = false;
-                    }
+                for (let thisChoice of choices) {
+                    let thisPartial: DeepPartial<Choice>;
 
-                    thisActivity.choices.push(
-                        conn.getRepository(Choice).create({
-                            name: name,
-                            activity: thisActivity,
-                            QuizVotes: 0,
-                            QuizIsCorrect: QuizIsCorrect,
-                        })
-                    );
-                } else if (thisActivity.kind === ActivityKinds.DND) {
-                    thisActivity.choices.push(
-                        conn.getRepository(Choice).create({
-                            name: name,
-                            activity: thisActivity,
-                            DnDCorrectPosition: thisActivity.choices.length,
-                            DnDVotes: [],
-                        })
-                    );
+                    // haha type safety
+                    switch (thisActivity.kind as ActivityKinds) {
+                        case ActivityKinds.POLL:
+                            thisPartial = {
+                                PollVotes: 0,
+                            };
+                            break;
+                        case ActivityKinds.QUIZ:
+                            thisPartial = {
+                                QuizVotes: 0,
+                                QuizIsCorrect:
+                                    thisChoice.QuizIsCorrect === undefined
+                                        ? false
+                                        : thisChoice.QuizIsCorrect,
+                            };
+                            break;
+                        case ActivityKinds.DND:
+                            thisPartial = {
+                                DnDCorrectPosition: thisActivity.choices.length,
+                                DnDVotes: [],
+                            };
+                            break;
+                    }
+                    thisPartial.name = thisChoice.name;
+                    thisPartial.activity = thisActivity;
+
+                    const newChoice = conn
+                        .getRepository(Choice)
+                        .create(thisPartial);
+                    thisActivity.choices.push(newChoice);
                 }
+
                 return right(session);
             },
             ["author"],
