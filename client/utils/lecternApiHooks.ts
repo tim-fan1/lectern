@@ -65,7 +65,6 @@ export const useLecternQuery = <LecternData extends object, Variables = object>(
     props: useLecternQueryProps<Variables>
 ): LecternApiResponse<LecternData> => {
     const [result] = useQuery<any, Variables>(props);
-    console.log(result);
 
     if (result.fetching) {
         return {
