@@ -24,6 +24,7 @@ import CheckAuth from "../utils/authMiddleware";
 import { DeepPartial, getRepository } from "typeorm";
 import LiveSession from "../utils/liveSession";
 import modifySession, { getSession } from "../utils/modifySession";
+import QnA from "../entities/QnA";
 
 // TODO: this is exported for use in sessionSubscription; should it be somewhere
 // else like types.ts?
@@ -94,6 +95,7 @@ export default class SessionResolver {
                 group: group,
                 author: user,
                 activities: [],
+                qna: conn.getRepository(QnA).create(),
             });
             await sessionRepo.save(newSession);
 
