@@ -1,7 +1,8 @@
 export enum SessionActivity {
-    POLL,
-    QA,
-    QUIZ,
+    POLL = "POLL",
+    QA = "QA",
+    QUIZ = "QUIZ",
+    DND = "DND",
 }
 
 export namespace SessionActivity {

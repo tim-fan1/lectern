@@ -120,7 +120,9 @@ export default function Session() {
     const sessionActivities = useAppSelector((state) => state.session.session?.activities);
 
     const [selectedActivityKind, setSelectedActivityKind] = useState(SessionActivity.POLL);
-    const openActivity = sessionActivities?.find((a) => a.state === "open");
+    const openActivity = sessionActivities?.find(
+        (a) => a.state === "open" && a.kind === selectedActivityKind
+    );
 
     let error;
     const handleSessionSub = (
