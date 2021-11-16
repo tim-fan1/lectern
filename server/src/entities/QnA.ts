@@ -26,9 +26,11 @@ export default class QnA {
         orphanedRowAction: "delete",
         cascade: true,
         nullable: false,
+        eager: true,
     })
     questions!: Question[];
 
     @Field()
-    open!: boolean;
+    @Column()
+    open: boolean = false;
 }

@@ -29,8 +29,8 @@ export default class Question {
     @Column()
     read!: boolean;
 
-    @Field()
-    @Column()
+    @Field({ nullable: true })
+    @Column({ nullable: true })
     authorName!: string;
 
     @Field(() => QnA)

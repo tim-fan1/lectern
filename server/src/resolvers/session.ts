@@ -95,7 +95,10 @@ export default class SessionResolver {
                 group: group,
                 author: user,
                 activities: [],
-                qna: conn.getRepository(QnA).create(),
+                qna: conn.getRepository(QnA).create({
+                    questions: [],
+                    open: false,
+                }),
             });
             await sessionRepo.save(newSession);
 
