@@ -1,6 +1,6 @@
 import { User, Activity } from "./entities";
 
-type SessionState = "draft" | "open" | "archived";
+export type SessionState = "draft" | "open" | "archived";
 
 export default class Session {
     id!: number;

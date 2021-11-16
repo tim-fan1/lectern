@@ -65,6 +65,7 @@ const QuerySessionDetails = `
                 author { name,pic,bio }
                 group
                 code
+                state
                 activities {
                     id,
                     name,
