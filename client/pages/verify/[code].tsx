@@ -16,6 +16,9 @@ const MutationVerifyEmail = `
     }
 `;
 
+// in milliseconds, how long before redirecting after verification succeeds
+const REDIRECT_TIME = 2000;
+
 export default function VerifyEmail() {
     const router = useRouter();
     const [_, gqlVerifyEmail] = useMutation(MutationVerifyEmail);
@@ -28,7 +31,12 @@ export default function VerifyEmail() {
             };
             gqlVerifyEmail(variables).then((result) => {
                 if (result.data.verifyEmail.errors.length === 0) {
-                    setMessage("You've been verified!");
+                    setMessage(
+                        "You've been verified!\nClick on login if you are not redirected within 5 seconds"
+                    );
+                    setTimeout(async () => {
+                        await router.push("/login");
+                    }, REDIRECT_TIME);
                 } else {
                     setMessage("Unfortunately, we could not verify your email.");
                 }
