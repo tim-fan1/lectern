@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
 import { useMutation, useQuery } from "urql";
 import Navigation from "../../../../components/Navigation";
+import { InputChoice } from "../../../../entities/Choice";
 import styles from "../../../../styles/createPoll.module.css";
 
 // TODO: this whole page is a mess and needs to be revisited.
@@ -35,9 +36,9 @@ const MutationCreateActivity = `
     }
 `;
 
-const MutationPollAddChoice = `
-    mutation ($sessionId: Int!, $activityId: Int!, $name: String!) {
-        addChoice(sessionId: $sessionId, activityId: $activityId, name: $name) {
+const MutationPollAddChoices = `
+    mutation ($sessionId: Int!, $activityId: Int!, $choices: [InputChoice!]!) {
+        addChoices(sessionId: $sessionId, activityId: $activityId, choices: $choices) {
             errors {
                 kind
                 msg
@@ -67,16 +68,16 @@ export default function CreatePoll() {
     const [nAnswers, setNAnswers] = useState(1);
 
     const [createActivityResult, createActivity] = useMutation(MutationCreateActivity);
-    const [addChoiceResult, addChoice] = useMutation(MutationPollAddChoice);
+    const [addChoicesResult, addChoices] = useMutation(MutationPollAddChoices);
 
-    const addChoiceMutation = (activityId: number, name: string) => {
+    const addChoicesMutation = (activityId: number, choices: InputChoice[]) => {
         const variables = {
             sessionId: sessionId,
             activityId: activityId,
-            name: name,
+            choices: choices,
         };
-        addChoice(variables).then((result) => {
-            if (result.data.addChoice.errors.length !== 0) {
+        addChoices(variables).then((result) => {
+            if (result.data.addChoices.errors.length !== 0) {
                 console.log(result);
             }
         });
@@ -100,9 +101,11 @@ export default function CreatePoll() {
         createActivity(variables).then((result) => {
             if (result.data.createActivity.errors.length === 0) {
                 const activityId: number = result.data.createActivity.activity.id;
+                let choices: InputChoice[] = [];
                 for (const option of options) {
-                    addChoiceMutation(activityId, option);
+                    choices.push({ name: option });
                 }
+                addChoicesMutation(activityId, choices);
                 router.push(`/instructor/${code}`);
             } else {
                 setErrors([result.data.createActivity.errors[0].msg]);
