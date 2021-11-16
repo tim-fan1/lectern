@@ -2,17 +2,22 @@ import { useState } from "react";
 import styles from "../styles/Poll.module.css";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { StyledComponent } from "styled-components";
+import { Activity } from "../entities/entities";
 export interface DragAndDropProps {
+    activity: Activity;
+}
+export interface thing {
     title: string;
     answers: Array<string>;
 }
-export default function DragAndDropQuiz({ title, answers: _answers }: DragAndDropProps) {
+export default function DragAndDropQuiz({ activity }: DragAndDropProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const submitSelectedAnswer = () => {
         // TODO:
         console.log(answers);
     };
-    const [answers, setAnswers] = useState(_answers);
+    const title = "TODO";
+    const [answers, setAnswers] = useState(["TODO"]);
     return (
         <>
             <DragDropContext

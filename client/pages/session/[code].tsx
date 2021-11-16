@@ -4,15 +4,14 @@ import { useState, useEffect } from "react";
 import { useSubscription } from "urql";
 import LecternLogo from "../../components/LecternLogo";
 import Poll from "../../components/Poll";
-import MultipleChoiceQuiz from "../../components/MultipleChoiceQuiz";
-import DragAndDropQuiz from "../../components/DragAndDropQuiz";
+import Quiz from "../../components/Quiz";
+import QuizResults from "../../components/QuizResults";
 import styles from "../../styles/session.module.css";
 import { SessionActivity, validateSessionCode } from "../../utils/util";
 import NavigationSession from "../../components/NavigationSession";
 import Qa from "../../components/Qa";
 import QaInput from "../../components/QaInput";
 import { Choice, Activity, Session as SessionEntity, QnA } from "../../entities/entities";
-import MultipleChoiceQuizResults from "../../components/MultipleChoiceQuizResults";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import {
     selectSession,
@@ -148,6 +147,17 @@ export default function Session() {
             setHasVotedStatePoll([false, -1]);
         }
     }
+
+    const [hasVotedQuizState, setHasVotedStateQuiz] = useState([false, -1] as [boolean, number]);
+    const [hasVotedQuiz, hasVotedQuizId] = hasVotedQuizState;
+    if (hasVotedQuiz) {
+        const quiz = session?.activities.find(
+            (a) => a.id === hasVotedQuizId && (a.kind === "QUIZ" || a.kind === "DND")
+        );
+        if (quiz?.state !== "open") {
+            setHasVotedStateQuiz([false, -1]);
+        }
+    }
     const getActivityElement = (selection: SessionActivity, activity: Activity | undefined) => {
         /* Handle Q&A as a special case, since it's not an activity */
         if (selection === SessionActivity.QA)
@@ -171,11 +181,14 @@ export default function Session() {
                 return !hasVotedPoll ? (
                     <Poll activity={activity} setHasVotedPollState={setHasVotedStatePoll} />
                 ) : (
-                    // <h1>About to list results of poll id {hasVotedPollId}</h1>
                     <PollResult activity={activity} />
                 );
             case SessionActivity.QUIZ:
-                return <MultipleChoiceQuiz activity={activity} />;
+                return !hasVotedQuiz ? (
+                    <Quiz activity={activity} setHasVotedQuizState={setHasVotedStateQuiz} />
+                ) : (
+                    <QuizResults activity={activity} />
+                );
             default:
                 return <p>Coming soon™</p>;
         }
