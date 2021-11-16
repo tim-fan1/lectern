@@ -11,7 +11,7 @@ import { SessionActivity, validateSessionCode } from "../../utils/util";
 import NavigationSession from "../../components/NavigationSession";
 import Qa from "../../components/Qa";
 import QaInput from "../../components/QaInput";
-import { Choice, Activity, Session as SessionEntity } from "../../entities/entities";
+import { Choice, Activity, Session as SessionEntity, QnA } from "../../entities/entities";
 import MultipleChoiceQuizResults from "../../components/MultipleChoiceQuizResults";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import {
@@ -41,6 +41,15 @@ const updatedSession = `
                         QuizIsCorrect,
                     },
                     kind
+                },
+                qna {
+                    open,
+                    questions {
+                        id,
+                        authorName,
+                        question,
+                        read
+                    }
                 }
             }
             errors {
@@ -69,6 +78,7 @@ export default function Session() {
     const session = useAppSelector(selectSession);
     const sessionState = useAppSelector((state) => state.session.session?.state);
     const sessionActivities = useAppSelector((state) => state.session.session?.activities);
+    const sessionQnA = useAppSelector((state) => state.session.session?.qna);
 
     const [selectedActivityKind, setSelectedActivityKind] = useState(SessionActivity.POLL);
     const openActivity = sessionActivities?.find(
@@ -146,12 +156,15 @@ export default function Session() {
             case SessionActivity.QUIZ:
                 return <MultipleChoiceQuiz activity={activity} />;
             case SessionActivity.QA:
-                return (
-                    <div>
-                        <QaInput name="Anonymous" />
-                        <Qa />
-                    </div>
-                );
+                if (sessionQnA === undefined || !sessionQnA.open)
+                    return <p>This session does not have a Q&amp;A</p>;
+                else
+                    return (
+                        <div>
+                            <QaInput name="Anonymous" />
+                            <Qa qna={sessionQnA} />
+                        </div>
+                    );
             default:
                 return <p>Coming soon™</p>;
         }
