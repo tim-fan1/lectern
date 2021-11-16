@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useMutation, useQuery } from "urql";
 import ButtonCreate from "../../../components/ButtonCreate";
 import CardActivity from "../../../components/CardActivity";
@@ -81,6 +81,11 @@ export default function DashboardSession() {
 
     const [selectedActivity, setSelectedActivity] = useState(SessionActivity.POLL);
 
+    const [result] = useQuery({
+        query: QuerySessionDetails,
+        variables: { code: router.query.code },
+    });
+
     const getActivityButtonCreate = () => {
         switch (selectedActivity) {
             case SessionActivity.POLL:
@@ -103,14 +108,10 @@ export default function DashboardSession() {
         }
     };
 
-    const [result] = useQuery({
-        query: QuerySessionDetails,
-        variables: { code: router.query.code },
-    });
-
     let { data, fetching } = result;
     let content;
     let session: QueriedSession;
+
     if (fetching) {
         content = <p>I&apos;m loading</p>;
     } else if (data.sessionDetails.errors.length !== 0) {
@@ -120,21 +121,29 @@ export default function DashboardSession() {
     } else {
         session = data.sessionDetails.session;
 
-        let activities = data.sessionDetails.session.activities
-            .filter(
-                (activity: Activity) => activity.kind === SessionActivity.toString(selectedActivity)
-            )
-            .map((activity: Activity) => {
-                return (
-                    <CardActivity
-                        key={activity.id}
-                        id={activity.id}
-                        sessionId={session.id}
-                        name={activity.name}
-                        state={activityStateFromString(activity.state)}
-                    />
-                );
-            });
+        let activities: React.ReactNode[];
+
+        if (SessionActivity.toString(selectedActivity) !== "QA") {
+            activities = data.sessionDetails.session.activities
+                .filter(
+                    (activity: Activity) =>
+                        activity.kind === SessionActivity.toString(selectedActivity)
+                )
+                .map((activity: Activity) => {
+                    return (
+                        <CardActivity
+                            key={activity.id}
+                            id={activity.id}
+                            sessionId={session.id}
+                            name={activity.name}
+                            state={activityStateFromString(activity.state)}
+                        />
+                    );
+                });
+        } else {
+            // Q&A
+            activities = [<p key={0}>Put the activity here</p>];
+        }
 
         content = (
             <>

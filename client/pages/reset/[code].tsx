@@ -41,7 +41,6 @@ export default function VerifyEmail() {
         };
         gqlPasswordReset(variables).then((result) => {
             // TODO: check if the network request actually succeeded.
-            console.log(result.data);
 
             if (result.data.passwordReset.errors.length === 0) {
                 setResetSuccess(true);

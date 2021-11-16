@@ -5,6 +5,7 @@ import { Activity } from "../entities/entities";
 import { useAppSelector } from "../state/hooks";
 import { selectSession } from "../state/sessionSlice";
 import { useMutation } from "urql";
+import { useRouter } from "next/router";
 
 const MutationPollVote = `
     mutation ($sessionId: Int!, $activityId: Int!, $choiceId: Int!) {
@@ -22,20 +23,19 @@ interface Props {
     // // require at least 1 question
     // questions: Array<string>;
     activity: Activity;
+    setHasVotedPollState: Function;
 }
 
-export default function Poll({ activity }: Props) {
+export default function Poll({ activity, setHasVotedPollState }: Props) {
     /* If we've gotten to this point we can assume that the session is not-null and valid. */
     const session = useAppSelector(selectSession)!;
 
     const [pollVoteResult, pollVote] = useMutation(MutationPollVote);
     const [selectedIndex, setSelectedIndex] = useState(0);
-    const [hasVoted, setHasVoted] = useState(false);
     const [error, setError] = useState("");
 
     const handleSubmitPollVote = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-
         const variables = {
             sessionId: session.id,
             activityId: activity.id,
@@ -43,7 +43,7 @@ export default function Poll({ activity }: Props) {
         };
         pollVote(variables).then((result) => {
             if (result.data.activityVote.errors.length === 0) {
-                setHasVoted(true);
+                setHasVotedPollState([true, activity.id]);
             } else {
                 setError("Could not submit poll vote.");
             }
@@ -56,37 +56,29 @@ export default function Poll({ activity }: Props) {
                 <div className={styles.poll_question}>
                     <MarkdownText text={activity.name} />
                 </div>
-                {!hasVoted &&
-                    activity.choices.map((choice, index) => {
-                        let classNamePollOption = styles.poll_option;
-                        if (index === selectedIndex) {
-                            classNamePollOption += " " + styles.poll_option_selected;
-                        }
-                        return (
-                            <div
-                                className={classNamePollOption}
-                                key={index}
-                                onClick={() => setSelectedIndex(index)}
-                            >
-                                <input
-                                    type="radio"
-                                    className={styles.poll_option_radio_input}
-                                    name="pollRadio"
-                                    checked={index === selectedIndex}
-                                    onChange={() => setSelectedIndex(index)}
-                                />
-                                <MarkdownText
-                                    text={choice.name}
-                                    className={styles.poll_option_text}
-                                />
-                            </div>
-                        );
-                    })}
-                {hasVoted ? (
-                    <h1>Vote recieved!</h1>
-                ) : (
-                    <button className="btn btn_call_to_action">Vote</button>
-                )}
+                {activity.choices.map((choice, index) => {
+                    let classNamePollOption = styles.poll_option;
+                    if (index === selectedIndex) {
+                        classNamePollOption += " " + styles.poll_option_selected;
+                    }
+                    return (
+                        <div
+                            className={classNamePollOption}
+                            key={index}
+                            onClick={() => setSelectedIndex(index)}
+                        >
+                            <input
+                                type="radio"
+                                className={styles.poll_option_radio_input}
+                                name="pollRadio"
+                                checked={index === selectedIndex}
+                                onChange={() => setSelectedIndex(index)}
+                            />
+                            <MarkdownText text={choice.name} className={styles.poll_option_text} />
+                        </div>
+                    );
+                })}
+                <button className="btn btn_call_to_action">Vote</button>
                 {error && <p className="error">{error}</p>}
             </form>
         </div>

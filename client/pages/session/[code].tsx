@@ -11,7 +11,7 @@ import { SessionActivity, validateSessionCode } from "../../utils/util";
 import NavigationSession from "../../components/NavigationSession";
 import Qa from "../../components/Qa";
 import QaInput from "../../components/QaInput";
-import { Activity, Session as SessionEntity } from "../../entities/entities";
+import { Choice, Activity, Session as SessionEntity } from "../../entities/entities";
 import MultipleChoiceQuizResults from "../../components/MultipleChoiceQuizResults";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import {
@@ -21,7 +21,7 @@ import {
     updateSession,
 } from "../../state/sessionSlice";
 import { useSessionDetailsQuery } from "../../utils/lecternApi";
-
+import { PollResult } from "../../components/PollResult";
 const updatedSession = `
     subscription SessionSub($id: Int!) {
         sessionSubscription(id: $id) {
@@ -34,6 +34,11 @@ const updatedSession = `
                     choices {
                         id,
                         name,
+                        PollVotes,
+                        DnDVotes,
+                        QuizVotes,
+                        DnDCorrectPosition,
+                        QuizIsCorrect,
                     },
                     kind
                 }
@@ -54,24 +59,6 @@ interface SessionSubQuery {
             msg: string;
         }[];
     };
-}
-
-function getActivityElement(selection: SessionActivity, activity: Activity) {
-    switch (selection) {
-        case SessionActivity.POLL:
-            return <Poll activity={activity} />;
-        case SessionActivity.QUIZ:
-            return <MultipleChoiceQuiz activity={activity} />;
-        case SessionActivity.QA:
-            return (
-                <div>
-                    <QaInput name="Anonymous" />
-                    <Qa />
-                </div>
-            );
-        default:
-            return <p>Coming soon™</p>;
-    }
 }
 
 export default function Session() {
@@ -136,6 +123,40 @@ export default function Session() {
         handleSessionSub
     );
 
+    const [hasVotedPollState, setHasVotedStatePoll] = useState([false, -1] as [boolean, number]);
+
+    const [hasVotedPoll, hasVotedPollId] = hasVotedPollState;
+    if (hasVotedPoll) {
+        /* find hasVotedPollId in session.activities. */
+        const poll = session?.activities.find((a) => a.id === hasVotedPollId && a.kind === "POLL");
+        if (poll?.state !== "open") {
+            /* This poll has been closed. Reset hasVotedPoll and hasVotedPollid. */
+            setHasVotedStatePoll([false, -1]);
+        }
+    }
+    const getActivityElement = (selection: SessionActivity, activity: Activity) => {
+        switch (selection) {
+            case SessionActivity.POLL:
+                return !hasVotedPoll ? (
+                    <Poll activity={activity} setHasVotedPollState={setHasVotedStatePoll} />
+                ) : (
+                    // <h1>About to list results of poll id {hasVotedPollId}</h1>
+                    <PollResult activity={activity} />
+                );
+            case SessionActivity.QUIZ:
+                return <MultipleChoiceQuiz activity={activity} />;
+            case SessionActivity.QA:
+                return (
+                    <div>
+                        <QaInput name="Anonymous" />
+                        <Qa />
+                    </div>
+                );
+            default:
+                return <p>Coming soon™</p>;
+        }
+    };
+
     if (!router.isReady) {
         // do nothing for now
     } else if (!isValidCode) {
@@ -173,7 +194,7 @@ export default function Session() {
                 </div>
             </div>
             {error && <p className="error">{error}</p>}
-            <div className={`"container_center" ${styles.content_container}`}>
+            <div className={`container_center ${styles.content_container}`}>
                 {openActivity && getActivityElement(selectedActivityKind, openActivity)}
                 {!openActivity &&
                     `A ${
