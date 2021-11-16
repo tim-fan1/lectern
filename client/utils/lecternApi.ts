@@ -70,6 +70,7 @@ const QuerySessionDetails = `
                     id,
                     name,
                     state,
+                    kind
                     choices {
                         id,
                         name,
