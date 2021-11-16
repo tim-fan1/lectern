@@ -20,5 +20,27 @@
 }
 
 .left_container {
-    margin: 2rem;
+    margin: 2rem 2rem 2rem 2rem;
+}
+
+.right_container {
+    flex: 1;
+}
+
+.bio_text_container {
+    border: var(--c-background-secondary) 1px solid;
+    flex: 1;
+    max-width: 40%;
+    margin: 0.5rem 2rem;
+    padding: 0.5rem;
+}
+
+.bio_container {
+    display: flex;
+    flex-direction: row;
+    margin: 1rem 0;
+}
+
+.bio_text_text {
+    margin: 0;
 }
