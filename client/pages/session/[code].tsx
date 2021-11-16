@@ -9,6 +9,8 @@ import DragAndDropQuiz from "../../components/DragAndDropQuiz";
 import styles from "../../styles/session.module.css";
 import { SessionActivity, validateSessionCode } from "../../utils/util";
 import NavigationSession from "../../components/NavigationSession";
+import Qa from "../../components/Qa";
+import QaInput from "../../components/QaInput";
 import { Activity, Session as SessionEntity } from "../../entities/entities";
 import MultipleChoiceQuizResults from "../../components/MultipleChoiceQuizResults";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
@@ -60,6 +62,13 @@ function getActivityElement(selection: SessionActivity, activity: Activity) {
             return <Poll activity={activity} />;
         case SessionActivity.QUIZ:
             return <MultipleChoiceQuiz activity={activity} />;
+        case SessionActivity.QA:
+            return (
+                <div>
+                    <QaInput name="Anonymous" />
+                    <Qa />
+                </div>
+            );
         default:
             return <p>Coming soon™</p>;
     }
@@ -153,6 +162,7 @@ export default function Session() {
                     setSelected={setSelectedActivityKind}
                 />
                 <div id={styles.room_id_container}>
+                    {/* nocheckin: does this need to be here? */}
                     <span id={styles.room_id_room} className={styles.room_text}>
                         Session:{" "}
                     </span>

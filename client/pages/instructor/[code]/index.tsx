@@ -10,6 +10,7 @@ import NavigationSession from "../../../components/NavigationSession";
 import { Activity } from "../../../entities/entities";
 import styles from "../../../styles/manage.module.css";
 import { activityStateFromString, SessionActivity } from "../../../utils/util";
+import Qa from "../../../components/Qa";
 
 const QuerySessionDetails = `
     query ($code: String!) {
@@ -85,7 +86,7 @@ export default function DashboardSession() {
             case SessionActivity.POLL:
                 return <ButtonCreate href={`/instructor/${code}/create/poll`} text="Create poll" />;
             case SessionActivity.QA:
-                return <ButtonCreate href={`/instructor/${code}/create/qa`} text="Create Q&A" />;
+                return <Qa />;
             case SessionActivity.QUIZ:
                 return (
                     <div style={{ display: "flex", flexDirection: "row", gap: "30px" }}>
