@@ -5,6 +5,8 @@ import { useMutation, useQuery } from "urql";
 import InputPassword from "../../components/InputPassword";
 import Navigation from "../../components/Navigation";
 import styles from "../../styles/settings.module.css";
+import Link from "next/link";
+import BackToDashboard from "../../components/BackToDashboard";
 
 const MutationChangePassword = `
     mutation ($password: String!, $newPassword: String!) {
@@ -71,7 +73,7 @@ export default function Settings() {
         changePasswordBtnOrMsg = <h3>Password successfully changed!</h3>;
     } else {
         changePasswordBtnOrMsg = (
-            <button className="btn btn_secondary" type="submit">
+            <button className="btn btn_primary" type="submit">
                 Change password
             </button>
         );
@@ -82,7 +84,7 @@ export default function Settings() {
         changeDetailsBtnOrMsg = <h3>Details successfully changed!</h3>;
     } else {
         changeDetailsBtnOrMsg = (
-            <button className="btn btn_secondary" type="submit">
+            <button className="btn btn_primary" type="submit">
                 Change details
             </button>
         );
@@ -149,87 +151,102 @@ export default function Settings() {
     };
 
     return (
-        <div className="container_center">
+        <div>
             <Head>
                 <title>lectern - Account settings</title>
             </Head>
             <Navigation />
-            <div>
-                <h1>Account settings</h1>
-                <h2 id={styles.header_security}>Details</h2>
-                {fetching ? (
-                    <p>Loading...</p>
-                ) : (
-                    <>
-                        <Image
-                            id={styles.user_pic}
-                            width={80}
-                            height={80}
-                            src={data.userDetails.user.pic}
-                            alt={`${data.userDetails.user.name}'s profile picture'`}
-                        />
-                        <h3>{data.userDetails.user.name}</h3>
-                        <p>
-                            {data.userDetails.user.bio.length === 0
-                                ? "User has no biography."
-                                : data.userDetails.user.bio}
-                        </p>
-                        <p>
-                            Note: profile pictures are configured via{" "}
-                            <a href="https://en.gravatar.com/">Gravatar</a> (globally recognisable
-                            avatars)
-                        </p>
-                        <form id={styles.form_change_password} onSubmit={handleEditUserDetails}>
-                            <h2>Change details</h2>
-                            <div className="container_input_label">
-                                <div className="container_input_label">
-                                    <label className="label" htmlFor="">
-                                        Bio
-                                    </label>
-                                    <input
-                                        className="input"
-                                        type="text"
-                                        maxLength={64}
-                                        onChange={(e) => setBio(e.target.value)}
-                                        defaultValue={data.userDetails.user.bio}
-                                    />
+            <div className={styles.top_container}>
+                <div className={styles.left_container}>
+                    <BackToDashboard />
+                </div>
+                <div className={styles.right_container}>
+                    <h1>Profile details</h1>
+
+                    {fetching ? (
+                        <p>Loading...</p>
+                    ) : (
+                        <div>
+                            <h2>{data.userDetails.user.name}</h2>
+
+                            <div className={styles.bio_container}>
+                                <Image
+                                    id={styles.user_pic}
+                                    width={96}
+                                    height={96}
+                                    src={data.userDetails.user.pic}
+                                    alt={`${data.userDetails.user.name}'s profile picture`}
+                                />
+                                <div className={styles.bio_text_container}>
+                                    <p className={styles.bio_text_text}>
+                                        {data.userDetails.user.bio.length === 0
+                                            ? "User has no biography."
+                                            : data.userDetails.user.bio}
+                                    </p>
                                 </div>
                             </div>
-                            {changeDetailsErrors.map((error, i) => (
-                                <p className="error" key={i}>
-                                    {error}
-                                </p>
-                            ))}
-                            {changeDetailsBtnOrMsg}
-                        </form>
-                    </>
-                )}
 
-                <h2 id={styles.header_security}>Security</h2>
-                <form id={styles.form_change_password} onSubmit={handleSubmitChangePassword}>
-                    <h3>Change password</h3>
-                    <div className="container_input_label">
-                        <label className="label">Current password</label>
-                        <InputPassword value={currentPassword} setValue={setCurrentPassword} />
-                    </div>
-                    <div className="container_input_label">
-                        <label className="label">New password</label>
-                        <InputPassword value={newPassword} setValue={setNewPassword} />
-                    </div>
-                    <div className="container_input_label">
-                        <label className="label">Confirm new password</label>
-                        <InputPassword
-                            value={newPasswordConfirm}
-                            setValue={setNewPasswordConfirm}
-                        />
-                    </div>
-                    {changePasswordErrors.map((error, i) => (
-                        <p className="error" key={i}>
-                            {error}
-                        </p>
-                    ))}
-                    {changePasswordBtnOrMsg}
-                </form>
+                            <p>
+                                Profile pictures can be configured via{" "}
+                                <a href="https://en.gravatar.com/">Gravatar</a>
+                            </p>
+                            <form id={styles.form_change_password} onSubmit={handleEditUserDetails}>
+                                <h2>Change details</h2>
+                                <div className="container_input_label">
+                                    <div className="container_input_label">
+                                        <label className="label" htmlFor="">
+                                            Bio
+                                        </label>
+                                        <input
+                                            className="input"
+                                            type="text"
+                                            maxLength={64}
+                                            onChange={(e) => setBio(e.target.value)}
+                                            defaultValue={data.userDetails.user.bio}
+                                        />
+                                    </div>
+                                </div>
+                                {changeDetailsErrors.map((error, i) => (
+                                    <p className="error" key={i}>
+                                        {error}
+                                    </p>
+                                ))}
+                                {changeDetailsBtnOrMsg}
+                            </form>
+                            <h2 id={styles.header_security}>Security</h2>
+                            <form
+                                id={styles.form_change_password}
+                                onSubmit={handleSubmitChangePassword}
+                            >
+                                <h3>Change password</h3>
+                                <div className="container_input_label">
+                                    <label className="label">Current password</label>
+                                    <InputPassword
+                                        value={currentPassword}
+                                        setValue={setCurrentPassword}
+                                    />
+                                </div>
+                                <div className="container_input_label">
+                                    <label className="label">New password</label>
+                                    <InputPassword value={newPassword} setValue={setNewPassword} />
+                                </div>
+                                <div className="container_input_label">
+                                    <label className="label">Confirm new password</label>
+                                    <InputPassword
+                                        value={newPasswordConfirm}
+                                        setValue={setNewPasswordConfirm}
+                                    />
+                                </div>
+                                {changePasswordErrors.map((error, i) => (
+                                    <p className="error" key={i}>
+                                        {error}
+                                    </p>
+                                ))}
+                                {changePasswordBtnOrMsg}
+                            </form>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
