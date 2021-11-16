@@ -147,11 +147,9 @@ export default function Session() {
     const getActivityElement = (selection: SessionActivity, activity: Activity | undefined) => {
         /* Handle Q&A as a special case, since it's not an activity */
         if (selection === SessionActivity.QA)
-            if (sessionQnA === undefined || !sessionQnA.open) {
-                console.log(session);
-                console.log(sessionQnA);
+            if (sessionQnA === undefined || !sessionQnA.open)
                 return <p>This session does not have a Q&amp;A</p>;
-            } else
+            else
                 return (
                     <div>
                         <QaInput name="Anonymous" />

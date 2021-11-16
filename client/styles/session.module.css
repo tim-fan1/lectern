@@ -1,8 +1,8 @@
 .root_container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    width: 100vw;
+    height: 100%;
+    width: 100%;
     align-items: center;
     justify-content: flex-start;
 }
@@ -19,7 +19,6 @@
 .selected_button_container {
     display: flex;
     flex-direction: row;
-
 }
 
 .selector_button {
@@ -38,7 +37,7 @@
 }
 
 .selected_selector_button {
-    background: var(--c-primary)
+    background: var(--c-primary);
 }
 
 #room_id_container {
