@@ -152,7 +152,7 @@ export default function Session() {
             else
                 return (
                     <div>
-                        <QaInput name="Anonymous" />
+                        <QaInput />
                         <Qa qna={sessionQnA} />
                     </div>
                 );

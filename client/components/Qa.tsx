@@ -1,5 +1,6 @@
 import QnA from "../entities/QnA";
 import QaQuestion from "./QaQuestion";
+import styles from "../styles/Qa.module.css";
 
 interface Props {
     qna: QnA;
@@ -8,7 +9,7 @@ interface Props {
 export default function Qa({ qna }: Props) {
     return (
         <div className="container_center">
-            <h2>{qna.questions.length} questions asked</h2>
+            <h2 className={styles.header}>{qna.questions.length} questions asked</h2>
             {qna.questions.length === 0 && <p>Questions asked by students will appear here!</p>}
             {qna.questions.map((question, i) => (
                 <QaQuestion

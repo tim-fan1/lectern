@@ -14,9 +14,11 @@
 
 .container h3 {
     color: var(--c-light-grey);
+    font-size: 1em;
 }
 
 .container p {
     width: 25rem;
+    margin: 0.5rem 0;
     overflow-wrap: break-word;
 }

@@ -16,5 +16,16 @@
 }
 
 #question_container_submit {
+    width: 100%;
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#question_container_submit button {
+    margin-bottom: 1rem;
+}
+
+#question_container_submit p span {
+    color: var(--c-grey);
 }
