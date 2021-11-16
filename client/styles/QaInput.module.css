@@ -15,6 +15,10 @@
     outline: none;
 }
 
+.disabled {
+    color: var(--c-grey) !important;
+}
+
 #question_container_submit {
     width: 100%;
     display: flex;

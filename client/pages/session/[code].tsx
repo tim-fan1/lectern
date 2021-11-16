@@ -19,6 +19,7 @@ import {
     updateSessionState,
     updateSessionActivities,
     updateSession,
+    updateSessionQna,
 } from "../../state/sessionSlice";
 import { useSessionDetailsQuery } from "../../utils/lecternApi";
 import { PollResult } from "../../components/PollResult";
@@ -107,6 +108,8 @@ export default function Session() {
                    rather than the whole session so that we don't invalidate other fields. */
                 dispatch(updateSessionState(updatedSession.state));
                 dispatch(updateSessionActivities(updatedSession.activities));
+                dispatch(updateSessionQna(updatedSession.qna));
+                // dispatch(updateSession(updatedSession));
             }
         }
 
@@ -152,7 +155,7 @@ export default function Session() {
             else
                 return (
                     <div>
-                        <QaInput />
+                        <QaInput sessionId={session?.id ? session?.id : 42069} />
                         <Qa qna={sessionQnA} />
                     </div>
                 );
