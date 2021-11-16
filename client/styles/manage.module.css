@@ -8,3 +8,17 @@
     flex-basis: 100%;
     margin-bottom: 2rem;
 }
+
+.qna_toggle_container {
+    margin: 1rem 0;
+    display: flex;
+    transition: all 0.2s;
+}
+
+.qna_toggle_container input {
+    margin-left: 0.7rem;
+}
+
+.disabled {
+    opacity: 0.5;
+}
