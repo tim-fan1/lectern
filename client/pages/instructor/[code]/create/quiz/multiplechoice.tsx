@@ -161,7 +161,13 @@ export default function CreateMultipleChoiceQuiz() {
                     Add option
                 </button>
                 <div className="form_container_btn">
-                    <button className="btn btn_secondary" onClick={() => router.back()}>
+                    <button
+                        className="btn btn_secondary"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            router.back();
+                        }}
+                    >
                         Cancel
                     </button>
                     <button type="submit" className="btn btn_primary">
