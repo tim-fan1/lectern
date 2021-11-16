@@ -1,4 +1,4 @@
-import { CombinedError, useQuery, UseQueryArgs } from "urql";
+import { CombinedError, OperationResult, useMutation, useQuery, UseQueryArgs } from "urql";
 
 /// Interface to get data. Note that the object returned is always
 /// a concrete object; it will throw an error otherwise
@@ -61,12 +61,23 @@ class ConcreteApiError implements ApiError {
 /// An abstraction over the useQuery hook to also parse and process api errors from the backend
 /// LecternData: the model returned via the api. Generally via .data.[getSession].[sessions]
 /// Variables: variables passed to the query
-export const useLecternQuery = <LecternData extends object, Variables = object>(
+export const useLecternQuery = <LecternData extends object, Variables = any>(
     props: useLecternQueryProps<Variables>
 ): LecternApiResponse<LecternData> => {
     const [result] = useQuery<any, Variables>(props);
-    console.log(result);
 
+    return lecternCheckForError<LecternData>(result, props);
+};
+
+export type checkForType = {
+    queryName: string;
+    queryField: string;
+};
+
+export const lecternCheckForError = <LecternData extends object, Variables = any>(
+    result: any,
+    props: checkForType
+): LecternApiResponse<LecternData> => {
     if (result.fetching) {
         return {
             fetching: true,
