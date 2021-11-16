@@ -13,3 +13,12 @@
 #user_pic {
     border-radius: 50%;
 }
+
+.top_container {
+    flex-direction: row;
+    display: flex;
+}
+
+.left_container {
+    margin: 2rem;
+}
