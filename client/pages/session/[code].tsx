@@ -144,7 +144,26 @@ export default function Session() {
             setHasVotedStatePoll([false, -1]);
         }
     }
-    const getActivityElement = (selection: SessionActivity, activity: Activity) => {
+    const getActivityElement = (selection: SessionActivity, activity: Activity | undefined) => {
+        /* Handle Q&A as a special case, since it's not an activity */
+        if (selection === SessionActivity.QA)
+            if (sessionQnA === undefined || !sessionQnA.open) {
+                console.log(session);
+                console.log(sessionQnA);
+                return <p>This session does not have a Q&amp;A</p>;
+            } else
+                return (
+                    <div>
+                        <QaInput name="Anonymous" />
+                        <Qa qna={sessionQnA} />
+                    </div>
+                );
+
+        if (activity === undefined)
+            return `A ${
+                selection.charAt(0).toUpperCase() + selection.toLowerCase().slice(1)
+            } has not been started yet...`;
+
         switch (selection) {
             case SessionActivity.POLL:
                 return !hasVotedPoll ? (
@@ -155,16 +174,6 @@ export default function Session() {
                 );
             case SessionActivity.QUIZ:
                 return <MultipleChoiceQuiz activity={activity} />;
-            case SessionActivity.QA:
-                if (sessionQnA === undefined || !sessionQnA.open)
-                    return <p>This session does not have a Q&amp;A</p>;
-                else
-                    return (
-                        <div>
-                            <QaInput name="Anonymous" />
-                            <Qa qna={sessionQnA} />
-                        </div>
-                    );
             default:
                 return <p>Coming soon™</p>;
         }
@@ -208,12 +217,7 @@ export default function Session() {
             </div>
             {error && <p className="error">{error}</p>}
             <div className={`container_center ${styles.content_container}`}>
-                {openActivity && getActivityElement(selectedActivityKind, openActivity)}
-                {!openActivity &&
-                    `A ${
-                        selectedActivityKind.charAt(0).toUpperCase() +
-                        selectedActivityKind.toLowerCase().slice(1)
-                    } has not been started yet...`}
+                {getActivityElement(selectedActivityKind, openActivity)}
             </div>
         </div>
     );
