@@ -5,13 +5,13 @@ import { StyledComponent } from "styled-components";
 import { Activity } from "../entities/entities";
 export interface DragAndDropProps {
     activity: Activity;
+    setHasVotedQuizState: Function;
 }
 export interface thing {
     title: string;
     answers: Array<string>;
 }
-export default function DragAndDropQuiz({ activity }: DragAndDropProps) {
-    const [selectedIndex, setSelectedIndex] = useState(0);
+export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: DragAndDropProps) {
     const submitSelectedAnswer = () => {
         // TODO:
         console.log(answers);

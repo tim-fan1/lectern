@@ -14,7 +14,7 @@ export default function Quiz({ activity, setHasVotedQuizState }: QuizProps) {
                     setHasVotedQuizState={setHasVotedQuizState}
                 />
             ) : (
-                <DragAndDropQuiz activity={activity} />
+                <DragAndDropQuiz activity={activity} setHasVotedQuizState={setHasVotedQuizState} />
             )}
         </div>
     );

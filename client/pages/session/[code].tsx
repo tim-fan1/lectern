@@ -82,9 +82,18 @@ export default function Session() {
     const sessionQnA = useAppSelector((state) => state.session.session?.qna);
 
     const [selectedActivityKind, setSelectedActivityKind] = useState(SessionActivity.POLL);
-    const openActivity = sessionActivities?.find(
-        (a) => a.state === "open" && a.kind === selectedActivityKind
-    );
+    const openActivity = sessionActivities?.find((activity) => {
+        /* Only go through open activities.*/
+        if (activity.state !== "open") return false;
+        /* POLL matches with POLL, QUIZ matches with QUIZ, etc.*/
+        if (activity.kind === selectedActivityKind) return true;
+        if (selectedActivityKind === "QUIZ") {
+            /* user selected quiz, but activity is not "quiz".
+             * check if activity is instead a dnd. if it is we should display it. */
+            if (activity.kind === "DND") return true;
+        }
+        return false;
+    });
 
     let error;
     const handleSessionSub = (
