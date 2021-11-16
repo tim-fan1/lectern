@@ -4,8 +4,10 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
 import Navigation from "../../components/Navigation";
+import { useAppDispatch } from "../../state/hooks";
+import { updateSession } from "../../state/sessionSlice";
 import styles from "../../styles/join.module.css";
-import { validateSessionCode } from "../../util";
+import { validateSessionCode } from "../../utils/util";
 import { useSessionDetailsQuery } from "../../utils/lecternApi";
 
 export default function Join() {
@@ -29,6 +31,8 @@ export default function Join() {
         // don't request with an invalid code
         pause: !isValidCode,
     });
+
+    const dispatch = useAppDispatch();
 
     if (enteredName) {
         router.push(`/session/${code}`);
@@ -81,6 +85,7 @@ export default function Join() {
         );
     } else {
         let session = getData();
+        dispatch(updateSession(session));
         const nameSection = enteredName ? (
             <></>
         ) : (

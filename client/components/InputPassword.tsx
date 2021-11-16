@@ -52,6 +52,7 @@ export default function InputPassword({ value, setValue }: Props) {
                 type={isVisible ? "text" : "password"}
                 minLength={8}
                 maxLength={30}
+                value={value}
                 onChange={(e) => setValue(e.target.value)}
                 required
             />

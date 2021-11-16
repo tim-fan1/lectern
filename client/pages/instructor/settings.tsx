@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Image from "next/image";
 import { FormEvent, useState } from "react";
 import { useMutation, useQuery } from "urql";
 import InputPassword from "../../components/InputPassword";
@@ -160,7 +161,13 @@ export default function Settings() {
                     <p>Loading...</p>
                 ) : (
                     <>
-                        <img style={{ borderRadius: "50%" }} src={data.userDetails.user.pic} />
+                        <Image
+                            id={styles.user_pic}
+                            width={80}
+                            height={80}
+                            src={data.userDetails.user.pic}
+                            alt={`${data.userDetails.user.name}'s profile picture'`}
+                        />
                         <h3>{data.userDetails.user.name}</h3>
                         <p>
                             {data.userDetails.user.bio.length === 0

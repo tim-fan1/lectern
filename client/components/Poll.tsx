@@ -1,50 +1,55 @@
 import styles from "../styles/Poll.module.css";
 import { useState } from "react";
+import { MarkdownText } from "./MarkdownText";
+import { Activity } from "../entities/entities";
 
 export interface PollProps {
-    title: string;
-    // require at least 1 question
-    questions: Array<string>;
+    // title: string;
+    // // require at least 1 question
+    // questions: Array<string>;
+    activity: Activity;
 }
 
-export default function Poll({ questions, title }: PollProps) {
+export default function Poll({ activity }: PollProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const submitPollAnswer = () => {
         // TODO
     };
+
     return (
-        <div className={styles.poll_box}>
-            <h2 className={styles.poll_question}>{title}</h2>
-            <form className={styles.poll_answer_container}>
-                {questions.map((value, index) => {
-                    let className = styles.poll_button_button;
+        <div className={styles.container_poll}>
+            <form className={`form`}>
+                <div className={styles.poll_question}>
+                    <MarkdownText text={activity.name} />
+                </div>
+                {activity.choices.map((choice, index) => {
+                    let classNamePollOption = styles.poll_option;
                     if (index === selectedIndex) {
-                        className += " " + styles.poll_button_button_selected;
+                        classNamePollOption += " " + styles.poll_option_selected;
                     }
                     return (
                         <div
-                            className={styles.poll_button_container}
+                            className={classNamePollOption}
                             key={index}
-                            onClick={(e) => setSelectedIndex(index)}
+                            onClick={() => setSelectedIndex(index)}
                         >
                             <input
-                                type={"radio"}
-                                className={className}
-                                name={"pollRadio"}
+                                type="radio"
+                                className={styles.poll_option_radio_input}
+                                name="pollRadio"
                                 checked={index === selectedIndex}
-                                onChange={(e) => setSelectedIndex(index)}
+                                onChange={() => setSelectedIndex(index)}
                             />
-                            <span>{value}</span>
+                            <MarkdownText text={choice.name} className={styles.poll_option_text} />
                         </div>
                     );
                 })}
                 <input
-                    className={"btn btn_call_to_action"}
-                    type={"button"}
-                    value={"Submit"}
-                    onClick={(e) => submitPollAnswer()}
+                    className="btn btn_call_to_action"
+                    type="button"
+                    value="Submit"
+                    onClick={() => submitPollAnswer()}
                 />
-                <div className={styles.poll_answer_space} />
             </form>
         </div>
     );

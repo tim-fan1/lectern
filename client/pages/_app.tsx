@@ -6,7 +6,6 @@ import {
     createClient,
     defaultExchanges,
     Provider as ProviderUrqlClient,
-    ssrExchange,
     subscriptionExchange,
 } from "urql";
 import { createClient as createWSClient } from "graphql-ws";

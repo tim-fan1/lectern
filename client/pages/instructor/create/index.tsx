@@ -88,17 +88,19 @@ export default function Dashboard() {
             </Head>
             <Navigation />
             <h2>Create a new session</h2>
-            <form onSubmit={handleSubmit}>
-                <input
-                    id={styles.input_session_name}
-                    type="text"
-                    placeholder="Session name (click to edit)"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                />
+            <form className="form" onSubmit={handleSubmit}>
+                <div className="container_input_label">
+                    <label className="label">Session name</label>
+                    <input
+                        className="input"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                    />
+                </div>
                 <div className="container_center">
-                    <p>Add this session to a group</p>
+                    <p>Add this session to a group (optional)</p>
                     <div className={styles.container_add_group}>
                         {groups.map((groupName, i) => {
                             let className = `btn btn_secondary ${styles.group_button}`;
@@ -150,7 +152,7 @@ export default function Dashboard() {
                     <Link href="/instructor/dashboard" passHref>
                         <button className="btn btn_secondary">Cancel</button>
                     </Link>
-                    <button className="btn btn_primary">Save session</button>
+                    <button className="btn btn_primary">Create session</button>
                 </div>
             </form>
             {errors.map((error, i) => (
