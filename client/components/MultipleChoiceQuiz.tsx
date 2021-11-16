@@ -1,19 +1,20 @@
 import { useState } from "react";
 import styles from "../styles/Poll.module.css";
+import { Activity } from "../entities/entities";
+import { activityStateFromString } from "../utils/util";
 export interface MultipleChoiceProps {
-    title: string;
-    answers: Array<string>;
+    activity: Activity;
 }
-export default function MultipleChoiceQuiz({ title, answers }: MultipleChoiceProps) {
+export default function MultipleChoiceQuiz({ activity }: MultipleChoiceProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const submitSelectedAnswer = () => {
         // TODO:
     };
     return (
         <div className={styles.poll_box}>
-            <h2 className={styles.poll_question}>{title}</h2>
+            <h2 className={styles.poll_question}>{activity.name}</h2>
             <form className={styles.poll_answer_container}>
-                {answers.map((answer, index) => {
+                {activity.choices.map((choice, index) => {
                     let className = styles.poll_button_button;
                     if (index === selectedIndex) {
                         className += " " + styles.poll_button_button_selected;
@@ -27,11 +28,11 @@ export default function MultipleChoiceQuiz({ title, answers }: MultipleChoicePro
                             <input
                                 type={"radio"}
                                 className={className}
-                                name={"pollRadio" + answer}
+                                name={"pollRadio"}
                                 checked={index === selectedIndex}
                                 onChange={(e) => setSelectedIndex(index)}
                             />
-                            <span>{answer}</span>
+                            <span>{choice.name}</span>
                         </div>
                     );
                 })}

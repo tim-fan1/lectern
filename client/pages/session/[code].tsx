@@ -32,7 +32,8 @@ const updatedSession = `
                     choices {
                         id,
                         name,
-                    }
+                    },
+                    kind
                 }
             }
             errors {
@@ -58,53 +59,7 @@ function getActivityElement(selection: SessionActivity, activity: Activity) {
         case SessionActivity.POLL:
             return <Poll activity={activity} />;
         case SessionActivity.QUIZ:
-            return (
-                <>
-                    <MultipleChoiceQuiz
-                        title={"What is the best web development software for complexity?"}
-                        answers={[
-                            "Package managers",
-                            "JavaScript bundlers",
-                            "Frameworks on top of frameworks (e.g. Next.js)",
-                            "All of the above",
-                        ]}
-                    />
-                    <MultipleChoiceQuizResults
-                        title={"What is the best web development software for complexity?"}
-                        results={[
-                            {
-                                optionName: "OPTION AAAAAAAAA",
-                                numberOfVotes: 9,
-                                isCorrectAnswer: false,
-                            },
-                            {
-                                optionName: "OPTION BB",
-                                numberOfVotes: 1,
-                                isCorrectAnswer: false,
-                            },
-                            {
-                                optionName: "OPTION C",
-                                numberOfVotes: 24,
-                                isCorrectAnswer: true,
-                            },
-                            {
-                                optionName: "OPTION DDDD",
-                                numberOfVotes: 13,
-                                isCorrectAnswer: false,
-                            },
-                        ]}
-                    />
-                    <DragAndDropQuiz
-                        title={"DRAGANDDROP"}
-                        answers={[
-                            "Package managers",
-                            "JavaScript bundlers",
-                            "Frameworks on top of frameworks (e.g. Next.js)",
-                            "All of the above",
-                        ]}
-                    />
-                </>
-            );
+            return <MultipleChoiceQuiz activity={activity} />;
         default:
             return <p>Coming soon™</p>;
     }
@@ -120,7 +75,9 @@ export default function Session() {
     const sessionActivities = useAppSelector((state) => state.session.session?.activities);
 
     const [selectedActivityKind, setSelectedActivityKind] = useState(SessionActivity.POLL);
-    const openActivity = sessionActivities?.find((a) => a.state === "open");
+    const openActivity = sessionActivities?.find(
+        (a) => a.state === "open" && a.kind === selectedActivityKind
+    );
 
     let error;
     const handleSessionSub = (
@@ -208,6 +165,11 @@ export default function Session() {
             {error && <p className="error">{error}</p>}
             <div className={`"container_center" ${styles.content_container}`}>
                 {openActivity && getActivityElement(selectedActivityKind, openActivity)}
+                {!openActivity &&
+                    `A ${
+                        selectedActivityKind.charAt(0).toUpperCase() +
+                        selectedActivityKind.toLowerCase().slice(1)
+                    } has not been started yet...`}
             </div>
         </div>
     );
