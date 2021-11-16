@@ -7,17 +7,32 @@ export interface DragAndDropProps {
     activity: Activity;
     setHasVotedQuizState: Function;
 }
+interface Answer {
+    name: string;
+    choiceId: number;
+}
 export interface thing {
     title: string;
-    answers: Array<string>;
+    answers: Answer[];
 }
 export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: DragAndDropProps) {
     const submitSelectedAnswer = () => {
         // TODO:
         console.log(answers);
     };
-    const title = "TODO";
-    const [answers, setAnswers] = useState(["TODO"]);
+    const title = activity.name;
+    const [answers, setAnswers] = useState(() => {
+        const ret = [] as Answer[];
+        for (const choice of activity.choices) {
+            ret.push({
+                choiceId: choice.id,
+                name: choice.name,
+            });
+        }
+        ret.sort(() => Math.random() - 0.5);
+        console.log("newAnswers", ret);
+        return ret;
+    });
     return (
         <>
             <DragDropContext
@@ -88,7 +103,7 @@ export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: Drag
                                                                 fontWeight: 400,
                                                             }}
                                                         >
-                                                            {answer}
+                                                            {answer.name}
                                                         </div>
                                                     </div>
                                                 )}
