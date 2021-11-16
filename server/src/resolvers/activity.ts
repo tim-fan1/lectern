@@ -99,6 +99,7 @@ enum ActivityErrors {
     ACTIVITY_INVALID_STATE = "ACTIVITY_INVALID_STATE",
     ACTIVITY_NAME_ALREADY_EXIST = "ACTIVITY_NAME_ALREADY_EXIST",
     INVALID_INPUT = "INVALID_INPUT",
+    QUESTION_NOT_EXIST = "QUESTION_NOT_EXIST",
 }
 
 export enum ActivityKinds {
@@ -931,6 +932,43 @@ export default class ActivityResolver {
                 return right(session);
             },
             [],
+            true
+        );
+
+        if (result.isLeft) return EndpointResponse.withErrors(result.data);
+        else return EndpointResponse.withErrors();
+    }
+
+    @CheckAuth()
+    @Mutation(() => EndpointResponse)
+    async markQuestion(
+        @Arg("sessionId", () => Int) sessionId: number,
+        @Arg("questionId", () => Int) questionId: number,
+        @Arg("isRead") isRead: boolean,
+        @Ctx() { openSessions, user }: AuthedContext
+    ): Promise<EndpointResponse> {
+        const result = await modifySession(
+            openSessions,
+            { id: sessionId },
+            (session) => {
+                if (session.author.id !== user.id || session.state !== "open")
+                    return left({ kind: ActivityErrors.SESSION_NOT_EXIST });
+                if (!session.qna.open)
+                    return left({
+                        kind: ActivityErrors.ACTIVITY_INVALID_STATE,
+                        msg: "Q&A is not available for this session",
+                    });
+
+                const qn = session.qna.questions.find(
+                    (q) => q.id === questionId
+                );
+                if (qn === undefined)
+                    return left({ kind: ActivityErrors.QUESTION_NOT_EXIST });
+                qn.read = isRead;
+
+                return right(session);
+            },
+            ["author"],
             true
         );
 
