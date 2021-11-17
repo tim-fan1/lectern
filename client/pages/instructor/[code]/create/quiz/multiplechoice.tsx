@@ -111,6 +111,7 @@ export default function CreateMultipleChoiceQuiz() {
             </Head>
             <Navigation />
             <h1>Create a multiple choice quiz</h1>
+            <h2 style={{ marginBottom: "2rem" }}>Click a possible answer to mark it as correct</h2>
             <form className="form" onSubmit={handleSubmit}>
                 <input
                     id={styles.input_poll_name}
@@ -121,9 +122,7 @@ export default function CreateMultipleChoiceQuiz() {
                     onChange={(e) => setName(e.target.value)}
                     required
                 />
-                <div id={styles.container_input_poll_option} style={{ marginBottom: "1rem" }}>
-                    <h3>Multiple choice quiz possible answers</h3>
-                </div>
+                <div id={styles.container_input_poll_option} style={{ marginBottom: "1rem" }}></div>
                 {[...Array(nAnswers)].map((val, i) => {
                     return (
                         <div
