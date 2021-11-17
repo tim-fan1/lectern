@@ -5,18 +5,18 @@
     flex-direction: row;
     justify-content: flex-start;
     align-content: flex-start;
-    align-items: center
+    align-items: center;
 }
 
 .bar_coloured {
     background-color: var(--c-light-grey);
     height: 100%;
     display: inline-block;
-    margin-right: 1.25rem
+    margin-right: 1.25rem;
 }
 
 .bar_label {
-    margin: 1rem 0 0.5rem 0
+    margin: 1rem 0 0.5rem 0;
 }
 
 .top_header_container {
@@ -45,18 +45,17 @@
 .main_container {
     padding: 2rem;
     background-color: var(--c-background-secondary);
-    min-width: 40%;
-    max-width: 80%;
+    width: 100%;
+    /* min-width: 40%;
+    max-width: 80%; */
 }
-
-
 
 #poll_result_break {
     border: none;
     overflow: visible;
     height: 4px;
     background-color: var(--c-light-grey);
-    width: 100%
+    width: 100%;
 }
 
 .vote_count {
@@ -73,12 +72,11 @@
     margin-bottom: 4rem;
 }
 
-
 @media screen and (max-width: 800px) {
     .main_container {
         max-width: 100%;
     }
     .all_bars_container {
-        padding: 0
+        padding: 0;
     }
 }
