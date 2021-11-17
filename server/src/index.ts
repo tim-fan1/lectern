@@ -77,7 +77,7 @@ if (require.main === module) {
         const connection = await createConnection({
             // replace this with ormconfig.json later (tm)
             type: "sqlite",
-            database: "owo.db",
+            database: "protessional.db",
             entities: Object.values(entities),
         });
 

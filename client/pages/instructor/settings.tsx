@@ -199,6 +199,7 @@ export default function Settings() {
                                         </label>
                                         <input
                                             className="input"
+                                            id={styles.question_textarea}
                                             type="text"
                                             maxLength={64}
                                             onChange={(e) => setBio(e.target.value)}
@@ -238,7 +239,7 @@ export default function Settings() {
                                     />
                                 </div>
                                 {changePasswordErrors.map((error, i) => (
-                                    <p className="error" key={i}>
+                                    <p className="error" key={i} style={{ textAlign: "left" }}>
                                         {error}
                                     </p>
                                 ))}

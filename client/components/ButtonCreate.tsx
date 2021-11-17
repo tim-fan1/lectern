@@ -8,7 +8,7 @@ interface Props {
 
 export default function ButtonCreate({ href, text }: Props) {
     return (
-        <Link href={href}>
+        <Link href={href} passHref>
             <a id={styles.btn_create} className="btn btn_primary">
                 <p>{text}</p>
                 <svg

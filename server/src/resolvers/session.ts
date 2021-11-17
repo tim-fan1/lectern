@@ -287,6 +287,7 @@ export default class SessionResolver {
                     ),
                 });
             }),
+            qna: conn.getRepository(QnA).create(),
         });
 
         /* Save to session repo (hope the cascades work!) */
