@@ -80,6 +80,7 @@ export default function Session() {
     const sessionState = useAppSelector((state) => state.session.session?.state);
     const sessionActivities = useAppSelector((state) => state.session.session?.activities);
     const sessionQnA = useAppSelector((state) => state.session.session?.qna);
+    const displayName = useAppSelector((state) => state.session.name);
 
     const [selectedActivityKind, setSelectedActivityKind] = useState(SessionActivity.POLL);
     const openActivity = sessionActivities?.find((activity) => {
@@ -175,7 +176,7 @@ export default function Session() {
             else
                 return (
                     <div>
-                        <QaInput sessionId={session?.id ? session?.id : 42069} />
+                        <QaInput sessionId={session?.id ? session?.id : 42069} name={displayName} />
                         <Qa qna={sessionQnA} />
                     </div>
                 );

@@ -5,10 +5,12 @@ import { SessionState as SessionActiveState } from "../entities/Session";
 
 interface SessionState {
     session?: Session;
+    name?: string;
 }
 
 const initialState: SessionState = {
     session: undefined,
+    name: undefined,
 };
 
 const sessionSlice = createSlice({
@@ -32,11 +34,19 @@ const sessionSlice = createSlice({
         updateSessionQna: (state, newQna: PayloadAction<QnA>) => {
             state.session!.qna = newQna.payload;
         },
+        updateName: (state, newName: PayloadAction<string>) => {
+            state.name = newName.payload.trim();
+        },
     },
 });
 
-export const { updateSession, updateSessionState, updateSessionActivities, updateSessionQna } =
-    sessionSlice.actions;
+export const {
+    updateSession,
+    updateSessionState,
+    updateSessionActivities,
+    updateSessionQna,
+    updateName,
+} = sessionSlice.actions;
 
 export const selectSession = (state: RootState) => state.session.session;
 

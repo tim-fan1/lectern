@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
 import Navigation from "../../components/Navigation";
 import { useAppDispatch } from "../../state/hooks";
-import { updateSession } from "../../state/sessionSlice";
+import { updateName, updateSession } from "../../state/sessionSlice";
 import styles from "../../styles/join.module.css";
 import { validateSessionCode } from "../../utils/util";
 import { useSessionDetailsQuery } from "../../utils/lecternApi";
@@ -43,6 +43,7 @@ export default function Join() {
 
         if (!isAnon && displayName.length === 0) return;
         setEnteredName(true);
+        dispatch(updateName(displayName));
     };
 
     let content;

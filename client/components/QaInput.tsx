@@ -26,7 +26,7 @@ export default function QaInput({ name, sessionId }: Props) {
         const variables = {
             sessionId: sessionId,
             question: question,
-            name: undefined,
+            name: name,
         };
         submitQ(variables).then(() => {
             setQuestion("");
