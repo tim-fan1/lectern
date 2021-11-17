@@ -2,7 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useState, MouseEvent, ChangeEvent } from "react";
-import { useMutation, useQuery } from "urql";
+import { useMutation, useQuery, useSubscription } from "urql";
 import ButtonCreate from "../../../components/ButtonCreate";
 import CardActivity from "../../../components/CardActivity";
 import Navigation from "../../../components/Navigation";
@@ -11,41 +11,69 @@ import { Activity, Session } from "../../../entities/entities";
 import styles from "../../../styles/manage.module.css";
 import { activityStateFromString, SessionActivity } from "../../../utils/util";
 import Qa from "../../../components/Qa";
+import { useAppDispatch, useAppSelector } from "../../../state/hooks";
+import {
+    selectSession,
+    updateSession,
+    updateSessionQna,
+    updateSessionState,
+} from "../../../state/sessionSlice";
+import { PollResult } from "../../../components/PollResult";
+
+const SessionFields = `
+    session {
+        id,
+        created,
+        updated,
+        state,
+        startTime,
+        endTime,
+        group,
+        name,
+        code,
+        activities {
+            id,
+            name,
+            state,
+            kind,
+            choices {
+                name,
+                DnDCorrectPosition,
+                DnDVotes,
+                PollVotes,
+                QuizIsCorrect,
+                QuizVotes
+            }
+        },
+        qna {
+            open,
+            questions {
+                id,
+                authorName,
+                question,
+                read,
+                created
+            }
+        }
+    }
+`;
 
 const QuerySessionDetails = `
     query ($code: String!) {
         sessionDetails(code: $code) {
-            session {
-                id,
-                created,
-                updated,
-                state,
-                startTime,
-                endTime,
-                group,
-                name,
-                code,
-              	activities {
-                  id,
-                  name,
-                  state,
-                  kind
-                },
-                qna {
-                    open,
-                    questions {
-                        id,
-                        authorName,
-                        question,
-                        read,
-                        created
-                    }
-                }
-            }
+            ${SessionFields}
             errors {
                 kind
                 msg
             }
+        }
+    }
+`;
+
+const SubscriptionSession = `
+    subscription ($id: Int!) {
+        sessionSubscription(id: $id) {
+            ${SessionFields}
         }
     }
 `;
@@ -81,6 +109,16 @@ interface QueriedSession {
     code?: String;
 }
 
+interface SessionSubQuery {
+    sessionSubscription: {
+        session: Session;
+        errors: {
+            kind: string;
+            msg: string;
+        }[];
+    };
+}
+
 export default function DashboardSession() {
     const router = useRouter();
     const code = router.query.code;
@@ -101,17 +139,47 @@ export default function DashboardSession() {
     const [toggleQnaEnabled, setToggleQnaEnabled] = useState(true);
     const handleToggleQna = (event: ChangeEvent<HTMLInputElement>) => {
         setToggleQnaEnabled(false);
-        toggleQna({ id: session.id, open: event.target.checked }).then(() =>
+        toggleQna({ id: session?.id, open: event.target.checked }).then(() =>
             setToggleQnaEnabled(true)
         );
     };
 
     const [selectedActivity, setSelectedActivity] = useState(SessionActivity.POLL);
 
+    const dispatch = useAppDispatch();
+    const session = useAppSelector(selectSession);
+    let errors = [];
+
+    const pauseDetails = session !== undefined;
+
     const [result] = useQuery({
         query: QuerySessionDetails,
         variables: { code: router.query.code },
+        pause: pauseDetails,
     });
+
+    /* Dispatch the session (update it in Redux store) when the sessionDetails
+     * query comes back */
+    const { data, fetching } = result;
+    if (!fetching && !pauseDetails) {
+        if (data.sessionDetails.errors.length === 0)
+            dispatch(updateSession(data.sessionDetails.session));
+        else errors = data.sessionDetails.errors;
+    }
+
+    /* Set up the subscription using the ID from the query, to dispatch the
+     * entire session every time we receive new data. */
+    useSubscription(
+        { query: SubscriptionSession, variables: { id: session?.id } },
+        (_, newSubQuery: SessionSubQuery) => {
+            const updatedSession = newSubQuery.sessionSubscription.session;
+            if (updatedSession !== null) {
+                dispatch(updateSession(updatedSession));
+            }
+
+            return newSubQuery;
+        }
+    );
 
     const getActivityButtonCreate = (session: Session) => {
         switch (selectedActivity) {
@@ -152,23 +220,34 @@ export default function DashboardSession() {
         }
     };
 
-    let { data, fetching } = result;
-    let content;
-    let session: Session;
+    /* Returns the current activity for a particular kind, if there is one open */
+    const getCurrentActivityElem = (session: Session, kind: SessionActivity) => {
+        switch (kind) {
+            case SessionActivity.QA:
+                return <Qa qna={session.qna} />;
+            case SessionActivity.POLL:
+                const currentPoll = session.activities.find(
+                    (a) => a.kind === SessionActivity.POLL && a.state === "open"
+                );
+                if (currentPoll === undefined) return <></>;
+                console.log(currentPoll);
+                return <PollResult activity={currentPoll} />;
+        }
+    };
 
-    if (fetching) {
+    let content;
+
+    if (!session) {
         content = <p>I&apos;m loading</p>;
-    } else if (data.sessionDetails.errors.length !== 0) {
+    } else if (errors.length !== 0) {
         // error happened - maybe no auth?
         console.log("error?", data.sessionDetails);
-        content = <p>An error happened! {data.sessionDetails.errors.toString()}</p>;
+        content = <p>An error happened! {errors.toString()}</p>;
     } else {
-        session = data.sessionDetails.session;
-
         let activities: React.ReactNode[];
 
         if (SessionActivity.toString(selectedActivity) !== "QA") {
-            activities = data.sessionDetails.session.activities
+            activities = session.activities
                 .filter((activity: Activity) => {
                     /* POLL matches with POLL, QUIZ matches with QUIZ, etc.*/
                     if (activity.kind === SessionActivity.toString(selectedActivity)) return true;
@@ -179,6 +258,7 @@ export default function DashboardSession() {
                     }
                     return false;
                 })
+                .sort((a, b) => activityStateToNum(a.state) - activityStateToNum(b.state))
                 .map((activity: Activity) => {
                     return (
                         <CardActivity
@@ -223,11 +303,13 @@ export default function DashboardSession() {
                         setSelected={setSelectedActivity}
                     />
                 </div>
-                {getActivityButtonCreate(session)}
-                {selectedActivity !== "QA" && (
-                    <div id={styles.container_activities}>{activities}</div>
-                )}
-                {selectedActivity === "QA" && <Qa qna={session.qna} />}
+                <div id={styles.activity_display}>
+                    {getActivityButtonCreate(session)}
+                    {getCurrentActivityElem(session, selectedActivity)}
+                    {selectedActivity !== "QA" && (
+                        <div id={styles.container_activities}>{activities}</div>
+                    )}
+                </div>
             </>
         );
     }
@@ -241,4 +323,17 @@ export default function DashboardSession() {
             <div className="container_center">{content}</div>
         </div>
     );
+}
+
+function activityStateToNum(state: string) {
+    switch (state) {
+        case "open":
+            return 0;
+        case "draft":
+            return 1;
+        case "archived":
+            return 2;
+        default:
+            return 3;
+    }
 }
