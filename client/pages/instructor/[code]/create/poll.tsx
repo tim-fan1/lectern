@@ -4,6 +4,9 @@ import { FormEvent, useState } from "react";
 import { useMutation, useQuery } from "urql";
 import Navigation from "../../../../components/Navigation";
 import { InputChoice } from "../../../../entities/Choice";
+import { Session } from "../../../../entities/entities";
+import { useAppDispatch } from "../../../../state/hooks";
+import { updateSession } from "../../../../state/sessionSlice";
 import styles from "../../../../styles/createPoll.module.css";
 
 // TODO: this whole page is a mess and needs to be revisited.
@@ -61,6 +64,7 @@ export default function CreatePoll() {
     }
 
     const [errors, setErrors] = useState([] as string[]);
+    const dispatch = useAppDispatch();
 
     // TODO: this is not a good way to do this.
     const [name, setName] = useState("");
@@ -77,6 +81,7 @@ export default function CreatePoll() {
             choices: choices,
         };
         addChoices(variables).then(() => {
+            dispatch(updateSession(undefined as any));
             router.push(`/instructor/${code}`);
         });
     };
