@@ -150,18 +150,15 @@ export default function DashboardSession() {
     const session = useAppSelector(selectSession);
     let errors = [];
 
-    const pauseDetails = session !== undefined;
-
     const [result] = useQuery({
         query: QuerySessionDetails,
         variables: { code: router.query.code },
-        pause: pauseDetails,
     });
 
     /* Dispatch the session (update it in Redux store) when the sessionDetails
      * query comes back */
     const { data, fetching } = result;
-    if (!fetching && !pauseDetails) {
+    if (!fetching) {
         if (data.sessionDetails.errors.length === 0)
             dispatch(updateSession(data.sessionDetails.session));
         else errors = data.sessionDetails.errors;
