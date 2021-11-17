@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import styles from "../styles/Poll.module.css";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { StyledComponent } from "styled-components";
 import { Activity } from "../entities/entities";
+import { useMutation } from "urql";
+import DragAndDropQuizResults from "./DragAndDropQuizResults";
+import { useAppSelector } from "../state/hooks";
+import { selectSession } from "../state/sessionSlice";
 export interface DragAndDropProps {
     activity: Activity;
     setHasVotedQuizState: Function;
@@ -15,12 +19,22 @@ export interface thing {
     title: string;
     answers: Answer[];
 }
+
+const MutationDNDQuizVote = `
+    mutation ($sessionId: Int!, $activityId: Int!, $choiceId: Int!, $DnDPosition: Int!) {
+        activityVote(sessionId: $sessionId, activityId: $activityId, choiceId: $choiceId, DnDPosition: $DnDPosition) {
+            errors {
+                kind
+                msg
+            }
+        }
+    }
+`;
+
 export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: DragAndDropProps) {
-    const submitSelectedAnswer = () => {
-        // TODO:
-        console.log(answers);
-    };
     const title = activity.name;
+    const session = useAppSelector(selectSession)!;
+    const [quizVoteResult, quizVote] = useMutation(MutationDNDQuizVote);
     const [answers, setAnswers] = useState(() => {
         const ret = [] as Answer[];
         for (const choice of activity.choices) {
@@ -33,6 +47,32 @@ export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: Drag
         console.log("newAnswers", ret);
         return ret;
     });
+    const submitSelectedAnswer = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        console.log(answers);
+        let i = 0;
+        let success = true;
+        for (const answer of answers) {
+            const variables = {
+                sessionId: session.id,
+                activityId: activity.id,
+                /* We are considering the choice with id choice.id. */
+                choiceId: answer.choiceId,
+                /* The student placed this choice at position i on their screen. */
+                DnDPosition: i,
+            };
+            quizVote(variables).then((result) => {
+                if (result.data.activityVote.errors.length !== 0) {
+                    // setError("Could not submit quiz vote.");
+                    success = false;
+                    console.log("HERERERERE");
+                    console.log(result);
+                }
+            });
+            i++;
+        }
+        if (success) setHasVotedQuizState([true, activity.id]);
+    };
     return (
         <>
             <DragDropContext
@@ -79,6 +119,7 @@ export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: Drag
                                         flexDirection: "column",
                                         alignItems: "center",
                                     }}
+                                    onSubmit={submitSelectedAnswer}
                                 >
                                     {answers.map((answer, index) => {
                                         return (
@@ -110,15 +151,14 @@ export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: Drag
                                             </Draggable>
                                         );
                                     })}
+                                    <input
+                                        className={"btn btn_call_to_action"}
+                                        type={"submit"}
+                                        value={"Submit"}
+                                    />
                                 </form>
                                 {provided.placeholder}
                             </div>
-                            <input
-                                className={"btn btn_call_to_action"}
-                                type={"button"}
-                                value={"Submit"}
-                                onClick={(e) => submitSelectedAnswer()}
-                            />
                         </div>
                     )}
                 </Droppable>
