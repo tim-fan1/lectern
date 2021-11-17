@@ -10,8 +10,7 @@ export default function QuizResult({ activity }: QuizResultProps) {
             {activity.kind === "QUIZ" ? (
                 <MultipleChoiceQuizResults activity={activity} />
             ) : (
-                // <DragAndDropQuizResults activity={activity} />
-                <div>hello</div>
+                <DragAndDropQuizResults activity={activity} />
             )}
         </div>
     );

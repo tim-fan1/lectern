@@ -47,8 +47,7 @@ export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: Drag
         console.log("newAnswers", ret);
         return ret;
     });
-    const submitSelectedAnswer = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+    const submitSelectedAnswer = () => {
         console.log(answers);
         let i = 0;
         let success = true;
@@ -119,7 +118,6 @@ export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: Drag
                                         flexDirection: "column",
                                         alignItems: "center",
                                     }}
-                                    onSubmit={submitSelectedAnswer}
                                 >
                                     {answers.map((answer, index) => {
                                         return (
@@ -137,10 +135,12 @@ export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: Drag
                                                         <div
                                                             style={{
                                                                 margin: "1rem",
-                                                                backgroundColor: "var(--c-text)",
-                                                                color: "black",
+                                                                backgroundColor:
+                                                                    "var(--c-background-secondary)",
+                                                                color: "var(--c-text)",
                                                                 padding: "1.5rem 3rem",
-                                                                borderRadius: "5px",
+                                                                border: "var(--c-background-primary) 1px solid",
+                                                                borderRadius: "2px",
                                                                 fontWeight: 400,
                                                             }}
                                                         >
@@ -151,14 +151,15 @@ export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: Drag
                                             </Draggable>
                                         );
                                     })}
-                                    <input
-                                        className={"btn btn_call_to_action"}
-                                        type={"submit"}
-                                        value={"Submit"}
-                                    />
                                 </form>
                                 {provided.placeholder}
                             </div>
+                            <input
+                                className={"btn btn_call_to_action"}
+                                type={"click"}
+                                value={"Submit"}
+                                onClick={submitSelectedAnswer}
+                            />
                         </div>
                     )}
                 </Droppable>
