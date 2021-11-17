@@ -22,4 +22,4 @@ TODO
 
 Our webapp and server don't communicate through something like a HTTP REST API; rather, they use [GraphQL](https://graphql.org/) as their transport. This fundamentally changes the structure of the codebases, especially on the back-end.
 
-Instead of routes, the back-end defines API endpoints as either "queries", "mutations", or "subscriptions". In our codebase, each of these endpoints takes the form of a function that is @-decorated, and they are organised into classes called "resolvers".
+Instead of HTTP routes, the back-end defines API endpoints as either "queries", "mutations", or "subscriptions". In our codebase, each of these endpoints takes the form of a function that is @-decorated, and they are organised into classes called "resolvers".

@@ -11,4 +11,19 @@ As a team, finalised the list of functionalities, and discussed some project spe
 As a team, initialised our frontend and backend repositories, and decided on our conventions re. code style, version control. Individually, worked on backend features.
 
 ### Week 5
-As a team, organised development of stories, and how we'd run our demo. Individually, worked on more backend features for the first demo, including setting up our GraphQL endpoints, some user features, and some session features.
+As a team, organised development of stories, and how we'd run our demo. Individually, worked on more backend features for the first demo, including setting up our GraphQL endpoints, some user features, and some session features. Demonstrated Sprint 1 on Wednesday.
+
+### Week 6
+As a team, finalised the retrospective and development practices, and decided on the general direction for Sprint 2. Individually, thought how back-end authentication should work, and started writing the middleware for this.
+
+### Week 7
+Individually, finished back-end authentication middleware, and started designing how real-time features in sessions would work.
+
+### Week 8
+As a group, determine how best to work through our backlog of unfinished work, especially around everyone's schedules. Also plan how we should conduct our demo. Individually, worked more on session live features, creating an abstraction layer for our endpoints and re-writing our existing code to use this abstraction. Demonstrated Sprint 2 on Wednesday, and had retrospective meeting with team shortly after, where we determined how best to work on the rest of the project.
+
+### Week 9
+Individually, worked on session activities. Progress slowed down this week due to other assignments.
+
+### Week 10
+As a group, determine how we'd finish the remaining functionalities, and planned our demo out as well. Also worked on the project report. Individually, worked on both backend and frontend for Q&A feature, as well as other misc. fixes. Demonstrated our finished project on Wednesday. Afterwards, cleaned up backend codebase and added some more documentation, and worked on report. 
