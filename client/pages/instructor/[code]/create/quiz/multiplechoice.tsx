@@ -132,16 +132,17 @@ export default function CreateMultipleChoiceQuiz() {
                             style={{ marginBottom: "1rem" }}
                         >
                             <label>({i + 1})</label>
-                            <input
-                                type="text"
+                            <textarea
+                                // type="text"
+                                style={{
+                                    fontFamily: "sans-serif",
+                                    cursor: "pointer",
+                                    border: i === correctOptionIndex ? "#2ecc71 5px solid" : "",
+                                }}
                                 placeholder="Insert possible answer here"
                                 className={`input ${styles.input_poll_option}`}
                                 onChange={(e) => updateOptions(i, e.target.value)}
                                 required
-                                style={{
-                                    cursor: "pointer",
-                                    border: i === correctOptionIndex ? "#2ecc71 5px solid" : "",
-                                }}
                                 onClick={() => setCorrectOptionIndex(i)}
                             />
                         </div>
