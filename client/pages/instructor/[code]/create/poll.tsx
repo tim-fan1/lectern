@@ -76,10 +76,8 @@ export default function CreatePoll() {
             activityId: activityId,
             choices: choices,
         };
-        addChoices(variables).then((result) => {
-            if (result.data.addChoices.errors.length !== 0) {
-                console.log(result);
-            }
+        addChoices(variables).then(() => {
+            router.push(`/instructor/${code}`);
         });
     };
 
@@ -106,7 +104,6 @@ export default function CreatePoll() {
                     choices.push({ name: option });
                 }
                 addChoicesMutation(activityId, choices);
-                router.push(`/instructor/${code}`);
             } else {
                 setErrors([result.data.createActivity.errors[0].msg]);
             }

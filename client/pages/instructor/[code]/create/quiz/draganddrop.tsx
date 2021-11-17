@@ -80,7 +80,6 @@ export default function CreateDragAndDropQuiz() {
                     });
                 }
                 addChoicesMutation(activityId, choices);
-                router.push(`/instructor/${code}`);
             } else {
                 setErrors([result.data.createActivity.errors[0].msg]);
             }
@@ -92,7 +91,9 @@ export default function CreateDragAndDropQuiz() {
             activityId: activityId,
             choices: choices,
         };
-        addChoices(variables);
+        addChoices(variables).then(() => {
+            router.push(`/instructor/${code}`);
+        });
     }
     function updateOptions(i: number, newOption: string) {
         let optionsCopy = [...options];
