@@ -7,7 +7,7 @@ import Poll from "../../components/Poll";
 import Quiz from "../../components/Quiz";
 import QuizResults from "../../components/QuizResults";
 import styles from "../../styles/session.module.css";
-import { SessionActivity, validateSessionCode } from "../../utils/util";
+import { ActivityState, SessionActivity, validateSessionCode } from "../../utils/util";
 import NavigationSession from "../../components/NavigationSession";
 import Qa from "../../components/Qa";
 import QaInput from "../../components/QaInput";

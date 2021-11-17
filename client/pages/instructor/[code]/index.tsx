@@ -18,6 +18,7 @@ import {
     updateSessionQna,
     updateSessionState,
 } from "../../../state/sessionSlice";
+import { PollResult } from "../../../components/PollResult";
 
 const SessionFields = `
     session {
@@ -31,10 +32,18 @@ const SessionFields = `
         name,
         code,
         activities {
-        id,
-        name,
-        state,
-        kind
+            id,
+            name,
+            state,
+            kind,
+            choices {
+                name,
+                DnDCorrectPosition,
+                DnDVotes,
+                PollVotes,
+                QuizIsCorrect,
+                QuizVotes
+            }
         },
         qna {
             open,
@@ -221,7 +230,8 @@ export default function DashboardSession() {
                     (a) => a.kind === SessionActivity.POLL && a.state === "open"
                 );
                 if (currentPoll === undefined) return <></>;
-                return <p>Coming soon™</p>;
+                console.log(currentPoll);
+                return <PollResult activity={currentPoll} />;
         }
     };
 
@@ -248,6 +258,7 @@ export default function DashboardSession() {
                     }
                     return false;
                 })
+                .sort((a, b) => activityStateToNum(a.state) - activityStateToNum(b.state))
                 .map((activity: Activity) => {
                     return (
                         <CardActivity
@@ -263,8 +274,6 @@ export default function DashboardSession() {
             // Q&A
             activities = [<p key={0}>Put the activity here</p>];
         }
-
-        console.log(session);
 
         content = (
             <>
@@ -294,11 +303,13 @@ export default function DashboardSession() {
                         setSelected={setSelectedActivity}
                     />
                 </div>
-                {getActivityButtonCreate(session)}
-                {getCurrentActivityElem(session, selectedActivity)}
-                {selectedActivity !== "QA" && (
-                    <div id={styles.container_activities}>{activities}</div>
-                )}
+                <div id={styles.activity_display}>
+                    {getActivityButtonCreate(session)}
+                    {getCurrentActivityElem(session, selectedActivity)}
+                    {selectedActivity !== "QA" && (
+                        <div id={styles.container_activities}>{activities}</div>
+                    )}
+                </div>
             </>
         );
     }
@@ -312,4 +323,17 @@ export default function DashboardSession() {
             <div className="container_center">{content}</div>
         </div>
     );
+}
+
+function activityStateToNum(state: string) {
+    switch (state) {
+        case "open":
+            return 0;
+        case "draft":
+            return 1;
+        case "archived":
+            return 2;
+        default:
+            return 3;
+    }
 }
