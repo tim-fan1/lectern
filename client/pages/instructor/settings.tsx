@@ -239,7 +239,7 @@ export default function Settings() {
                                     />
                                 </div>
                                 {changePasswordErrors.map((error, i) => (
-                                    <p className="error" key={i}>
+                                    <p className="error" key={i} style={{ textAlign: "left" }}>
                                         {error}
                                     </p>
                                 ))}
