@@ -1,4 +1,5 @@
 import styles from "../styles/QaQuestion.module.css";
+import { MarkdownText } from "./MarkdownText";
 
 interface Props {
     author?: string;
@@ -9,7 +10,7 @@ export default function QaQuestion({ author, question }: Props) {
     return (
         <div className={styles.container}>
             <h3>{author} asks...</h3>
-            <p>{question}</p>
+            <MarkdownText text={question} />
         </div>
     );
 }
