@@ -128,8 +128,9 @@ export default function CreateDragAndDropQuiz() {
                             style={{ marginBottom: "1rem" }}
                         >
                             <label>({i + 1})</label>
-                            <input
-                                type="text"
+                            <textarea
+                                // type="text"
+                                style={{ fontFamily: "sans-serif" }}
                                 placeholder={`Insert drag and drop block #${i + 1}`}
                                 className={`input ${styles.input_poll_option}`}
                                 onChange={(e) => updateOptions(i, e.target.value)}
