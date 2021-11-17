@@ -42,8 +42,9 @@ export default function DragAndDropQuizResults({ activity }: DragAndDropQuizResu
                                 flexDirection: "column",
                                 alignItems: "center",
                                 margin: "1rem 0",
-                                backgroundColor: "var(--c-background-secondary)",
-                                color: "var(--c-text)",
+                                backgroundColor: "var(--c-text)",
+                                padding: "1.5rem 3rem",
+                                color: "black",
                                 borderRadius: "2px",
                                 border: "var(--c-background-primary) 1px solid",
                             }}

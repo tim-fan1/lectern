@@ -111,6 +111,7 @@ export default function CreateMultipleChoiceQuiz() {
             </Head>
             <Navigation />
             <h1>Create a multiple choice quiz</h1>
+            <h2 style={{ marginBottom: "2rem" }}>Click a possible answer to mark it as correct</h2>
             <form className="form" onSubmit={handleSubmit}>
                 <input
                     id={styles.input_poll_name}
@@ -121,9 +122,7 @@ export default function CreateMultipleChoiceQuiz() {
                     onChange={(e) => setName(e.target.value)}
                     required
                 />
-                <div id={styles.container_input_poll_option} style={{ marginBottom: "1rem" }}>
-                    <h3>Multiple choice quiz possible answers</h3>
-                </div>
+                <div id={styles.container_input_poll_option} style={{ marginBottom: "1rem" }}></div>
                 {[...Array(nAnswers)].map((val, i) => {
                     return (
                         <div
@@ -132,22 +131,19 @@ export default function CreateMultipleChoiceQuiz() {
                             style={{ marginBottom: "1rem" }}
                         >
                             <label>({i + 1})</label>
-                            <input
-                                type="text"
+                            <textarea
+                                // type="text"
+                                style={{
+                                    fontFamily: "sans-serif",
+                                    cursor: "pointer",
+                                    border: i === correctOptionIndex ? "#2ecc71 5px solid" : "",
+                                }}
                                 placeholder="Insert possible answer here"
                                 className={`input ${styles.input_poll_option}`}
                                 onChange={(e) => updateOptions(i, e.target.value)}
                                 required
+                                onClick={() => setCorrectOptionIndex(i)}
                             />
-                            {i !== correctOptionIndex && (
-                                <button
-                                    onClick={() => setCorrectOptionIndex(i)}
-                                    type="button"
-                                    className="btn btn_secondary"
-                                >
-                                    Mark as correct
-                                </button>
-                            )}
                         </div>
                     );
                 })}

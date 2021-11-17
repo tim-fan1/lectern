@@ -118,7 +118,7 @@ export default function CreateDragAndDropQuiz() {
                     required
                 />
                 <div id={styles.container_input_poll_option} style={{ marginBottom: "1rem" }}>
-                    <h3>Drag and drop quiz correct order</h3>
+                    <h3>Please specify the correct order of the drag and drop blocks</h3>
                 </div>
                 {[...Array(nAnswers)].map((val, i) => {
                     return (
@@ -128,8 +128,9 @@ export default function CreateDragAndDropQuiz() {
                             style={{ marginBottom: "1rem" }}
                         >
                             <label>({i + 1})</label>
-                            <input
-                                type="text"
+                            <textarea
+                                // type="text"
+                                style={{ fontFamily: "sans-serif" }}
                                 placeholder={`Insert drag and drop block #${i + 1}`}
                                 className={`input ${styles.input_poll_option}`}
                                 onChange={(e) => updateOptions(i, e.target.value)}

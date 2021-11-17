@@ -101,6 +101,8 @@ export default function CreatePoll() {
             kind: "POLL",
         };
 
+        console.log(options);
+
         createActivity(variables).then((result) => {
             if (result.data.createActivity.errors.length === 0) {
                 const activityId: number = result.data.createActivity.activity.id;
@@ -133,19 +135,18 @@ export default function CreatePoll() {
                     onChange={(e) => setName(e.target.value)}
                     required
                 />
-                <div id={styles.container_input_poll_option} style={{ marginBottom: "1rem" }}>
-                    <h3>Poll possible answers</h3>
-                </div>
+                <div id={styles.container_input_poll_option} style={{ marginBottom: "1rem" }}></div>
                 {[...Array(nAnswers)].map((val, i) => {
                     return (
                         <div
                             key={i}
                             id={styles.container_input_label_poll_option}
-                            style={{ marginBottom: "1rem" }}
+                            style={{ marginBottom: "1rem", display: "flex", alignItems: "center" }}
                         >
                             <label>({i + 1})</label>
-                            <input
-                                type="text"
+                            <textarea
+                                // type="text"
+                                style={{ fontFamily: "sans-serif" }}
                                 placeholder="Insert possible answer here"
                                 className={`input ${styles.input_poll_option}`}
                                 onChange={(e) => updateOptions(i, e.target.value)}
