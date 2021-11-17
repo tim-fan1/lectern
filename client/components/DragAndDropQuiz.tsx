@@ -7,6 +7,7 @@ import { useMutation } from "urql";
 import DragAndDropQuizResults from "./DragAndDropQuizResults";
 import { useAppSelector } from "../state/hooks";
 import { selectSession } from "../state/sessionSlice";
+import { MarkdownText } from "./MarkdownText";
 export interface DragAndDropProps {
     activity: Activity;
     setHasVotedQuizState: Function;
@@ -71,6 +72,9 @@ export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: Drag
     };
     return (
         <>
+            <h1 style={{ textAlign: "center" }}>
+                Click and drag the blocks into the correct order
+            </h1>
             <DragDropContext
                 onDragEnd={(result) => {
                     const { destination, source } = result;
@@ -93,7 +97,7 @@ export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: Drag
                 }}
             >
                 <div style={{ display: "flex", justifyContent: "center", margin: "1.5rem" }}>
-                    <h2 style={{ maxWidth: "80%", textAlign: "center" }}>{title}</h2>
+                    <h2 style={{ maxWidth: "80%", textAlign: "center" }}>Q:{title}</h2>
                 </div>
                 <Droppable droppableId="1">
                     {(provided, snapShot) => (
@@ -132,16 +136,15 @@ export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: Drag
                                                         <div
                                                             style={{
                                                                 margin: "1rem",
-                                                                backgroundColor:
-                                                                    "var(--c-background-secondary)",
-                                                                color: "var(--c-text)",
+                                                                backgroundColor: "var(--c-text)",
+                                                                color: "black",
                                                                 padding: "1.5rem 3rem",
                                                                 border: "var(--c-background-primary) 1px solid",
                                                                 borderRadius: "2px",
                                                                 fontWeight: 400,
                                                             }}
                                                         >
-                                                            {answer.name}
+                                                            <MarkdownText text={answer.name} />
                                                         </div>
                                                     </div>
                                                 )}
