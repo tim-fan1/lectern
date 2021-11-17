@@ -28,6 +28,7 @@ export default function Present() {
     const router = useRouter();
     const { code } = router.query;
     const url = process.env.NEXT_PUBLIC_FRONTEND_HOST + "/join/" + code;
+    const shortenedUrl = url.replace(/(^\w+:|^)\/\//, "");
 
     const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -45,7 +46,7 @@ export default function Present() {
     };
 
     const handleExitFullscreen = async () => {
-        document.exitFullscreen();
+        await document.exitFullscreen();
         setIsFullscreen(false);
     };
 
@@ -95,7 +96,7 @@ export default function Present() {
                         <h2 className={styles.bottom_small_text}>To join enter code</h2>
                         <h1 className={styles.bottom_large_text}>#{code}</h1>
                         <h2 className={styles.bottom_small_text}>or visit</h2>
-                        <h1 className={styles.bottom_url_text}>{url}</h1>
+                        <h1 className={styles.bottom_url_text}>{shortenedUrl}</h1>
                     </div>
                     <div className={styles.bottom_qr_container}>
                         <QRCode className={styles.qrcode} value={url} size={256} />
