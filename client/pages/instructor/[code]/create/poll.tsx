@@ -128,9 +128,7 @@ export default function CreatePoll() {
                     onChange={(e) => setName(e.target.value)}
                     required
                 />
-                <div id={styles.container_input_poll_option} style={{ marginBottom: "1rem" }}>
-                    <h3>Poll possible answers</h3>
-                </div>
+                <div id={styles.container_input_poll_option} style={{ marginBottom: "1rem" }}></div>
                 {[...Array(nAnswers)].map((val, i) => {
                     return (
                         <div

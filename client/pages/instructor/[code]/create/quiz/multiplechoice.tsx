@@ -138,16 +138,12 @@ export default function CreateMultipleChoiceQuiz() {
                                 className={`input ${styles.input_poll_option}`}
                                 onChange={(e) => updateOptions(i, e.target.value)}
                                 required
+                                style={{
+                                    cursor: "pointer",
+                                    border: i === correctOptionIndex ? "#2ecc71 5px solid" : "",
+                                }}
+                                onClick={() => setCorrectOptionIndex(i)}
                             />
-                            {i !== correctOptionIndex && (
-                                <button
-                                    onClick={() => setCorrectOptionIndex(i)}
-                                    type="button"
-                                    className="btn btn_secondary"
-                                >
-                                    Mark as correct
-                                </button>
-                            )}
                         </div>
                     );
                 })}

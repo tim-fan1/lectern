@@ -44,7 +44,6 @@ export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: Drag
             });
         }
         ret.sort(() => Math.random() - 0.5);
-        console.log("newAnswers", ret);
         return ret;
     });
     const submitSelectedAnswer = () => {
@@ -64,8 +63,6 @@ export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: Drag
                 if (result.data.activityVote.errors.length !== 0) {
                     // setError("Could not submit quiz vote.");
                     success = false;
-                    console.log("HERERERERE");
-                    console.log(result);
                 }
             });
             i++;

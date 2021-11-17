@@ -118,7 +118,7 @@ export default function CreateDragAndDropQuiz() {
                     required
                 />
                 <div id={styles.container_input_poll_option} style={{ marginBottom: "1rem" }}>
-                    <h3>Drag and drop quiz correct order</h3>
+                    <h3>Please specify the correct order of the drag and drop blocks</h3>
                 </div>
                 {[...Array(nAnswers)].map((val, i) => {
                     return (
