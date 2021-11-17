@@ -21,7 +21,7 @@ export const validateName = (name: string): boolean => {
 };
 
 /**
- * Validating password. TODO: maybe a stronger algorithm lmao.
+ * Validating password.
  */
 export const validatePassword = (password: string): boolean => {
     return 8 <= password.length && password.length <= 30;

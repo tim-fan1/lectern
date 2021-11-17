@@ -1,6 +1,9 @@
 import { CreateDateColumn, Entity, ManyToOne, PrimaryColumn } from "typeorm";
 import User from "./User";
 
+/**
+ * Login session entity: represents an instructor's login session
+ */
 @Entity()
 export default class LoginSession {
     @PrimaryColumn()

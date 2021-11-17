@@ -26,33 +26,10 @@ import LiveSession from "../utils/liveSession";
 import modifySession, { getSession } from "../utils/modifySession";
 import QnA from "../entities/QnA";
 
-// TODO: this is exported for use in sessionSubscription; should it be somewhere
-// else like types.ts?
-@ObjectType()
-export class SessionResponse extends EndpointResponse {
-    @Field({ nullable: true })
-    session?: Session;
-}
-
-@ObjectType()
-class SessionArrResponse extends EndpointResponse {
-    @Field(() => [Session], { nullable: true })
-    sessions?: Session[];
-}
-
-export enum SessionErrors {
-    DB_ERROR = "DB_ERROR",
-    USER_NOT_EXIST = "USER_NOT_EXIST", // shouldn't be possible but ts complains
-    SESSION_NOT_EXIST = "SESSION_NOT_EXIST",
-    SESSION_INVALID_STATE = "SESSION_INVALID_STATE",
-    SESSION_CODE_EXIST = "SESSION_CODE_EXIST",
-    SESSION_CLOSED = "SESSION_CLOSED",
-    SESSION_NAME_ALREADY_EXIST = "SESSION_NAME_ALREADY_EXIST",
-    INVALID_CHOICE = "INVALID_CHOICE",
-    INVALID_ACTIVITY = "INVALID_ACTIVITY", // TODO move to activity.ts
-    INVALID_ARGS = "INVALID_ARGS",
-}
-
+/**
+ * Session resolver: all of the GraphQL endpoints relating to sessions. Those
+ * relating to subscription functionality might be in sessionSubscription instead.
+ */
 @Resolver()
 export default class SessionResolver {
     @CheckAuth(["sessions"])
@@ -114,11 +91,10 @@ export default class SessionResolver {
         }
     }
 
-    /* TODO: add more edit fields? and define entity type properly */
     @CheckAuth()
     @Mutation(() => EndpointResponse)
     async editSession(
-        @Ctx() { conn, user, openSessions }: AuthedContext,
+        @Ctx() { user, openSessions }: AuthedContext,
         @Arg("id", () => Int) id: number,
         @Arg("name", { nullable: true }) name?: string,
         @Arg("group", { nullable: true }) group?: string
@@ -223,7 +199,7 @@ export default class SessionResolver {
 
                 session.code = thisCode;
                 session.state = "open";
-                // TODO: make this configurable; default for now is 6 hours
+                // End time is set to 6 hours after start
                 session.startTime = new Date();
                 session.endTime = df.add(session.startTime, { hours: 6 });
 
@@ -319,4 +295,29 @@ export default class SessionResolver {
             return { errors: [], session: result.data };
         }
     }
+}
+
+@ObjectType()
+export class SessionResponse extends EndpointResponse {
+    @Field({ nullable: true })
+    session?: Session;
+}
+
+@ObjectType()
+class SessionArrResponse extends EndpointResponse {
+    @Field(() => [Session], { nullable: true })
+    sessions?: Session[];
+}
+
+export enum SessionErrors {
+    DB_ERROR = "DB_ERROR",
+    USER_NOT_EXIST = "USER_NOT_EXIST", // shouldn't be possible but ts complains
+    SESSION_NOT_EXIST = "SESSION_NOT_EXIST",
+    SESSION_INVALID_STATE = "SESSION_INVALID_STATE",
+    SESSION_CODE_EXIST = "SESSION_CODE_EXIST",
+    SESSION_CLOSED = "SESSION_CLOSED",
+    SESSION_NAME_ALREADY_EXIST = "SESSION_NAME_ALREADY_EXIST",
+    INVALID_CHOICE = "INVALID_CHOICE",
+    INVALID_ACTIVITY = "INVALID_ACTIVITY",
+    INVALID_ARGS = "INVALID_ARGS",
 }

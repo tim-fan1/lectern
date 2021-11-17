@@ -21,8 +21,11 @@ import LiveSession, { topic } from "../utils/liveSession";
 import { SessionErrors, SessionResponse } from "./session";
 import modifySession from "../utils/modifySession";
 import ActivityResolver, { ActivityKinds } from "./activity";
-import Session from "../entities/Session";
 
+/**
+ * SessionSubscription resolver: some endpoints relating to real-time session
+ * functionality, most importantly including the actual subscription.
+ */
 @Resolver()
 export default class SessionSubscriptionResolver {
     @Subscription(() => SessionResponse, {
@@ -32,10 +35,7 @@ export default class SessionSubscriptionResolver {
         @Arg("id", () => Int) id: number,
         @Root() payload: LiveSession
     ): Promise<SessionResponse> {
-        // not sure about how to reject a subscription? maybe if the frontend
-        // sees that an error is returned, it should end it from its side?
-
-        // just found out that this'll still sub to a topic, but if nothing
+        // if the id is invalid the client will still sub to a topic, but if nothing
         // is broadcast the client will be left hanging. that should be fine
         // since the actual frontend will get valid ids from sessionDetails
         if (payload.getSession().state === "archived")

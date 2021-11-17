@@ -1,5 +1,8 @@
-// we should probably make this reference a private (not in version control)
-// config file later with e.g. database connection info
+/* This config file exports all of the required configuration variables to be
+ * used elsewhere in the codebase. Defining them in-code lets us use the type
+ * system to make sure all required config vars are provided, while letting us
+ * set them through environment variables as well. */
+
 import { config } from "dotenv";
 config();
 

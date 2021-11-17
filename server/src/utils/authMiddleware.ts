@@ -15,8 +15,6 @@ import { MethodAndPropDecorator } from "type-graphql/dist/decorators/types";
  * ensure that the user is logged in (an error EndpointResponse is returned
  * otherwise). When decorating, change the context type to AuthedContext to
  * access user info. More detail in types.ts
- * TODO: make an interface for options if we add even one more (so we don't
- * rely on positional args)
  * @param relations an array of relations to get on the relevant User
  */
 export default function CheckAuth(

@@ -14,6 +14,9 @@ import { User, Activity, QnA } from "./entities";
 
 type SessionState = "draft" | "open" | "archived";
 
+/**
+ * Session entity + GQL type: represents a lectern session.
+ */
 @ObjectType()
 @Entity()
 export default class Session {
@@ -78,9 +81,6 @@ export default class Session {
     @Column({ unique: true, nullable: true })
     code?: string;
 
-    // TODO: this is a field to test live sessions, but may well be useful anyways
-    // this only exists in-memory and not in the database (not a column) so if this
-    // is changing then we know something's working
     @Field(() => Int)
     numJoined: number = 0;
 }

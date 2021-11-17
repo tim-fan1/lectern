@@ -24,90 +24,10 @@ import {
 import CheckAuth from "../utils/authMiddleware";
 import modifySession, { getSession } from "../utils/modifySession";
 
-@ObjectType()
-class ActivityResponse extends EndpointResponse {
-    @Field({ nullable: true })
-    activity?: Activity;
-}
-
-@ObjectType()
-class ActivityArrResponse extends EndpointResponse {
-    @Field(() => [Activity], { nullable: true })
-    activities?: Activity[];
-}
-
-@ObjectType()
-class ChoiceVote {
-    @Field()
-    choice!: string;
-    @Field(() => Int)
-    votes!: number;
-}
-
-@ObjectType()
-class PollResult {
-    @Field()
-    kind!: string;
-    @Field(() => [ChoiceVote])
-    result!: ChoiceVote[];
-}
-
-@ObjectType()
-class QuizResult {
-    @Field()
-    kind!: string;
-    @Field(() => [ChoiceVote])
-    result!: ChoiceVote[];
-    @Field(() => [String])
-    correctChoices!: string[];
-}
-
-@ObjectType()
-class PosVote {
-    @Field()
-    position!: number;
-    @Field(() => [ChoiceVote])
-    posVotes!: ChoiceVote[];
-    @Field()
-    correctChoice!: string;
-}
-@ObjectType()
-class DnDResult {
-    @Field()
-    kind!: string;
-    @Field(() => [PosVote])
-    result!: PosVote[];
-}
-
-const ActivityResultUnion = createUnionType({
-    name: "ActivityResult",
-    types: () => [PollResult, QuizResult, DnDResult],
-});
-
-@ObjectType()
-class ActivityResultResponse extends EndpointResponse {
-    @Field(() => ActivityResultUnion, { nullable: true })
-    result?: PollResult | QuizResult | DnDResult;
-}
-
-enum ActivityErrors {
-    DB_ERROR = "DB_ERROR",
-    USER_NOT_EXIST = "USER_NOT_EXIST", // shouldn't be possible but ts complains
-    SESSION_NOT_EXIST = "SESSION_NOT_EXIST",
-    ACTIVITY_NOT_EXIST = "ACTIVITY_NOT_EXIST",
-    KIND_NOT_EXIST = "KIND_NOT_EXIST",
-    ACTIVITY_INVALID_STATE = "ACTIVITY_INVALID_STATE",
-    ACTIVITY_NAME_ALREADY_EXIST = "ACTIVITY_NAME_ALREADY_EXIST",
-    INVALID_INPUT = "INVALID_INPUT",
-    QUESTION_NOT_EXIST = "QUESTION_NOT_EXIST",
-}
-
-export enum ActivityKinds {
-    POLL = "POLL",
-    QUIZ = "QUIZ",
-    DND = "DND",
-}
-
+/**
+ * Activity resolver: defines all our GraphQL endpoints for operations relating
+ * to activities within sessions (including Q&A)
+ */
 @Resolver()
 export default class ActivityResolver {
     @CheckAuth(["sessions"])
@@ -135,7 +55,7 @@ export default class ActivityResolver {
     async getActivityResult(
         @Arg("session_id", () => Int) sessionId: number,
         @Arg("activity_id", () => Int) activity_id: number,
-        @Ctx() { user, openSessions }: AuthedContext
+        @Ctx() { openSessions }: AuthedContext
     ): Promise<ActivityResultResponse> {
         const result = await getSession(openSessions, { id: sessionId });
         if (result.isLeft)
@@ -167,8 +87,6 @@ export default class ActivityResolver {
                 ],
             };
         }
-
-        //todo check if activity is archived
 
         if (activity.kind === ActivityKinds.POLL) {
             let activityResult: PollResult = new PollResult();
@@ -315,8 +233,6 @@ export default class ActivityResolver {
         @Arg("sessionId", () => Int) sessionId: number,
         @Arg("activityId", () => Int) activityId: number,
         @Arg("choices", () => [InputChoice]) choices: InputChoice[],
-        // @Arg("name") name: string,
-        // @Arg("QuizIsCorrect", { nullable: true }) QuizIsCorrect?: boolean
         @Ctx() { conn, user, openSessions }: AuthedContext
     ): Promise<ActivityResponse> {
         const result = await modifySession(
@@ -407,7 +323,7 @@ export default class ActivityResolver {
         @Arg("sessionId", () => Int) sessionId: number,
         @Arg("activityId", () => Int) activityId: number,
         @Arg("choiceId", () => Int) choiceId: number,
-        @Ctx() { conn, user, openSessions }: AuthedContext,
+        @Ctx() { user, openSessions }: AuthedContext,
         @Arg("name", { nullable: true }) name?: string,
         @Arg("DnDCorrectPosition", () => Int, { nullable: true })
         DnDCorrectPosition?: number,
@@ -529,7 +445,7 @@ export default class ActivityResolver {
         @Arg("sessionId", () => Int) sessionId: number,
         @Arg("activityId", () => Int) activityId: number,
         @Arg("choiceId", () => Int) choiceId: number,
-        @Ctx() { conn, user, openSessions }: AuthedContext
+        @Ctx() { user, openSessions }: AuthedContext
     ): Promise<ActivityResponse> {
         const result = await modifySession(
             openSessions,
@@ -975,4 +891,88 @@ export default class ActivityResolver {
         if (result.isLeft) return EndpointResponse.withErrors(result.data);
         else return EndpointResponse.withErrors();
     }
+}
+
+@ObjectType()
+class ActivityResponse extends EndpointResponse {
+    @Field({ nullable: true })
+    activity?: Activity;
+}
+
+@ObjectType()
+class ActivityArrResponse extends EndpointResponse {
+    @Field(() => [Activity], { nullable: true })
+    activities?: Activity[];
+}
+
+@ObjectType()
+class ChoiceVote {
+    @Field()
+    choice!: string;
+    @Field(() => Int)
+    votes!: number;
+}
+
+@ObjectType()
+class PollResult {
+    @Field()
+    kind!: string;
+    @Field(() => [ChoiceVote])
+    result!: ChoiceVote[];
+}
+
+@ObjectType()
+class QuizResult {
+    @Field()
+    kind!: string;
+    @Field(() => [ChoiceVote])
+    result!: ChoiceVote[];
+    @Field(() => [String])
+    correctChoices!: string[];
+}
+
+@ObjectType()
+class PosVote {
+    @Field()
+    position!: number;
+    @Field(() => [ChoiceVote])
+    posVotes!: ChoiceVote[];
+    @Field()
+    correctChoice!: string;
+}
+@ObjectType()
+class DnDResult {
+    @Field()
+    kind!: string;
+    @Field(() => [PosVote])
+    result!: PosVote[];
+}
+
+const ActivityResultUnion = createUnionType({
+    name: "ActivityResult",
+    types: () => [PollResult, QuizResult, DnDResult],
+});
+
+@ObjectType()
+class ActivityResultResponse extends EndpointResponse {
+    @Field(() => ActivityResultUnion, { nullable: true })
+    result?: PollResult | QuizResult | DnDResult;
+}
+
+enum ActivityErrors {
+    DB_ERROR = "DB_ERROR",
+    USER_NOT_EXIST = "USER_NOT_EXIST", // shouldn't be possible but ts complains
+    SESSION_NOT_EXIST = "SESSION_NOT_EXIST",
+    ACTIVITY_NOT_EXIST = "ACTIVITY_NOT_EXIST",
+    KIND_NOT_EXIST = "KIND_NOT_EXIST",
+    ACTIVITY_INVALID_STATE = "ACTIVITY_INVALID_STATE",
+    ACTIVITY_NAME_ALREADY_EXIST = "ACTIVITY_NAME_ALREADY_EXIST",
+    INVALID_INPUT = "INVALID_INPUT",
+    QUESTION_NOT_EXIST = "QUESTION_NOT_EXIST",
+}
+
+export enum ActivityKinds {
+    POLL = "POLL",
+    QUIZ = "QUIZ",
+    DND = "DND",
 }
