@@ -10,7 +10,7 @@ import { useGetSessionsQuery } from "../../utils/lecternApi";
 export default function Dashboard() {
     const { getData, fetching, errors } = useGetSessionsQuery();
 
-    let groupedSessionContent, nonGroupedSessionContent;
+    let groupedSessionContent, nonGroupedSessionContent, noGroupsCreatedContent;
     if (fetching) {
         groupedSessionContent = <p>Getting your sessions...</p>;
         nonGroupedSessionContent = <></>;
@@ -24,64 +24,69 @@ export default function Dashboard() {
             .map((e) => e.group)
             .filter((group) => group !== null)
             .filter((group, index, array) => array.findIndex((g) => g === group) === index);
-        groupedSessionContent = (
-            <>
-                {
-                    /* The list of sessions with a group attached. */
-                    groups.map((groupName, i) => {
-                        return (
-                            <div key={i.toString()}>
-                                <h1 className={styles.group_header}>{groupName}</h1>
-                                <div id={styles.container_card_session_labels}>
-                                    <h3 id={styles.session_label_name}>Name</h3>
-                                    <h3 id={styles.session_label_start_time}>Start time</h3>
-                                    <h3 id={styles.session_label_end_time}>End time</h3>
-                                    <div />
+
+        if (groups.length === 0) {
+            noGroupsCreatedContent = <p>There are no groups yet!</p>;
+        } else {
+            groupedSessionContent = (
+                <>
+                    {
+                        /* The list of sessions with a group attached. */
+                        groups.map((groupName, i) => {
+                            return (
+                                <div key={i.toString()}>
+                                    <h1 className={styles.group_header}>{groupName}</h1>
+                                    <div id={styles.container_card_session_labels}>
+                                        <h3 id={styles.session_label_name}>Name</h3>
+                                        <h3 id={styles.session_label_start_time}>Start time</h3>
+                                        <h3 id={styles.session_label_end_time}>End time</h3>
+                                        <div />
+                                    </div>
+                                    {/* Filter sessions so that it on contains sessions for this group. */}
+                                    {sessions
+                                        .filter((session: Session) => session.group === groupName)
+                                        .map((session: Session) => (
+                                            <CardSession
+                                                key={session.id}
+                                                code={session.code}
+                                                id={session.id}
+                                                name={session.name}
+                                                state={sessionStateFromString(session.state)}
+                                                startTime={session.startTime}
+                                                endTime={session.endTime}
+                                            />
+                                        ))}
                                 </div>
-                                {/* Filter sessions so that it on contains sessions for this group. */}
-                                {sessions
-                                    .filter((session: Session) => session.group === groupName)
-                                    .map((session: Session) => (
-                                        <CardSession
-                                            key={session.id}
-                                            code={session.code}
-                                            id={session.id}
-                                            name={session.name}
-                                            state={sessionStateFromString(session.state)}
-                                            startTime={session.startTime}
-                                            endTime={session.endTime}
-                                        />
-                                    ))}
-                            </div>
-                        );
-                    })
-                }
-            </>
-        );
-        nonGroupedSessionContent = (
-            <>
-                <h1 className={styles.non_group_header}>No group</h1>
-                <div id={styles.container_card_session_labels}>
-                    <h3 id={styles.session_label_name}>Name</h3>
-                    <h3 id={styles.session_label_start_time}>Start time</h3>
-                    <h3 id={styles.session_label_end_time}>End time</h3>
-                    <div />
-                </div>
-                {sessions
-                    .filter((session: Session) => session.group === null)
-                    .map((session: Session) => (
-                        <CardSession
-                            key={session.id}
-                            code={session.code}
-                            id={session.id}
-                            name={session.name}
-                            state={sessionStateFromString(session.state)}
-                            startTime={session.startTime}
-                            endTime={session.endTime}
-                        />
-                    ))}
-            </>
-        );
+                            );
+                        })
+                    }
+                </>
+            );
+            nonGroupedSessionContent = (
+                <>
+                    <h1 className={styles.non_group_header}>No group</h1>
+                    <div id={styles.container_card_session_labels}>
+                        <h3 id={styles.session_label_name}>Name</h3>
+                        <h3 id={styles.session_label_start_time}>Start time</h3>
+                        <h3 id={styles.session_label_end_time}>End time</h3>
+                        <div />
+                    </div>
+                    {sessions
+                        .filter((session: Session) => session.group === null)
+                        .map((session: Session) => (
+                            <CardSession
+                                key={session.id}
+                                code={session.code}
+                                id={session.id}
+                                name={session.name}
+                                state={sessionStateFromString(session.state)}
+                                startTime={session.startTime}
+                                endTime={session.endTime}
+                            />
+                        ))}
+                </>
+            );
+        }
     }
 
     return (
@@ -94,6 +99,7 @@ export default function Dashboard() {
             <ButtonCreate href="/instructor/create" text="Create session" />
             <div id={styles.container_sessions} className="container_center">
                 <h2>Sessions</h2>
+                {noGroupsCreatedContent}
                 {groupedSessionContent}
                 {nonGroupedSessionContent}
             </div>

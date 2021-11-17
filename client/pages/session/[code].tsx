@@ -229,7 +229,6 @@ export default function Session() {
                     setSelected={setSelectedActivityKind}
                 />
                 <div id={styles.room_id_container}>
-                    {/* nocheckin: does this need to be here? */}
                     <span id={styles.room_id_room} className={styles.room_text}>
                         Session:{" "}
                     </span>
