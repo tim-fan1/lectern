@@ -227,7 +227,6 @@ export default function DashboardSession() {
                     (a) => a.kind === SessionActivity.POLL && a.state === "open"
                 );
                 if (currentPoll === undefined) return <></>;
-                console.log(currentPoll);
                 return <PollResult activity={currentPoll} />;
         }
     };
@@ -238,7 +237,6 @@ export default function DashboardSession() {
         content = <p>I&apos;m loading</p>;
     } else if (errors.length !== 0) {
         // error happened - maybe no auth?
-        console.log("error?", data.sessionDetails);
         content = <p>An error happened! {errors.toString()}</p>;
     } else {
         let activities: React.ReactNode[];

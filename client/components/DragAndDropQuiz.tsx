@@ -48,7 +48,6 @@ export default function DragAndDropQuiz({ activity, setHasVotedQuizState }: Drag
         return ret;
     });
     const submitSelectedAnswer = () => {
-        console.log(answers);
         let i = 0;
         let success = true;
         for (const answer of answers) {

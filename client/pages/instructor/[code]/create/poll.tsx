@@ -98,8 +98,6 @@ export default function CreatePoll() {
             kind: "POLL",
         };
 
-        console.log(options);
-
         createActivity(variables).then((result) => {
             if (result.data.createActivity.errors.length === 0) {
                 const activityId: number = result.data.createActivity.activity.id;
