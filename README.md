@@ -14,15 +14,15 @@ Project group: `3900-w16a-disaggregated-far-memory`
 First ensure that a (reasonably) modern version of `node.js` is installed. `Lectern` requires v12+. A newer version of `node.js` can be installed using the `install_node.sh` script.
 
 ### Client
-- `cd` into the client directory
-- `npm install` the client's dependencies in that directory. This is only required once
-- `npm run build` the client's code. This transpiles and optimises our frontend code
+- `cd` into the `client` directory
+- run `npm install` to install client's dependencies in that directory. This is only required once
+- run `npm run build` to compile the client codebase. This transpiles and optimises our frontend code
 - `npm run start` to start the client.
 
 ### Server
-- `cd` into the server directory
-- `npm install` the server's dependencies in that directory. This is only required once
-- `npm run build` the server's code. This also transpiles and optimises the backend code
+- `cd` into the `server` directory
+- run `npm install` to install server's dependencies in that directory. This is only required once
+- run `npm run build` to compile the server's code. This also transpiles and optimises the backend code
 - `npm run start` to start the server.
 
 
