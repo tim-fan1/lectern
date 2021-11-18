@@ -1,2 +1,41 @@
-# capstone-project-3900-w16a-disaggregated-far-memory
-capstone-project-3900-w16a-disaggregated-far-memory created by GitHub Classroom
+# Lectern.me monorepo
+
+Source code for the `lectern.me` website frontend and server components.
+`Lectern` is a lecture/class engagement and participation platform (like Kahoot or Slido).
+
+Created for our UNSW COMP3900 capstone project, written by Tim Fan, Jack Jiang, Brian Nguyen, Eddie Qi, and Ivan Velickovic.
+
+Project group: `3900-w16a-disaggregated-far-memory`
+
+## Quickstart
+
+> Note: Lectern will only run on the Lubuntu 20.4.1 virtual machine image, and not on CSE vLab, since vLab's `node` version is too old. We have provided a script to install the required dependencies.
+
+First ensure that a (reasonably) modern version of `node.js` is installed. `Lectern` requires v12+. A newer version of `node.js` can be installed using the `install_node.sh` script.
+
+### Client
+- `cd` into the `client` directory
+- run `npm install` to install client's dependencies in that directory. This is only required once
+- run `npm run build` to compile the client codebase. This transpiles and optimises our frontend code
+- `npm run start` to start the client.
+
+### Server
+- `cd` into the `server` directory
+- run `npm install` to install server's dependencies in that directory. This is only required once
+- run `npm run build` to compile the server's code. This also transpiles and optimises the backend code
+- `npm run start` to start the server.
+
+
+## Folder structure
+
+`client/` contains our web front-end, written in TypeScript and using Next.js.
+
+`server/` contains the back-end, written in TypeScript and using Express.js.
+
+`diaries/` contains weekly development updates from team members about their contributions
+
+## A note about architecture
+
+Our webapp and server don't communicate through something like a HTTP REST API; rather, they use [GraphQL](https://graphql.org/) as their transport. This fundamentally changes the structure of the codebases, especially on the back-end.
+
+Instead of HTTP routes, the back-end defines API endpoints as either "queries", "mutations", or "subscriptions". In our codebase, each of these endpoints takes the form of a function that is @-decorated, and they are organised into classes called "resolvers".

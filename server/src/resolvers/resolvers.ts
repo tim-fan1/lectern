@@ -1,7 +1,5 @@
-/* i love typescript */
-/* I really love es6 exports */
-/* we export these in a "private" file so that we can re-export it
-   with an array containing all the value in different file
+/* Top-level "resolvers" module; we export these in a "private" file so that
+ * we can re-export it with an array containing all the values in different file
  */
 
 export { default as HelloResolver } from "./hello";

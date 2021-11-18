@@ -4,10 +4,37 @@
 Group formed. Brainstormed ideas. 
 
 ## Week 2
-Discussed and researched feasibility of project ideas with the group, and contributed to researching new and novel objectives.
+Discussed and researched feasibility of project ideas with the group, and
+contributed to researching new and novel objectives.
 
 ## Week 3
-Idea was finalised. Contributed to user stories, acceptance criteria, and background in the project proposal.
+Idea was finalised. Contributed to user stories, acceptance criteria, and
+background in the project proposal.
 
 ## week 4
-Started sprint one. Wrote an example project with Apollo and Chakra.
+Started sprint one. Wrote an example project with Apollo and Chakra. worked
+on login and register with regard to the ORM on the backend. Wrote the 
+User untity. Refactored Jack's example code.
+
+## week 5
+Initialised and wrote CRUD for sessions on the backend.
+
+## week 6
+Demo A.
+
+## week 7
+Restrospective A. Then worked on user details including Gravatar support on
+the backend. Frontend for request password reset. Including bugfixes.
+
+
+## week 8
+Demo B. Experimented with inheritance to finish the remmaining activities to
+implement for the final demo.
+
+## week 9
+Retrospective B. Completed drag and drop, poll, quiz features on the backend
+including bugfixes, additional CRUD features, and validation.
+Initialised the question and answer entity.
+
+## week 10
+Final demo, report writing and peer review.

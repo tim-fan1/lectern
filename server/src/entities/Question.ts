@@ -10,6 +10,9 @@ import {
 } from "typeorm";
 import { QnA } from "./entities";
 
+/**
+ * Question entity: represents a question in a session's Q&A.
+ */
 @ObjectType()
 @Entity()
 export default class Question {

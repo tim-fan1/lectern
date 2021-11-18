@@ -14,3 +14,15 @@ Started sprint one. Wrote some setup code for the backend server. Researched and
 
 ## week 5
 Implemented a instructor presenting screen, and hooked it into the backend. Researched how to deploy the server and deployed it to an internet accessible website.
+
+## week 6
+Started Sprint 2. Wrote an extensive test environment and frontend components for poll
+
+## week 7
+Helped prepare for demo. Wrote subscriptions support in backend and frontend.
+
+## week 8
+Started Sprint 3. Implemented rich text features via markdown. Integrated these to all our components
+
+## week 10
+Helped write report and demo

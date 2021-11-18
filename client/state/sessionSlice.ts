@@ -18,7 +18,6 @@ const sessionSlice = createSlice({
     initialState,
     reducers: {
         updateSession: (state, newSess: PayloadAction<Session>) => {
-            // console.log(newSess.payload);
             state.session = newSess.payload;
         },
         updateSessionState: (state, newSessionState: PayloadAction<SessionActiveState>) => {

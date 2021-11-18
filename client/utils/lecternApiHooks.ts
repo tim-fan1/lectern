@@ -53,7 +53,6 @@ class ConcreteApiError implements ApiError {
 
     toString() {
         // try msg, otherwise fall back to kind if empty string.
-        // TODO decode this.kind and provide a more use friendly error message
         return this.msg || this.kind;
     }
 }

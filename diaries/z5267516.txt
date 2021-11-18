@@ -19,3 +19,22 @@
 * Worked on frontend for the issues for sprint 1.
 * Finished implementing login, register, start session, did some of join.
 
+## Week 6
+* Ported client-side to use Redux for state management.
+
+## Week 7
+* Implemented change password.
+* Implemented closing sessions.
+
+## Week 8
+* Worked on creation of polls.
+
+## Week 9
+* Added some minor tweaks and UX improvements such as a toggle for viewing passwords.
+* Worked on integration of real-time functionality on client-side using GraphQL subscriptions.
+
+## Week 10
+* Final cleanup and fixes for submission
+* Worked on user manual for the project report
+* Finished up GraphQL subscription integration
+* Implemented client-side opening/closing of activities.

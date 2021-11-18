@@ -6,6 +6,8 @@ import { Activity } from "./entities";
  * InputChoice has the subset of fields in Choice that we can expect users to
  * submit when they're using the addChoices endpoint. This still has the
  * Entity and ObjectType decorators since Choice inherits these fields.
+ * This includes all of the fields for all types of activities; drag and drop,
+ * quiz, and poll.
  */
 @InputType()
 @ObjectType()
@@ -41,6 +43,9 @@ export class InputChoice {
     QuizVotes?: number;
 }
 
+/**
+ * The Choice entity is used for multi-choice activities (poll, quiz).
+ */
 @ObjectType()
 @Entity()
 export default class Choice extends InputChoice {

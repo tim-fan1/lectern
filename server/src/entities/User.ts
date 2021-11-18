@@ -10,6 +10,9 @@ import {
 import { Session } from "./entities";
 import LoginSession from "./LoginSession";
 
+/**
+ * User entity: represents an authenticated user (an instructor.)
+ */
 @ObjectType()
 @Entity()
 export default class User {

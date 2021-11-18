@@ -31,9 +31,5 @@ export default class Session {
 
     code?: string;
 
-    // TODO: this is a field to test live sessions, but may well be useful anyways
-    // this only exists in-memory and not in the database (not a column) so if this
-    // is changing then we know something's working
-
     numJoined: number = 0;
 }

@@ -111,8 +111,6 @@ export default function Session() {
             }
         } else {
             const updatedSession = newSubQuery.sessionSubscription.session;
-            // TODO: the backend returns null if we add a poll so we check that here so we don't end up accessing
-            // null state
             if (updatedSession !== null) {
                 /* The subscription only gives us an updated state and activities so we dispatch those individually
                    rather than the whole session so that we don't invalidate other fields. */

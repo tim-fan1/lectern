@@ -17,6 +17,9 @@ class MultipleGroupResponse extends EndpointResponse {
     groups?: String[];
 }
 
+/**
+ * Resolver for endpoints relating to session groups.
+ */
 @Resolver()
 export default class GroupResolver {
     @CheckAuth(["sessions"])

@@ -54,17 +54,6 @@ export default function DragAndDropQuizResults({ activity }: DragAndDropQuizResu
                     );
                 })}
             </div>
-            {/* TODO: maybe actually use the results from backend to show something useful. */}
-            {/* <div>
-                <h1>Most popular results</h1>
-                {results.map((result, i) => {
-                    return (
-                        <div key={i}>
-                            <p>{result.optionName}</p>
-                        </div>
-                    );
-                })}
-            </div> */}
         </div>
     );
 }

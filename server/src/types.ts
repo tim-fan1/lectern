@@ -91,6 +91,10 @@ export class RespError {
 }
 
 /**
+ * A generic type that represents one of two underlying data types. This is
+ * useful for functions that can fail; it lets us return additional error
+ * information (like a RespError) in that case, and also lets us enforce
+ * error checking using the type system.
  * Convention, left (first type arg) is for errors
  */
 export type Either<T, U> =

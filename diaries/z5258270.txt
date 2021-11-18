@@ -1,0 +1,10 @@
+wk1: group formed. was assigned the scrum master.
+wk2: held meeting to decide and finalize on project idea.
+wk3: held meetings to plan out proposal making. personally worked on the user stories section of that.
+wk4: held meetings for sprint 1 planning.
+wk5: Worked mainly on implementating email verification. This included npm installing email library, and working on the backend.
+wk6: flex week.
+wk7: held meetings for sprint 2 planning. this included our sprint 1 review meeting.
+wk8: worked mainly on managing misc. pull request merging, activty management on the backend, and fixing up pull requests so that they could be ready for mergin. also held meeting for sprint 3 planning. this included our sprint 2 review meeting.
+wk9: worked on building the multiple choice quiz and drag and drop quiz interfaces, and also worked on integrating the graphql subscription set up by others with the live display of polls, multiple choice quizzes, and drag and drop quizzes on the frontend.
+wk10: group did final demonstration, and project report. personally worked on functionalities and implementation issues.

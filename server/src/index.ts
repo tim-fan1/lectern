@@ -26,7 +26,8 @@ async function makeApp(
 
     const openSessions = await getOpenSessions(connection, pubsub);
 
-    // add apollo studio when not in production mode
+    /* CORS config: add apollo studio when not in production mode */
+
     const corsOrigins = config.isProduction
         ? config.frontendUrl
         : [config.frontendUrl, "https://studio.apollographql.com"];
@@ -54,8 +55,8 @@ async function makeApp(
         })
     );
 
-    // NOTE - this only works with npm run dev, as the build does not include the necessary html files
-    // this serves all files in the graphiql folder
+    // NOTE - this only works with npm run dev, as the build does not include
+    // the necessary html files this serves all files in the graphiql folder
     if (!config.isProduction) {
         console.log("Serving graphiql interface on /graphiql");
         app.use(
@@ -71,8 +72,6 @@ async function makeApp(
 if (require.main === module) {
     // if run directly, execute the app
     // https://nodejs.org/api/modules.html#modules_accessing_the_main_module
-
-    // ah yes, who doesn't like async code on the top level scope
     (async () => {
         const connection = await createConnection({
             // replace this with ormconfig.json later (tm)
@@ -85,8 +84,9 @@ if (require.main === module) {
         const pubsub = new PubSub();
 
         const schema = await buildSchema({
-            // hacky way of letting typescript know
-            // that resolvers is not empty
+            /* the GraphQL resolvers define all client-facing API endpoints and
+               are exported by ./resolvers/resolvers.ts; register all of our
+               resolvers here */
             resolvers: Object.values(
                 resolvers
             ) as unknown as NonEmptyArray<Function>,
@@ -94,7 +94,6 @@ if (require.main === module) {
             pubSub: pubsub,
         });
 
-        // real fudge - will create tables, kinda bad though in production
         await connection.synchronize();
         const app = await makeApp(schema, connection, pubsub);
 

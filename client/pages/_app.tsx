@@ -10,8 +10,6 @@ import {
 } from "urql";
 import { createClient as createWSClient } from "graphql-ws";
 import { store } from "../state/store";
-/* TODO: don't really like this solution since we're importing this all the time even if we don't use it but it
-doesn't make sense to use component level CSS modules. Maybe if we make a Form component then it would make sense. */
 import "../styles/form.css";
 import "../styles/globals.css";
 

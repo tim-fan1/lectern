@@ -52,6 +52,10 @@ async function isLoggedIn(conn: Connection, token: string): Promise<boolean> {
     });
     return loginSessionItem !== undefined;
 }
+
+/**
+ * User resolver: contains GraphQL endpoints related to account management.
+ */
 export default class UserResolver {
     @Mutation(() => UserResponse)
     async register(
@@ -422,7 +426,6 @@ export default class UserResolver {
         return ret;
     }
 
-    /* TODO: not sure if we need a "check valid code" endpoint; probs not */
     @Mutation(() => EndpointResponse)
     async passwordReset(
         @Arg("code") code: string,

@@ -128,9 +128,6 @@ export default function DashboardSession() {
         closeSession({ id }).then((result) => {
             if (result.data.closeSession.errors.length === 0) {
                 router.push("/instructor/dashboard");
-                // setError("");
-            } else {
-                // setError(`Could not close session "${name}". Please try again.`);
             }
         });
     };
@@ -150,21 +147,21 @@ export default function DashboardSession() {
     const session = useAppSelector(selectSession);
     let errors = [];
 
-    const pauseDetails = session !== undefined;
+    const [initialFetched, setInitialFetched] = useState(false);
 
     const [result] = useQuery({
         query: QuerySessionDetails,
         variables: { code: router.query.code },
-        pause: pauseDetails,
     });
 
     /* Dispatch the session (update it in Redux store) when the sessionDetails
      * query comes back */
     const { data, fetching } = result;
-    if (!fetching && !pauseDetails) {
-        if (data.sessionDetails.errors.length === 0)
+    if (!fetching && !initialFetched) {
+        if (data.sessionDetails.errors.length === 0) {
             dispatch(updateSession(data.sessionDetails.session));
-        else errors = data.sessionDetails.errors;
+            setInitialFetched(true);
+        } else errors = data.sessionDetails.errors;
     }
 
     /* Set up the subscription using the ID from the query, to dispatch the
@@ -230,7 +227,6 @@ export default function DashboardSession() {
                     (a) => a.kind === SessionActivity.POLL && a.state === "open"
                 );
                 if (currentPoll === undefined) return <></>;
-                console.log(currentPoll);
                 return <PollResult activity={currentPoll} />;
         }
     };
@@ -241,7 +237,6 @@ export default function DashboardSession() {
         content = <p>I&apos;m loading</p>;
     } else if (errors.length !== 0) {
         // error happened - maybe no auth?
-        console.log("error?", data.sessionDetails);
         content = <p>An error happened! {errors.toString()}</p>;
     } else {
         let activities: React.ReactNode[];

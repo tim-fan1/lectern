@@ -67,7 +67,6 @@ export default function CardSession({ code, id, name, state, startTime, endTime 
 
     const [sessionState, setSessionState] = useState(state);
 
-    // TODO: error handling could be done better here. Little information is given to the user, perhaps it's fine though?
     const [error, setError] = useState("");
 
     const handleStartSession = () => {

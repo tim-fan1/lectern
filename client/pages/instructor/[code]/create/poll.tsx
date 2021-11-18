@@ -9,8 +9,6 @@ import { useAppDispatch } from "../../../../state/hooks";
 import { updateSession } from "../../../../state/sessionSlice";
 import styles from "../../../../styles/createPoll.module.css";
 
-// TODO: this whole page is a mess and needs to be revisited.
-
 const QuerySessionDetails = `
     query ($code: String!) {
         sessionDetails(code: $code) {
@@ -66,7 +64,6 @@ export default function CreatePoll() {
     const [errors, setErrors] = useState([] as string[]);
     const dispatch = useAppDispatch();
 
-    // TODO: this is not a good way to do this.
     const [name, setName] = useState("");
     const [options, setOptions] = useState([""]);
     const [nAnswers, setNAnswers] = useState(1);
@@ -101,8 +98,6 @@ export default function CreatePoll() {
             kind: "POLL",
         };
 
-        console.log(options);
-
         createActivity(variables).then((result) => {
             if (result.data.createActivity.errors.length === 0) {
                 const activityId: number = result.data.createActivity.activity.id;
@@ -124,7 +119,6 @@ export default function CreatePoll() {
             </Head>
             <Navigation />
             <h1>Create a poll</h1>
-            {/* TODO: want a back to dashboard or whatever here */}
             <form className="form" onSubmit={handleSubmit}>
                 <input
                     id={styles.input_poll_name}

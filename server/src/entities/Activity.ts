@@ -12,6 +12,10 @@ import { Session, Choice } from "./entities";
 
 type ActivityState = "draft" | "open" | "archived";
 
+/**
+ * Activity entity: represents an activity within a session (e.g. a poll,
+ * quiz, etc.)
+ */
 @ObjectType()
 @Entity()
 export default class Activity {

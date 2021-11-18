@@ -22,7 +22,7 @@ export default class LiveSession {
     }
 
     /**
-     * why the fuck did i just write a getter in javascript
+     * getter in javascript lul
      */
     getSession() {
         return this.session;
@@ -63,7 +63,8 @@ export default class LiveSession {
      */
     private async tick() {
         this.pubsub.publish(topic(this.session.id), this);
-        /* TODO: write to database, sometimes */
+        /* For a production version, we would implement some strategy here
+         * to periodically save to the database (so we don't overload it). */
     }
 
     /**

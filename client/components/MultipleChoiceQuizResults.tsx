@@ -21,9 +21,7 @@ export default function MultipleChoiceQuizResults({ activity }: MultipleChoiceQu
             isCorrectAnswer: choice.QuizIsCorrect,
         });
     }
-    console.log("results", results);
     let totalVotes = results.reduce((acc, item) => acc + item.numberOfVotes, 0);
-    console.log("totalvotes", totalVotes);
     return (
         <div className={`${styles.main_container} container_center`}>
             <div className={styles.top_header_container}>
