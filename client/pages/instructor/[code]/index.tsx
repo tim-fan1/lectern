@@ -128,9 +128,6 @@ export default function DashboardSession() {
         closeSession({ id }).then((result) => {
             if (result.data.closeSession.errors.length === 0) {
                 router.push("/instructor/dashboard");
-                // setError("");
-            } else {
-                // setError(`Could not close session "${name}". Please try again.`);
             }
         });
     };

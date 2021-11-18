@@ -42,8 +42,6 @@ export default function ResetPassword() {
             email: email,
         };
         gqlReset(variables).then((result) => {
-            // TODO: check if the network request actually succeeded.
-
             if (result.data.requestReset.errors.length === 0) {
                 setResetSuccess(true);
             }

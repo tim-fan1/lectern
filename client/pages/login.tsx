@@ -50,7 +50,6 @@ export default function Login() {
             password: password,
         };
         gqlLogin(variables).then((result) => {
-            // TODO: check if the network request actually succeeded.
             if (result.data.login.errors.length === 0) {
                 router.push("/instructor/dashboard");
                 dispatch(login());

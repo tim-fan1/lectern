@@ -32,7 +32,6 @@ export default function Present() {
 
     const [isFullscreen, setIsFullscreen] = useState(false);
 
-    /* TODO: error-handling for whether or not `code` is valid. */
     const [result] = useQuery({ query: QuerySessionDetails, variables: { code: code } });
     const { data, fetching, error } = result;
 
