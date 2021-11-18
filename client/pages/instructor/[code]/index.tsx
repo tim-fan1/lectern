@@ -150,6 +150,8 @@ export default function DashboardSession() {
     const session = useAppSelector(selectSession);
     let errors = [];
 
+    const [initialFetched, setInitialFetched] = useState(false);
+
     const [result] = useQuery({
         query: QuerySessionDetails,
         variables: { code: router.query.code },
@@ -158,10 +160,11 @@ export default function DashboardSession() {
     /* Dispatch the session (update it in Redux store) when the sessionDetails
      * query comes back */
     const { data, fetching } = result;
-    if (!fetching) {
-        if (data.sessionDetails.errors.length === 0)
+    if (!fetching && !initialFetched) {
+        if (data.sessionDetails.errors.length === 0) {
             dispatch(updateSession(data.sessionDetails.session));
-        else errors = data.sessionDetails.errors;
+            setInitialFetched(true);
+        } else errors = data.sessionDetails.errors;
     }
 
     /* Set up the subscription using the ID from the query, to dispatch the

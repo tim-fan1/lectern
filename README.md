@@ -9,6 +9,8 @@ Project group: `3900-w16a-disaggregated-far-memory`
 
 ## Quickstart
 
+> Note: Lectern will only run on the Lubuntu 20.4.1 virtual machine image, and not on CSE vLab, since vLab's `node` version is too old. We have provided a script to install the required dependencies.
+
 First ensure that a (reasonably) modern version of `node.js` is installed. `Lectern` requires v12+. A newer version of `node.js` can be installed using the `install_node.sh` script.
 
 ### Client
