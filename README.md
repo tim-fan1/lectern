@@ -1,14 +1,28 @@
-# Lectern
+# Lectern.me monorepo
 
-A lecture/class engagement and participation platform (like Kahoot or Slido).
+Source code for the `lectern.me` website frontend and server components.
+`Lectern` is a lecture/class engagement and participation platform (like Kahoot or Slido).
 
 Created for our UNSW COMP3900 capstone project, written by Tim Fan, Jack Jiang, Brian Nguyen, Eddie Qi, and Ivan Velickovic.
 
-Project group: 3900-w16a-disaggregated-far-memory
+Project group: `3900-w16a-disaggregated-far-memory`
 
 ## Quickstart
 
-TODO
+First ensure that a (reasonably) modern version of `node.js` is installed. `Lectern` requires v12+. A newer version of `node.js` can be installed using the `install_node.sh` script.
+
+### Client
+- `cd` into the client directory
+- `npm install` the client's dependencies in that directory. This is only required once
+- `npm run build` the client's code. This transpiles and optimises our frontend code
+- `npm run start` to start the client.
+
+### Server
+- `cd` into the server directory
+- `npm install` the server's dependencies in that directory. This is only required once
+- `npm run build` the server's code. This also transpiles and optimises the backend code
+- `npm run start` to start the server.
+
 
 ## Folder structure
 
