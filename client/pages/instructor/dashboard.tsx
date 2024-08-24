@@ -24,8 +24,7 @@ export default function Dashboard() {
             .map((e) => e.group)
             .filter((group) => group !== null)
             .filter((group, index, array) => array.findIndex((g) => g === group) === index);
-
-        if (groups.length === 0) {
+        if (sessions.length === 0) {
             noGroupsCreatedContent = <p>There are no sessions yet!</p>;
         } else {
             groupedSessionContent = (
