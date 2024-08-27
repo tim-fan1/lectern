@@ -1,41 +1,33 @@
-# Lectern.me monorepo
+# Lectern
 
-Source code for the `lectern.me` website frontend and server components.
-`Lectern` is a lecture/class engagement and participation platform (like Kahoot or Slido).
+Lectern is a lecture/class engagement and participation platform — like Kahoot! or Slido — created for our UNSW Computer Science Capstone Project, written by Tim Fan, Jack Jiang, Brian Nguyen, Eddie Qi, and Ivan Velickovic.
 
-Created for our UNSW COMP3900 capstone project, written by Tim Fan, Jack Jiang, Brian Nguyen, Eddie Qi, and Ivan Velickovic.
+``[Insert GIF of live multiple-choice quiz here]``
 
-Project group: `3900-w16a-disaggregated-far-memory`
+## Who is Lectern For?
 
-## Quickstart
+Standing at a lectern and delivering an engaging lesson for a large group of curious students — motivated but probably sleep-deprived, maybe easily distracted and likely at least a bit shy — is always a challenge, no matter if the students are in-person seated in front of the instructor, or if they are many postcodes and countries away participating in the lesson remotely.
 
-> Note: Lectern will only run on the Lubuntu 20.4.1 virtual machine image, and not on CSE vLab, since vLab's `node` version is too old. We have provided a script to install the required dependencies.
+Lectern aims to help instructors deliver engaging lessons for their students. But unlike a real lectern which presents ***to the instructor*** the information and notes that they would want to use to help engage students in the lesson, our Lectern web application aims to present ***to the students*** activities that would help them engage with the lesson themselves and actively participate in the lesson more, in turn also engaging them more with their peers too during the lesson.
 
-First ensure that a (reasonably) modern version of `node.js` is installed. `Lectern` requires v12+. A newer version of `node.js` can be installed using the `install_node.sh` script.
+### Instructors
 
-### Client
-- `cd` into the `client` directory
-- run `npm install` to install client's dependencies in that directory. This is only required once
-- run `npm run build` to compile the client codebase. This transpiles and optimises our frontend code
-- `npm run start` to start the client.
+For instructors, Lectern provides the tools to create simple, intuitive, and versatile activites for students to engage in with their peers: 
+
+- Like multiple-choice quizzes, which instructors can use to measure overall understanding of the lesson so far; and also live polls, which can facilitate conversation between students where opinions or ideas seem to differ;
+
+- Along with open-ended activities like a live QnA session that instructors can start when they are ready to take questions from students both offline and online, and also pause when they feel they should be continuing on with the lesson, also giving students time to think about their questions more. 
+
+### Students
+
+For students, Lectern provides a way to easily join Lectern sessions that their instructors have opened and shared with them, by either scanning a large QR code on the screen, or by entering in a short room code on the no-account required Lectern web application. When joining a live Lectern session, students have a choice to either use their real name or other nickname, or to provide no name at all and remain anonymous.
+
+## How Does Lectern Work?
 
 ### Server
-- `cd` into the `server` directory
-- run `npm install` to install server's dependencies in that directory. This is only required once
-- run `npm run build` to compile the server's code. This also transpiles and optimises the backend code
-- `npm run start` to start the server.
 
+GraphQL, ORM's, Express Middleware
 
-## Folder structure
+### Client
 
-`client/` contains our web front-end, written in TypeScript and using Next.js.
-
-`server/` contains the back-end, written in TypeScript and using Express.js.
-
-`diaries/` contains weekly development updates from team members about their contributions
-
-## A note about architecture
-
-Our webapp and server don't communicate through something like a HTTP REST API; rather, they use [GraphQL](https://graphql.org/) as their transport. This fundamentally changes the structure of the codebases, especially on the back-end.
-
-Instead of HTTP routes, the back-end defines API endpoints as either "queries", "mutations", or "subscriptions". In our codebase, each of these endpoints takes the form of a function that is @-decorated, and they are organised into classes called "resolvers".
+NextJS, GraphQL Subscriptions
