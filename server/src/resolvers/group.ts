@@ -22,7 +22,7 @@ class MultipleGroupResponse extends EndpointResponse {
  */
 @Resolver()
 export default class GroupResolver {
-    @CheckAuth(["sessions"])
+    @CheckAuth(["user.sessions"])
     @Query(() => MultipleGroupResponse)
     async getGroups(
         @Ctx() { user }: AuthedContext

@@ -32,7 +32,7 @@ import QnA from "../entities/QnA";
  */
 @Resolver()
 export default class SessionResolver {
-    @CheckAuth(["sessions"])
+    @CheckAuth(["user.sessions"])
     @Query(() => SessionArrResponse)
     async getSessions(
         @Ctx() { user }: AuthedContext,
@@ -48,7 +48,7 @@ export default class SessionResolver {
         };
     }
 
-    @CheckAuth(["sessions"])
+    @CheckAuth(["user.sessions"])
     @Mutation(() => SessionResponse)
     async createSession(
         @Ctx() { conn, user }: AuthedContext,

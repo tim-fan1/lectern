@@ -30,7 +30,7 @@ import modifySession, { getSession } from "../utils/modifySession";
  */
 @Resolver()
 export default class ActivityResolver {
-    @CheckAuth(["sessions"])
+    @CheckAuth(["user.sessions"])
     @Query(() => ActivityArrResponse)
     async getActivities(
         @Arg("sessionId", () => Int) sessionId: number,
@@ -50,7 +50,7 @@ export default class ActivityResolver {
         return { errors: [], activities: session.activities };
     }
 
-    @CheckAuth(["sessions"])
+    @CheckAuth(["user.sessions"])
     @Query(() => ActivityResultResponse)
     async getActivityResult(
         @Arg("session_id", () => Int) sessionId: number,
@@ -166,7 +166,7 @@ export default class ActivityResolver {
         return { errors: [], result: undefined };
     }
 
-    @CheckAuth(["sessions"])
+    @CheckAuth(["user.sessions"])
     @Mutation(() => ActivityResponse)
     async createActivity(
         @Arg("sessionId", () => Int) sessionId: number,
@@ -227,7 +227,7 @@ export default class ActivityResolver {
             };
     }
 
-    @CheckAuth(["sessions"])
+    @CheckAuth(["user.sessions"])
     @Mutation(() => ActivityResponse)
     async addChoices(
         @Arg("sessionId", () => Int) sessionId: number,
@@ -317,7 +317,7 @@ export default class ActivityResolver {
             };
     }
 
-    @CheckAuth(["sessions"])
+    @CheckAuth(["user.sessions"])
     @Mutation(() => ActivityResponse)
     async editChoice(
         @Arg("sessionId", () => Int) sessionId: number,
@@ -439,7 +439,7 @@ export default class ActivityResolver {
             };
     }
 
-    @CheckAuth(["sessions"])
+    @CheckAuth(["user.sessions"])
     @Mutation(() => ActivityResponse)
     async removeChoice(
         @Arg("sessionId", () => Int) sessionId: number,
@@ -494,7 +494,7 @@ export default class ActivityResolver {
             };
     }
 
-    @CheckAuth(["sessions"])
+    @CheckAuth(["user.sessions"])
     @Mutation(() => ActivityResponse)
     async startActivity(
         @Arg("sessionId", () => Int) sessionId: number,
@@ -624,7 +624,7 @@ export default class ActivityResolver {
             };
     }
 
-    @CheckAuth(["sessions"])
+    @CheckAuth(["user.sessions"])
     @Mutation(() => ActivityResponse)
     async closeActivity(
         @Arg("sessionId", () => Int) sessionId: number,
@@ -674,7 +674,7 @@ export default class ActivityResolver {
             };
     }
 
-    @CheckAuth(["sessions"])
+    @CheckAuth(["user.sessions"])
     @Mutation(() => ActivityResponse)
     async resetActivity(
         @Arg("sessionId", () => Int) sessionId: number,

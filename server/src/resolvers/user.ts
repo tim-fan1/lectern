@@ -271,7 +271,7 @@ export default class UserResolver {
         }
     }
 
-    @CheckAuth(["sessions"])
+    @CheckAuth(["user.sessions"])
     @Query(() => UserResponse)
     async userDetails(@Ctx() { user }: AuthedContext): Promise<UserResponse> {
         try {

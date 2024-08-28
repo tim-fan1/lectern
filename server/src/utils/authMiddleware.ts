@@ -46,12 +46,33 @@ export function AuthMiddleware(
             /* checks if the session is valid */
             const repo = conn.getRepository(LoginSession);
             const thisSess = await repo.findOne(
-                { token: token },
-                // hehe
-                {
-                    relations: ["user", ...relations.map((r) => "user." + r)],
+                { 
+                    where: { 
+                        token: token
+                    },
+                    relations: [
+                        // Load loginSession.user first (always!),
+                        "user", 
+                        // And then, 
+                        //
+                        // if relations === ["user.sessions"], for example,
+                        //
+                        // load loginSession.user.sessions.
+                        ...relations.map((r) => r)
+                        //
+                        // Note that relations like "session.activites",
+                        // -- for some session in "user.sessions" --
+                        // will always be loaded, because it is marked 
+                        // as eager-loading in the Session entity.
+                        // 
+                        // And the same for a relation like "activity.choices",
+                        // -- for some activity in "session.activiites" --
+                        // will always be loaded, because it is marked
+                        // as eager-loading in the Activity entity,
+                    ],
                 }
             );
+            console.log(thisSess);
             if (thisSess === undefined) {
                 /* user had an invalid cookie; unset it */
                 res.clearCookie("token", {
