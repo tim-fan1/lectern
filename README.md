@@ -211,3 +211,24 @@ Testing
 #### Managing Open and Closed Sessions
 
 Testing
+
+## Running Lectern
+
+### NodeJS Version 16 is required
+
+Currently, building the Lectern Client requires using Node v16 — this can be done using [nvm][1]:
+
+```bash
+$ nvm install 16
+Now using node v16.20.2 (npm v8.19.4)
+$ node -v 
+v16.20.2
+```
+
+Trying to build Lectern Client while using Node v20 will lead to an error message with code `'ERR_OSSL_EVP_UNSUPPORTED'`, relating to how [Node v17 removed support for OpenSSL v1.1.1 in favour of OpenSSL v3.0][2]. 
+
+Updating project dependecies should fix the issue, especially [NextJS][3] and ReactJS.
+
+[1]: https://github.com/nvm-sh/nvm
+[2]: https://nodejs.org/en/blog/release/v17.0.0#openssl-30
+[3]: https://github.com/vercel/next.js/issues/30078
