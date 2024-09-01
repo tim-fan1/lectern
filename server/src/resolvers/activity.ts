@@ -23,6 +23,7 @@ import {
 } from "../types";
 import CheckAuth from "../utils/authMiddleware";
 import modifySession, { getSession } from "../utils/modifySession";
+import { validate } from "graphql";
 
 /**
  * Activity resolver: defines all our GraphQL endpoints for operations relating
@@ -208,6 +209,7 @@ export default class ActivityResolver {
                     conn.getRepository(Activity).create({
                         kind: kind,
                         name: name,
+                        state: "draft",
                         session: session,
                         choices: [],
                     })
@@ -232,7 +234,7 @@ export default class ActivityResolver {
     async addChoices(
         @Arg("sessionId", () => Int) sessionId: number,
         @Arg("activityId", () => Int) activityId: number,
-        @Arg("choices", () => [InputChoice]) choices: InputChoice[],
+        @Arg("choices", () => [InputChoice], { validate : false }) choices: InputChoice[],
         @Ctx() { conn, user, openSessions }: AuthedContext
     ): Promise<ActivityResponse> {
         const result = await modifySession(
