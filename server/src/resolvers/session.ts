@@ -217,7 +217,7 @@ export default class SessionResolver {
         return { errors: [], session: result.data };
     }
 
-    @CheckAuth(["sessions"])
+    @CheckAuth(["user.sessions"])
     @Mutation(() => SessionResponse)
     async duplicateSession(
         @Arg("id", () => Int) id: number,

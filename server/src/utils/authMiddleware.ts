@@ -72,7 +72,6 @@ export function AuthMiddleware(
                     ],
                 }
             );
-            console.log(thisSess);
             if (thisSess === undefined) {
                 /* user had an invalid cookie; unset it */
                 res.clearCookie("token", {
