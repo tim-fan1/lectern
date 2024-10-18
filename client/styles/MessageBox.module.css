@@ -1,0 +1,12 @@
+.container {
+    width: fit-content;
+    background-color: var(--c-background-secondary);
+    box-shadow: 5px 5px 0 1px var(--c-background-tertiary);
+    text-align: center;
+    padding: 2rem 4rem;
+    margin: 1rem auto;
+}
+
+.error {
+    color: var(--c-red);
+}

@@ -1,0 +1,18 @@
+#container_input_poll_option {
+    display: flex;
+    flex-direction: column;
+    row-gap: 1rem;
+    margin-top: 2rem;
+}
+
+#container_input_poll_option h3 {
+    text-align: center;
+}
+
+#container_input_label_poll_option label {
+    margin-right: 1rem;
+}
+
+#input_poll_name {
+    margin-top: 1rem;
+}

@@ -1,0 +1,35 @@
+#question_textarea {
+    resize: none;
+    background-color: var(--c-background-tertiary);
+    color: white;
+    font-family: var(--font-stack);
+    font-size: 1rem;
+    width: 30rem;
+    height: 5rem;
+    padding: 1rem;
+    border: 2px solid var(--c-light-grey);
+    transition: color 0.2s;
+}
+
+#question_textarea:focus {
+    outline: none;
+}
+
+.disabled {
+    color: var(--c-grey) !important;
+}
+
+#question_container_submit {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#question_container_submit button {
+    margin-bottom: 1rem;
+}
+
+#question_container_submit p span {
+    color: var(--c-grey);
+}

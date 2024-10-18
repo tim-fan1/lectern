@@ -1,0 +1,44 @@
+#container {
+    width: 75%;
+}
+
+#container_sessions {
+    margin-bottom: 5rem;
+}
+
+#container_sessions h2 {
+    margin-top: 1rem;
+}
+
+#container_card_session_labels {
+    display: flex;
+    width: 100%;
+    margin: 2rem 0 0 2rem;
+}
+
+#container_card_session_labels h3 {
+    font-weight: 500;
+}
+
+#session_label_name {
+    flex: 2;
+}
+
+#session_label_start_time,
+#session_label_end_time {
+    flex: 1;
+}
+
+#container_card_session_labels div {
+    flex: 2;
+}
+
+.group_header {
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.non_group_header {
+    text-align: center;
+    color: var(--c-light-grey);
+}

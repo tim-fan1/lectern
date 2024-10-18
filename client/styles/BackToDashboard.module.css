@@ -1,0 +1,14 @@
+.center_vertical {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.link {
+    margin-right: 1.25rem;
+}
+
+.arrow {
+    margin: 0 1.25rem;
+}

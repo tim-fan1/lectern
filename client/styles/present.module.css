@@ -1,0 +1,117 @@
+.top_level {
+    /* make this 100% the screen */
+    min-width: 100vw;
+    min-height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main_container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+.topfloat_item {
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.topfloat_container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+    width: 100%;
+    /* add a bit of padding from the edge */
+    padding-right: 10vw;
+}
+
+.middle_container {
+    margin: 30px 0 30px 0;
+    flex-grow: 1;
+}
+
+.middle_small_text {
+    font-weight: 500;
+    font-size: 1.5rem;
+    margin: 0;
+    color: var(--c-grey);
+}
+
+.middle_large_text {
+    font-weight: 600;
+    margin: 0;
+    font-size: 45px;
+}
+
+.middle_line {
+    background-color: #ffffff;
+    width: 5px;
+    height: 200px;
+}
+
+.bottom_screen {
+    flex-grow: 3;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    margin: 80px 0 80px 0;
+    justify-content: center;
+}
+
+.bottom_text_container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin: 40px;
+    flex-grow: 1;
+    flex-basis: 0;
+}
+
+.bottom_text_container h1 {
+    color: white;
+}
+
+.bottom_qr_container {
+    padding: 40px;
+    border-left: 4px white solid;
+    flex-grow: 1;
+    flex-basis: 0;
+}
+
+.qrcode {
+    padding: 20px;
+    background-color: #ffffff;
+}
+
+.bottom_small_text {
+    font-weight: 500;
+    margin: 0;
+    font-size: 2.75rem;
+    color: var(--c-grey);
+}
+
+.bottom_large_text {
+    font-weight: 600;
+    margin: 0;
+    font-size: 70px;
+}
+
+.bottom_url_text {
+    font-weight: 600;
+    margin: 0;
+    font-size: 3.5em;
+    text-align: right;
+    max-width: 45vw;
+    overflow-wrap: anywhere;
+}
+
+#fullscreen_box {
+    background-color: var(--c-background);
+    color: var(--c-text);
+}
