@@ -1,0 +1,93 @@
+#container_join {
+    width: 32rem;
+}
+
+#form_join {
+    margin-top: 5rem;
+}
+
+#header_enter_session {
+    color: var(--c-light-grey);
+}
+
+#header_session_title {
+    margin: 0;
+    font-size: 2.5rem;
+}
+
+#code {
+    font-weight: 500;
+    color: white;
+}
+
+#code::before {
+    content: "#";
+}
+
+.btn_submit {
+    margin-top: 0.5rem;
+}
+
+.btn_submit svg {
+    fill: var(--c-light-grey);
+    margin-left: 0.25rem;
+}
+
+.btn_submit:hover svg {
+    fill: white;
+}
+
+#btn_submit_name p {
+    margin: 0;
+}
+
+#btn_submit_name span {
+    color: white;
+    font-weight: 600;
+}
+
+#container_submit_name {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#submit_separator {
+    display: flex;
+    align-items: center;
+    margin: 0.75rem 0;
+}
+
+#submit_separator hr {
+    width: 8rem;
+    margin: 0 1rem;
+}
+
+#container_submit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#container_submit button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#container_invalid_code {
+    text-align: center;
+    color: var(--c-red);
+}
+
+
+.profile_container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+}
+
+.round_corners {
+    border-radius: 50%;
+}

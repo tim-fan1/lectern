@@ -1,0 +1,28 @@
+.container {
+    background-color: var(--c-background-secondary);
+    display: flex;
+    padding: 1rem 2rem;
+    margin: 0.75rem 0;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s;
+    border: 3px solid var(--c-background-tertiary);
+    min-height: 5rem;
+    min-width: 20rem;
+}
+
+.container:hover {
+    border: 3px solid var(--c-secondary);
+    box-shadow: 5px 5px 0 1px var(--c-tertiary);
+}
+
+.container p {
+    margin: 0;
+}
+
+.name {
+    max-width: 20rem;
+    word-wrap: break-word;
+    font-weight: 650;
+    margin: 0 1.5rem;
+}

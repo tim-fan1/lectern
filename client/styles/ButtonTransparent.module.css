@@ -1,0 +1,10 @@
+.verticle_container {
+    align-items: center;
+    flex-direction: row;
+    display: flex;
+    user-select: none;
+}
+
+#text {
+    margin-right: 1rem;
+}

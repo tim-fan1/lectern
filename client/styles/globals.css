@@ -1,0 +1,85 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+    --c-primary: #7e7cd3;
+    --c-secondary: #6664b4;
+    --c-tertiary: #4a4996;
+    --c-background: #222330;
+    --c-background-secondary: #333549;
+    --c-background-tertiary: #2b2a3b;
+    --c-grey: #898095;
+    --c-light-grey: #c4c4c4;
+    --c-purple-grey: #baaccd;
+    --c-red: #d96c6c;
+    --c-text: #f8f8f8;
+    --font-stack: "Inter", -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu,
+        Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    padding: 0;
+    margin: 0;
+    font-family: var(--font-stack);
+    background-color: var(--c-background);
+    color: var(--c-text);
+}
+
+h1 {
+    font-weight: 500;
+    color: var(--c-purple-grey);
+}
+
+h2 {
+    font-weight: 400;
+    margin: 0;
+}
+
+h3,
+h4 {
+    font-weight: 400;
+    margin: 0;
+}
+
+a {
+    font-weight: 500;
+    color: var(--c-light-grey);
+    text-decoration: none;
+    transition: all 0.1s;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+a svg {
+    fill: var(--c-light-grey);
+}
+
+a:hover {
+    color: white;
+}
+
+a:hover svg {
+    fill: white;
+}
+
+b {
+    font-weight: 600;
+}
+
+/* For some stupid reason, form elements do not inherit the font-family property so we explicitly set it here. */
+button,
+input {
+    font-family: var(--font-stack);
+}
+
+.container_center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}

@@ -1,0 +1,9 @@
+#helper_links {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+#helper_links a {
+    margin: 0.5rem 0;
+}
